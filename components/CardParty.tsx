@@ -8,6 +8,11 @@ export type Party = {
   status?: 'Active' | 'Inactive';
 };
 
+<Link href={`/parties/${party.slug}`}
+  className="card p-4 block relative before:content-[''] before:block before:h-1.5 before:rounded-t-xl
+             before:bg-gradient-to-r before:from-saffron-500 before:to-brand-500">
+
+
 export default function CardParty({ party }: { party: Party }) {
   return (
     <Link href={`#`} className="card p-4 block">
