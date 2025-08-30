@@ -2,14 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Theme */
 :root {
-  --nb-bg: #0b0e17;
-  --nb-fg: #e6e8ee;
+  --bg: #0b0e17;
+  --fg: #e6e8ee;
+}
+body { background: var(--bg); color: var(--fg); }
+
+/* Cards */
+.card { @apply rounded-xl border border-white/10 bg-white/[.05] shadow-card; }
+.card:hover { @apply border-white/20; }
+
+/* Accent underlines for section headings */
+.h-kicker { @apply text-[11px] uppercase tracking-[0.14em] text-white/60; }
+.h-underline { position: relative; }
+.h-underline::after {
+  content: ""; position: absolute; left: 0; bottom: -6px; height: 2px; width: 48px;
+  background: linear-gradient(90deg, #FF8A2A, #0F7DA6);
+  border-radius: 999px; opacity: .9;
 }
 
-html, body { height: 100%; }
-body { background: var(--nb-bg); color: var(--nb-fg); }
+/* CTA */
+.btn { @apply rounded-lg px-4 py-2 bg-brand-500 hover:bg-brand-400 transition; }
+.btn--ghost { @apply rounded-lg px-4 py-2 bg-white/0 border border-white/15 hover:border-white/25; }
+
 
 /* Cards */
 .card { @apply rounded-xl border border-white/10 bg-white/5 shadow-sm; }
