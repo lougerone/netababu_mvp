@@ -122,11 +122,22 @@ export async function getPartyBySlug(slug: string): Promise<Party | null> {
   return rec ? mapParty(rec) : null;
 }
 
-export async function allPoliticianSlugs(): Promise<string[]> {
-  // ❌ remove the fields param – fetch default fields
-  const data = await atFetch(T_POL);
-  return data.records.map((r:any) => r.fields?.slug || r.id).filter(Boolean);
+// lib/airtable.ts
+export async function getPolitician(slugOrId: string): Promise<Politician | null> {
+  // If the path param starts with "rec", treat it as an Airtable record ID
+  if (slugOrId.startsWith("rec")) {
+    const url = `${AIRTABLE_API}/${BASE_ID}/${encodeURIComponent(T_POL)}/${slugOrId}`;
+    const res = await atFetch(url);
+    return mapPolitician(res);
+  }
+  // otherwise look up by slug
+  const data = await atFetch(T_POL, {
+    filterByFormula: `{slug} = "${slugOrId}"`
+  });
+  const rec = data.records[0];
+  return rec ? mapPolitician(rec) : null;
 }
+
 
 export async function allPartySlugs(): Promise<string[]> {
   const data = await atFetch(T_PAR);
