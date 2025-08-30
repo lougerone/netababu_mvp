@@ -9,14 +9,27 @@ const T_PAR = process.env.AIRTABLE_TABLE_PARTIES || "Parties";
 export type Attachment = { url: string; filename?: string; width?: number; height?: number };
 
 export type Politician = {
-  id: string;           // Airtable record id
+  id: string;
   slug: string;
   name: string;
   dob?: string | null;
   offices?: string[];
   life_events?: string | null;
   photo?: Attachment | null;
-  links?: string[];     // normalized to array
+  links?: string[];
+  // new fields for cards and profile pages:
+  party?: string;
+  state?: string;
+  current_position?: string;
+  position?: string;
+  constituency?: string;
+  age?: number | string | null;
+  yearsInPolitics?: number | string | null;
+  attendance?: string | null;
+  assets?: string | null;
+  liabilities?: string | null;
+  criminalCases?: number | string | null;
+  website?: string | null;
 };
 
 export type Party = {
@@ -45,22 +58,34 @@ async function atFetch(table: string, params: Record<string, string | undefined>
 function mapPolitician(r: any): Politician {
   const f = r.fields || {};
   const getFirst = (arr?: any[]) => (Array.isArray(arr) && arr.length ? arr[0] : null);
+  const parseList = (val: any) => {
+    if (Array.isArray(val)) return val;
+    return val ? String(val).split(/\n|,|;/).map((s:string)=>s.trim()).filter(Boolean) : [];
+  };
+
   return {
     id: r.id,
     slug: f.slug || r.id,
     name: f.name || "",
-    dob: f.dob || null,
-    offices: Array.isArray(f.offices) ? f.offices : (f.offices ? String(f.offices).split(",").map((s:string)=>s.trim()) : []),
+    dob: f.dob || f.DOB || null,
+    offices: parseList(f.offices),
     life_events: f.life_events || null,
-    photo: getFirst(f.photo),
-    links: Array.isArray(f.links)
-      ? f.links
-      : f.links
-      ? String(f.links).split(/\n|,|;/).map((s:string)=>s.trim()).filter(Boolean)
-      : []
+    photo: getFirst(f.photo || f.Photo),
+    links: parseList(f.links),
+    party: f.Party || f.party,
+    state: f.Constituency || f.state,
+    current_position: f.Position || f.position,
+    position: f.Position || f.position,
+    constituency: f.Constituency || f.constituency,
+    age: f.Age || f.age,
+    yearsInPolitics: f["Years in politics"] || f["Years in office"],
+    attendance: f["% Parliament Attendance"] || f["Parliament Attendance"],
+    assets: f["Declared Assets"] || f.assets,
+    liabilities: f["Declared Liabilities"] || f.liabilities,
+    criminalCases: f["Criminal Cases"] || f.criminalCases,
+    website: f.Website || f.website,
   };
 }
-
 function mapParty(r: any): Party {
   const f = r.fields || {};
   const getFirst = (arr?: any[]) => (Array.isArray(arr) && arr.length ? arr[0] : null);
