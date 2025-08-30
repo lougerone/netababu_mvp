@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import '../globals.css';
-import Nav from '@/components/Nav.tsx';
-import Footer from '@/components/Footer.tsx';
+// ✅ no extensions
+import Nav from '@/components/Nav'
+import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
   title: 'Netababu — India Political Data',
