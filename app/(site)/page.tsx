@@ -51,13 +51,11 @@ export default function HomePage() {
 </section>
 {/* Featured netas & parties */}
 <section className="space-y-2 mt-8">
-  <h2
-    className="text-2xl md:text-3xl font-extrabold 
-               bg-gradient-to-r from-saffron-600 
-               text-transparent bg-clip-text"
-  >
-    Featured
-  </h2>
+ <h2 className="text-2xl md:text-3xl font-extrabold
+   bg-gradient-to-r from-saffron-500 to-leaf-500
+   text-transparent bg-clip-text">
+  Featured netas &amp; parties
+</h2>
   {/* Use a two-column grid on medium screens and above */}
   <div className="grid md:grid-cols-2 gap-8">
     {/* Left column: top politicians */}
