@@ -51,38 +51,6 @@ export default function HomePage() {
 </section>
 
 
-      {/* Explore blocks */}
-      <section className="grid md:grid-cols-3 gap-4">
-        <div className="card p-5">
-          <h3 className="font-medium mb-2">Explore by Party</h3>
-          <p className="text-sm text-white/70 mb-3">Browse active & latent parties.</p>
-          <Link href="/parties" className="underline">View all →</Link>
-        </div>
-        <div className="card p-5">
-          <h3 className="font-medium mb-2">Explore by State</h3>
-          <p className="text-sm text-white/70 mb-3">Filter politicians by state.</p>
-          <Link href="/politicians?state=MH" className="underline">Try Maharashtra →</Link>
-        </div>
-        <div className="card p-5">
-          <h3 className="font-medium mb-2">Trending Comparisons</h3>
-          <p className="text-sm text-white/70 mb-3">Side-by-side facts.</p>
-          <Link href="/compare" className="underline">Compare leaders →</Link>
-        </div>
-      </section>
-
-      {/* Featured / Recently Updated */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Featured / Recently Updated</h2>
-        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
-          {politicians.slice(0, 2).map((p) => (
-            <CardPolitician key={p.id} p={p} />
-          ))}
-          {parties.slice(0, 2).map((p) => (
-            <CardParty key={p.id} party={p} />
-          ))}
-        </div>
-      </section>
-
       {/* Sources */}
       <section className="space-y-2">
         <h2 className="text-xl font-semibold">Sources</h2>
