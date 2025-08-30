@@ -2,34 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base theme */
-html, body {
-  height: 100%;
+/* Theme */
+:root {
+  --nb-bg: #0b0e17;
+  --nb-fg: #e6e8ee;
 }
 
-body {
-  background: #0b0e17;
-  color: #e6e8ee;
-  font-family: Inter, system-ui, sans-serif;
-}
+html, body { height: 100%; }
+body { background: var(--nb-bg); color: var(--nb-fg); }
 
 /* Cards */
-.card {
-  @apply rounded-xl border border-white/10 bg-white/5 shadow-sm;
-}
-.card:hover {
-  @apply border-white/20;
-}
+.card { @apply rounded-xl border border-white/10 bg-white/5 shadow-sm; }
+.card:hover { @apply border-white/20; }
 
-/* Section kicker (tiny heading) */
-.h-kicker {
-  @apply text-[11px] uppercase tracking-[0.14em] text-white/60;
-}
-
-/* Underline accent for headings */
-.h-underline {
-  position: relative;
-}
+/* Section kickers + underline */
+.h-kicker { @apply text-[11px] uppercase tracking-[0.14em] text-white/60; }
+.h-underline { position: relative; }
 .h-underline::after {
   content: "";
   position: absolute;
@@ -43,10 +31,5 @@ body {
 }
 
 /* Buttons */
-.btn {
-  @apply rounded-lg px-4 py-2 bg-brand-500 hover:bg-brand-400 transition;
-}
-.btn-ghost {
-  @apply rounded-lg px-4 py-2 border border-white/15 hover:border-white/25;
-  background: transparent;
-}
+.btn { @apply rounded-lg px-4 py-2 bg-brand-500 hover:bg-brand-400 transition; }
+.btn-ghost { @apply rounded-lg px-4 py-2 border border-white/15 hover:border-white/25; background: transparent; }
