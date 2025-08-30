@@ -123,11 +123,13 @@ export async function getPartyBySlug(slug: string): Promise<Party | null> {
 }
 
 export async function allPoliticianSlugs(): Promise<string[]> {
-  const data = await atFetch(T_POL, { fields: "slug" });
+  // ❌ remove the fields param – fetch default fields
+  const data = await atFetch(T_POL);
   return data.records.map((r:any) => r.fields?.slug || r.id).filter(Boolean);
 }
 
 export async function allPartySlugs(): Promise<string[]> {
-  const data = await atFetch(T_PAR, { fields: "slug" });
+  const data = await atFetch(T_PAR);
   return data.records.map((r:any) => r.fields?.slug || r.id).filter(Boolean);
 }
+
