@@ -2,34 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Theme */
-:root {
-  --nb-bg: #0b0e17;
-  --nb-fg: #e6e8ee;
-}
-
+/* Base theme */
 html, body { height: 100%; }
-body { background: var(--nb-bg); color: var(--nb-fg); }
+body { background: #0b0e17; color: #e6e8ee; }
 
-/* Cards */
+/* Simple card */
 .card { @apply rounded-xl border border-white/10 bg-white/5 shadow-sm; }
 .card:hover { @apply border-white/20; }
-
-/* Section kickers + underline */
-.h-kicker { @apply text-[11px] uppercase tracking-[0.14em] text-white/60; }
-.h-underline { position: relative; }
-.h-underline::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -6px;
-  height: 2px;
-  width: 48px;
-  background: linear-gradient(90deg, #FF8A2A, #0F7DA6);
-  border-radius: 999px;
-  opacity: 0.9;
-}
-
-/* Buttons */
-.btn { @apply rounded-lg px-4 py-2 bg-brand-500 hover:bg-brand-400 transition; }
-.btn-ghost { @apply rounded-lg px-4 py-2 border border-white/15 hover:border-white/25; background: transparent; }
