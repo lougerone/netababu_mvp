@@ -9,12 +9,22 @@ export async function generateStaticParams() {
   return slugs.slice(0, 2000).map((slug) => ({ slug })); // limit if huge
 }
 
-export default async function PoliticianPage({ params }: { params: { slug: string } }) {
-  const p = await getPoliticianBySlug(params.slug);
+export async function getPolitician(slugOrId: string) {
+  // If it looks like a record ID, fetch directly
+  if (slugOrId.startsWith('rec')) {
+    const url = `${AIRTABLE_API}/${BASE_ID}/${T_POL}/${slugOrId}`;
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${TOKEN}` } });
+    const data = await res.json();
+    return data.fields ? mapPolitician({ id: slugOrId, fields: data.fields }) : null;
+  }
+  // Otherwise fetch by slug (supports both slug and [slug] field names)
+  const formula = `OR({slug}='${slugOrId}', {\\[slug\\]}='${slugOrId}')`;
+  const url = `${AIRTABLE_API}/${BASE_ID}/${T_POL}?filterByFormula=${encodeURIComponent(formula)}&maxRecords=1`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${TOKEN}` } });
+  const data = await res.json();
+  return data.records?.length ? mapPolitician(data.records[0]) : null;
+}
 
-  if (!p) {
-    // optional: return notFound() to show Next 404
-    return <div className="mx-auto max-w-3xl p-6">Not found.</div>;
   }
 
   return (
