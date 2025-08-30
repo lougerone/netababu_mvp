@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  /* Cards */
+  .card { @apply rounded-xl border border-white/10 bg-white/[.05] shadow-card; }
+  .card:hover { @apply border-white/20; }
+}
+
 :root {
   --bg: #0b0e17;
   --fg: #e6e8ee;
