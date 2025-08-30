@@ -49,14 +49,7 @@ export default function HomePage() {
     <Link href="/compare" className="text-saffron-600 font-medium">Compare →</Link>
   </div>
 </section>
-      {/* Sources */}
-      <section className="space-y-2">
-        <h2 className="text-xl font-semibold">Sources</h2>
-        <p className="text-sm text-white/70">
-          ECI • PRS • Lok Sabha / NIC • State ECs • News archives • Census/NSS
-        </p>
-      </section>
-{/* Featured netas & parties */}
+    {/* Featured netas & parties */}
 <section className="space-y-2 mt-8">
   <h2 className="text-xl font-semibold">Featured netas & parties</h2>
   <div className="grid md:grid-cols-4 gap-4">
@@ -70,6 +63,14 @@ export default function HomePage() {
     ))}
   </div>
 </section>
+      {/* Sources */}
+      <section className="space-y-2">
+        <h2 className="text-xl font-semibold">Sources</h2>
+        <p className="text-sm text-white/70">
+          ECI • PRS • Lok Sabha / NIC • State ECs • News archives • Census/NSS
+        </p>
+      </section>
+
     </div>
   );
 }
