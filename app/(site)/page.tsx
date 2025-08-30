@@ -51,13 +51,19 @@ export default function HomePage() {
 </section>
 {/* Featured netas & parties */}
 <section className="space-y-2 mt-8">
-  <h2 className="text-xl font-semibold">Featured netas & parties</h2>
+  <h2
+    className="text-2xl md:text-3xl font-extrabold 
+               bg-gradient-to-r from-purple-600 to-blue-500 
+               text-transparent bg-clip-text"
+  >
+    Featured netas &amp; parties
+  </h2>
   {/* Use a two-column grid on medium screens and above */}
   <div className="grid md:grid-cols-2 gap-8">
     {/* Left column: top politicians */}
     <div>
       <h3 className="text-lg font-semibold mb-2">Top netas</h3>
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid md:grid-cols-2 gap-8">
         {politicians.slice(0, 3).map((p) => (
           <CardPolitician key={p.id} p={p} />
         ))}
