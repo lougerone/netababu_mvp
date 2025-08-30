@@ -23,6 +23,13 @@ export default function CardPolitician({ p }: { p: Politician }) {
           <div className="text-xs text-white/70 truncate">{p.party} {p.state ? `• ${p.state}` : ''}</div>
         </div>
       </div>
+      <div className="flex items-center gap-2">
+  <div className="text-xs text-white/70 truncate">{p.party} {p.state ? `• ${p.state}` : ''}</div>
+  <span className="ml-auto px-2 py-0.5 text-[11px] rounded-full bg-saffron-500/15 text-saffron-500 border border-saffron-500/30">
+    {p.party}
+  </span>
+</div>
+
       {p.current_position && (
         <div className="text-xs text-white/60 mt-3">{p.current_position}</div>
       )}
