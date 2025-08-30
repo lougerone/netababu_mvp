@@ -14,9 +14,19 @@
 }
 body { background: var(--bg); color: var(--fg); }
 
-/* Cards */
-.card { @apply rounded-xl border border-white/10 bg-white/[.05] shadow-card; }
-.card:hover { @apply border-white/20; }
+  /* Cards */
+  .card {
+    @apply rounded-xl border border-white/10 bg-white/[.05] shadow-card
+           transition-shadow transition-colors duration-200;
+  }
+  .card:hover {
+    @apply border-white/20 bg-white/[.07] shadow-card-hover;
+  }
+
+  /* Optional helpers you may use later */
+  .card-tight { @apply p-4 md:p-5; }
+  .card-roomy { @apply p-5 md:p-6; }
+}
 
 /* Accent underlines for section headings */
 .h-kicker { @apply text-[11px] uppercase tracking-[0.14em] text-white/60; }
