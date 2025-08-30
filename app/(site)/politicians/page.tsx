@@ -13,9 +13,11 @@ export default async function PoliticianPage({
   params: { slug: string };
 }) {
   const p = await getPolitician(params.slug);
-  if (!p) notFound();
+  if (!p) {
+    notFound();
+  }
 
-  // no need to cast; `p` is already a Politician
+  // Use the existing Politician type
   const politician: Politician = p;
 
   return (
@@ -23,7 +25,7 @@ export default async function PoliticianPage({
       <header className="flex items-start gap-4">
         {politician.photo ? (
           <Image
-            src={politician.photo} // photo is a string URL now
+            src={politician.photo}
             alt={politician.name}
             width={96}
             height={96}
@@ -37,7 +39,7 @@ export default async function PoliticianPage({
           {politician.position && (
             <p className="text-sm text-black/60">{politician.position}</p>
           )}
-          {/* party is now guaranteed to be a string, but you can still show it conditionally */}
+          {/* party is a required string, so this will always render if non-empty */}
           {politician.party && (
             <p className="text-sm text-black/60">Party: {politician.party}</p>
           )}
@@ -51,7 +53,8 @@ export default async function PoliticianPage({
           )}
         </div>
       </header>
-      {/* rest of the component remains unchanged */}
+
+      {/* … the rest of the sections (age, yearsInPolitics, attendance, assets, etc.) remain unchanged … */}
     </main>
   );
 }
