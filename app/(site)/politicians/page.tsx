@@ -3,17 +3,14 @@
 import { listPoliticians } from '@/lib/airtable';
 import PoliticiansClient from './Client';
 
-/**
- * Use dynamic rendering to ensure this page fetches data at request time,
- * rather than during the build. Set REVALIDATE_SECONDS in your environment
- * if you want incremental static regeneration instead.
- */
+// Use dynamic rendering so the page fetches fresh data at request time.
+// Alternatively, you can use ISR with revalidate if you prefer.
 export const dynamic = 'force-dynamic';
 
 export default async function PoliticiansPage() {
-  // Fetch all politicians from Airtable on the server
+  // Fetch data from Airtable on the server
   const allPoliticians = await listPoliticians();
 
-  // Pass the data to a client component that handles search/filtering
+  // Pass it to the client component (which handles search/filtering)
   return <PoliticiansClient initialData={allPoliticians} />;
 }
