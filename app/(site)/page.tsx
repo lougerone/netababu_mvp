@@ -52,7 +52,7 @@ export default function HomePage() {
 {/* Featured netas & parties */}
 <section className="space-y-2 mt-8">
  <h2 className="text-2xl md:text-3xl font-extrabold
-   bg-gradient-to-r from-saffron-500 to-leaf-500
+   bg-gradient-to-r from-saffron-500
    text-transparent bg-clip-text">
   Featured netas &amp; parties
 </h2>
