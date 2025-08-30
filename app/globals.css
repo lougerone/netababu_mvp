@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0b0e17;
+  --fg: #e6e8ee;
+}
+
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); }
+
+/* simple card + hover */
+.card { @apply rounded-xl border border-white/10 bg-white/5 shadow-sm; }
+.card:hover { @apply border-white/20; }
+
+/* subtle separators */
+.hr { @apply border-t border-white/10; }
