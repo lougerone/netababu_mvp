@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import '../globals.css';
-// ✅ no extensions
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
