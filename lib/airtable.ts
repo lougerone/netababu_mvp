@@ -18,7 +18,7 @@ export type Politician = {
   photo?: Attachment | null;
   links?: string[];
   // new fields for cards and profile pages:
-  party?: string;
+  party: string;
   state?: string;
   current_position?: string;
   position?: string;
@@ -72,7 +72,7 @@ function mapPolitician(r: any): Politician {
     life_events: f.life_events || null,
     photo: getFirst(f.photo || f.Photo),
     links: parseList(f.links),
-    party: f.Party || f.party,
+    party: (f.Party || f.party || "") as string,
     state: f.Constituency || f.state,
     current_position: f.Position || f.position,
     position: f.Position || f.position,
