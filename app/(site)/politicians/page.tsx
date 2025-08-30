@@ -1,29 +1,19 @@
-'use client';
-import { useMemo, useState } from 'react';
-import CardPolitician from '@/components/CardPolitician';
-import SearchBar from '@/components/SearchBar';
-import { politicians } from '@/lib/data';
+// app/(site)/politicians/page.tsx
 
-export default function PoliticiansIndex() {
-  const [query, setQuery] = useState('');
-  const items = useMemo(() => {
-    const q = query.toLowerCase();
-    return politicians.filter(p =>
-      p.name.toLowerCase().includes(q) ||
-      p.party.toLowerCase().includes(q) ||
-      (p.state ?? '').toLowerCase().includes(q)
-    );
-  }, [query]);
+import { listPoliticians } from '@/lib/airtable';
+import PoliticiansClient from './Client';
 
-  return (
-    <div className="space-y-6">
-      <header className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="text-2xl font-semibold">Politicians</h1>
-        <SearchBar value={query} onChange={setQuery} placeholder="Search politicians…" />
-      </header>
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {items.map(p => <CardPolitician key={p.id} p={p} />)}
-      </div>
-    </div>
-  );
+/**
+ * Use dynamic rendering to ensure this page fetches data at request time,
+ * rather than during the build. Set REVALIDATE_SECONDS in your environment
+ * if you want incremental static regeneration instead.
+ */
+export const dynamic = 'force-dynamic';
+
+export default async function PoliticiansPage() {
+  // Fetch all politicians from Airtable on the server
+  const allPoliticians = await listPoliticians();
+
+  // Pass the data to a client component that handles search/filtering
+  return <PoliticiansClient initialData={allPoliticians} />;
 }
