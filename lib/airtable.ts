@@ -15,7 +15,7 @@ export type Politician = {
   dob?: string | null;
   offices?: string[];
   life_events?: string | null;
-  photo?: Attachment | null;
+  photo?: string;
   links?: string[];
   // new fields for cards and profile pages:
   party: string;
@@ -57,11 +57,7 @@ async function atFetch(table: string, params: Record<string, string | undefined>
 // --- mappers (rename fields here if your Airtable names differ) ---
 function mapPolitician(r: any): Politician {
   const f = r.fields || {};
-  const getFirst = (arr?: any[]) => (Array.isArray(arr) && arr.length ? arr[0] : null);
-  const parseList = (val: any) => {
-    if (Array.isArray(val)) return val;
-    return val ? String(val).split(/\n|,|;/).map((s:string)=>s.trim()).filter(Boolean) : [];
-  };
+  const getFirst = (arr?: any[]) => Array.isArray(arr) && arr.length ? arr[0] : null;
 
   return {
     id: r.id,
@@ -70,7 +66,10 @@ function mapPolitician(r: any): Politician {
     dob: f.dob || f.DOB || null,
     offices: parseList(f.offices),
     life_events: f.life_events || null,
-    photo: getFirst(f.photo || f.Photo),
+    photo: (() => {
+      const att = getFirst(f.photo || f.Photo);
+      return att && att.url ? (att.url as string) : undefined;
+    })(),
     links: parseList(f.links),
     party: (f.Party || f.party || "") as string,
     state: f.Constituency || f.state,
@@ -86,6 +85,7 @@ function mapPolitician(r: any): Politician {
     website: f.Website || f.website,
   };
 }
+
 function mapParty(r: any): Party {
   const f = r.fields || {};
   const getFirst = (arr?: any[]) => (Array.isArray(arr) && arr.length ? arr[0] : null);
