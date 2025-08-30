@@ -53,10 +53,10 @@ export default function HomePage() {
 <section className="space-y-2 mt-8">
   <h2
     className="text-2xl md:text-3xl font-extrabold 
-               bg-gradient-to-r from-purple-600 to-blue-500 
+               bg-gradient-to-r from-saffron-600 to-white-500 
                text-transparent bg-clip-text"
   >
-    Featured netas &amp; parties
+    Featured
   </h2>
   {/* Use a two-column grid on medium screens and above */}
   <div className="grid md:grid-cols-2 gap-8">
