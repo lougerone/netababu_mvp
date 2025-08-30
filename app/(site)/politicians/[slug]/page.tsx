@@ -43,8 +43,8 @@ export default async function PoliticianPage({
         )}
         <div>
           <h1 className="text-2xl font-semibold">{p.name}</h1>
-          {p.position && (
-            <p className="text-sm text-black/60">{p.position}</p>
+          {p.Position && (
+            <p className="text-sm text-black/60">{p.Position}</p>
           )}
           {p.party && (
             <p className="text-sm text-black/60">Party: {p.party}</p>
