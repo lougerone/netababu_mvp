@@ -1,36 +1,21 @@
+// tailwind.config.ts
 import type { Config } from 'tailwindcss';
-
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
-  theme: {
-    extend: {
-      colors: {
-        brand: {
-          400: '#FF9A3A', // lighter brand color
-          500: '#FF8A2A', // main brand color (matching your gradient)
-        }
-      }
-    },
-  },
-  plugins: [],
-}
 
 const config: Config = {
   content: [
-    './app/**/*.{js,ts,jsx,tsx}',
-    './components/**/*.{js,ts,jsx,tsx}'
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    container: { center: true, padding: '1rem' },
     extend: {
-      container: { center: true, padding: '1rem' },
+      boxShadow: {
+        card: '0 8px 24px rgba(0,0,0,0.20), 0 2px 8px rgba(0,0,0,0.10)',
+      },
       colors: {
         brand: {
-          50: '#f5f8ff',
+          50:  '#f5f8ff',
           100: '#eaf0ff',
           200: '#cddbff',
           300: '#a8c0ff',
@@ -39,14 +24,17 @@ const config: Config = {
           600: '#2149db',
           700: '#1b3aae',
           800: '#182f8a',
-          900: '#172a70'
-        }
-      }
-    }
+          900: '#172a70',
+        },
+        // optional: keep your orange accents without colliding with the scale
+        brandAlt: {
+          400: '#FF9A3A',
+          500: '#FF8A2A',
+        },
+      },
+    },
   },
-  plugins: []
+  plugins: [],
 };
 
 export default config;
-
-
