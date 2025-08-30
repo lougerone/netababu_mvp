@@ -64,12 +64,17 @@ export default function HomePage() {
   </div>
 </section>
       {/* Sources */}
-      <section className="space-y-2">
-        <h2 className="text-xl font-semibold">Sources</h2>
-        <p className="text-sm text-white/70">
-          ECI • PRS • Lok Sabha / NIC • State ECs • News archives • Census/NSS
-        </p>
-      </section>
+<section className="space-y-2 mt-8">
+  <h2 className="text-xl font-semibold">Sources</h2>
+  <p className="text-sm text-ink-600/80 space-x-2">
+    <Link href="https://eci.gov.in" className="underline">ECI</Link> •
+    <Link href="https://prsindia.org" className="underline">PRS</Link> •
+    <Link href="https://loksabha.nic.in" className="underline">Lok Sabha</Link> •
+    <Link href="https://censusindia.gov.in" className="underline">Census</Link> •
+    <Link href="https://mospi.gov.in" className="underline">NSS</Link>
+  </p>
+</section>
+
 
     </div>
   );
