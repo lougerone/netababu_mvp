@@ -49,20 +49,33 @@ export default function HomePage() {
     <Link href="/compare" className="text-saffron-600 font-medium">Compare →</Link>
   </div>
 </section>
-    {/* Featured netas & parties */}
+{/* Featured netas & parties */}
 <section className="space-y-2 mt-8">
   <h2 className="text-xl font-semibold">Featured netas & parties</h2>
-  <div className="grid md:grid-cols-4 gap-4">
-    {/* Top 3 politicians */}
-    {politicians.slice(0, 3).map((p) => (
-      <CardPolitician key={p.id} p={p} />
-    ))}
-    {/* Top 3 parties */}
-    {parties.slice(0, 3).map((party) => (
-      <CardParty key={party.id} party={party} />
-    ))}
+  {/* Use a two-column grid on medium screens and above */}
+  <div className="grid md:grid-cols-2 gap-8">
+    {/* Left column: top politicians */}
+    <div>
+      <h3 className="text-lg font-semibold mb-2">Top netas</h3>
+      <div className="grid sm:grid-cols-2 gap-4">
+        {politicians.slice(0, 3).map((p) => (
+          <CardPolitician key={p.id} p={p} />
+        ))}
+      </div>
+    </div>
+
+    {/* Right column: top parties */}
+    <div>
+      <h3 className="text-lg font-semibold mb-2">Top parties</h3>
+      <div className="grid sm:grid-cols-2 gap-4">
+        {parties.slice(0, 3).map((party) => (
+          <CardParty key={party.id} party={party} />
+        ))}
+      </div>
+    </div>
   </div>
 </section>
+
       {/* Sources */}
 <section className="space-y-2 mt-8">
   <h2 className="text-xl font-semibold">Sources</h2>
