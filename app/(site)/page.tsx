@@ -22,42 +22,40 @@ export default async function HomePage() {
   return (
     <div className="space-y-12">
       {/* Hero */}
-      <section className="relative isolate text-center space-y-4 h-[70vh] flex flex-col items-center justify-center overflow-hidden">
-  {/* Background image */}
+      <section className="relative isolate text-center overflow-hidden">
+  {/* Background image behind content */}
   <Image
     src="/hero/hero-2560w.webp"
     alt="Watercolor collage of Indian political figures — Netababu"
     fill
     priority
-    placeholder="blur"
-    blurDataURL={blurDataURL}
-    className="absolute inset-0 -z-10 object-cover object-top"
+    className="absolute inset-0 -z-10 h-full w-full object-cover object-top"
     sizes="100vw"
   />
 
-  {/* Gradient overlay for readability */}
-  <div className="absolute inset-0 -z-10 bg-gradient-to-b from-cream-200/40 via-cream-200/60 to-cream-200" />
+  {/* ↑ Removed the cream overlay and the saffron band */}
 
-  {/* Top saffron rule */}
-  <div className="absolute top-0 left-0 right-0 h-2 bg-saffron-500/95" />
+  {/* Content sits near the top, like before */}
+  <div className="mx-auto max-w-4xl px-4 pt-10 md:pt-14 lg:pt-16 pb-24 md:pb-28 lg:pb-32 min-h-[56vh]">
+    <div className="h-kicker">India • Politics • Data</div>
 
-  {/* Your existing text + search stays the same */}
-  <div className="h-kicker">India • Politics • Data</div>
-  <h1 className="text-4xl md:text-5xl font-semibold text-ink-700">
-    Netas, parties, drama — all in one place.
-  </h1>
-  <div className="text-saffron-600 text-xl md:text-2xl font-semibold">
-    नेताजी, पार्टियाँ और इंफो — एक ही जगह
-  </div>
+    <h1 className="mt-2 text-4xl md:text-5xl font-semibold text-ink-700">
+      Netas, parties, drama — all in one place.
+    </h1>
 
-  <div className="max-w-2xl mx-auto mt-3 flex gap-2">
-    <input className="input-pill" placeholder="Search politicians, parties…" />
-    <button className="btn">Search</button>
-  </div>
+    <div className="text-saffron-600 text-xl md:text-2xl font-semibold">
+      नेताजी, पार्टियाँ और इंफो — एक ही जगह
+    </div>
 
-  <div className="text-sm text-ink-600/80">
-    Popular: <Link href="/politicians?query=modi" className="underline">Modi</Link> •{' '}
-    <Link href="/parties?query=inc" className="underline">INC</Link>
+    <div className="max-w-2xl mx-auto mt-3 flex gap-2">
+      <input className="input-pill" placeholder="Search politicians, parties…" />
+      <button className="btn">Search</button>
+    </div>
+
+    <div className="mt-2 text-sm text-ink-600/80">
+      Popular: <Link href="/politicians?query=modi" className="underline">Modi</Link> •{" "}
+      <Link href="/parties?query=inc" className="underline">INC</Link>
+    </div>
   </div>
 </section>
 
