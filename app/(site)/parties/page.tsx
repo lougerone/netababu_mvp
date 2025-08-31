@@ -2,28 +2,17 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { listParties } from '@/lib/airtable';
+import type { Party } from '@/lib/airtable';   // ← use the source of truth
 
 export const dynamic = 'force-dynamic';
 
-type Party = {
-  id: string;
-  slug: string;
-  name: string;
-  abbr?: string;
-  status?: string;
-  founded?: string;
-  logo?: string;
-};
-
 export default async function PartiesPage({
   searchParams,
-}: {
-  searchParams?: { [key: string]: string | undefined };
-}) {
+}: { searchParams?: { [key: string]: string | undefined } }) {
   const view: 'grid' | 'list' =
     (searchParams?.view?.toLowerCase() as 'grid' | 'list') === 'list' ? 'list' : 'grid';
 
-  const parties: Party[] = await listParties();
+  const parties = await listParties();        // ← no manual annotation
   const count = parties.length;
 
   const base = new URLSearchParams();
@@ -40,18 +29,12 @@ export default async function PartiesPage({
           <p className="text-sm text-black/60">Showing {count} parties</p>
         </div>
         <div className="inline-flex overflow-hidden rounded-lg border border-black/10">
-          <Link
-            href={{ pathname: '/parties', query: { ...baseObj, view: 'grid' } }}
-            className={`px-3 py-2 text-sm ${view === 'grid' ? 'bg-black/5 font-medium' : 'hover:bg-black/5'}`}
-          >
+          <Link href={{ pathname: '/parties', query: { ...baseObj, view: 'grid' } }}
+                className={`px-3 py-2 text-sm ${view === 'grid' ? 'bg-black/5 font-medium' : 'hover:bg-black/5'}`}>
             Grid
           </Link>
-          <Link
-            href={{ pathname: '/parties', query: { ...baseObj, view: 'list' } }}
-            className={`px-3 py-2 text-sm border-l border-black/10 ${
-              view === 'list' ? 'bg-black/5 font-medium' : 'hover:bg-black/5'
-            }`}
-          >
+          <Link href={{ pathname: '/parties', query: { ...baseObj, view: 'list' } }}
+                className={`px-3 py-2 text-sm border-l border-black/10 ${view === 'list' ? 'bg-black/5 font-medium' : 'hover:bg-black/5'}`}>
             List
           </Link>
         </div>
@@ -66,14 +49,11 @@ function GridView({ parties }: { parties: Party[] }) {
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {parties.map((p) => (
-        <Link
-          key={p.id}
-          href={`/parties/${p.slug}`}
-          className="group rounded-xl border border-black/10 bg-white shadow-sm transition hover:border-black/20 hover:shadow-md"
-        >
+        <Link key={p.id} href={`/parties/${p.slug}`}
+              className="group rounded-xl border border-black/10 bg-white shadow-sm transition hover:border-black/20 hover:shadow-md">
           <article className="p-4">
             <div className="mb-3 flex items-center gap-3">
-              <LogoBox src={p.logo} alt={`${p.name} logo`} name={p.name} abbr={p.abbr} />
+              <LogoBox src={p.logo ?? undefined} alt={`${p.name} logo`} name={p.name} abbr={p.abbr} />
               <div className="min-w-0">
                 <h2 className="truncate text-base font-medium group-hover:underline">{p.name || '—'}</h2>
                 <p className="truncate text-xs text-black/60">
@@ -95,7 +75,7 @@ function ListView({ parties }: { parties: Party[] }) {
       {parties.map((p) => (
         <Link key={p.id} href={`/parties/${p.slug}`} className="block">
           <article className="flex items-center gap-4 px-4 py-3 hover:bg-black/[.03]">
-            <LogoBox src={p.logo} alt={`${p.name} logo`} name={p.name} abbr={p.abbr} />
+            <LogoBox src={p.logo ?? undefined} alt={`${p.name} logo`} name={p.name} abbr={p.abbr} />
             <div className="min-w-0 flex-1">
               <h2 className="truncate text-sm font-medium">{p.name || '—'}</h2>
               <p className="truncate text-xs text-black/60">
@@ -115,14 +95,8 @@ function LogoBox({
   alt,
   name,
   abbr,
-}: {
-  src?: string;
-  alt: string;
-  name?: string;
-  abbr?: string;
-}) {
+}: { src?: string; alt: string; name?: string; abbr?: string }) {
   if (!src) {
-    // clean fallback (initials) when no image or an attachment isn’t provided
     return (
       <div className="flex h-8 w-8 items-center justify-center rounded bg-black/5 text-[10px] font-semibold">
         {initials(name, abbr)}
