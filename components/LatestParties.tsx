@@ -1,9 +1,10 @@
-// app/(site)/components/LatestParties.tsx  (server component)
-import CardParty from '@/components/CardParty';
+// components/LatestParties.tsx
 import { listRecentParties } from '@/lib/airtable';
+import CardParty from '@/components/CardParty';
 
-export default async function LatestParties() {
-  const parties = await listRecentParties(5);
+export default async function LatestParties({ limit = 5 }: { limit?: number }) {
+  const parties = await listRecentParties(limit);
+
   return (
     <section className="space-y-3">
       <h2 className="text-lg font-semibold">Latest parties</h2>
