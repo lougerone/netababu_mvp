@@ -16,6 +16,7 @@ export default function CardParty({ party }: { party: Party }) {
                  before:content-[''] before:block before:h-1.5 before:rounded-t-xl
                  before:bg-gradient-to-r before:from-saffron-500 before:to-ink-600"
     >
+      {/* top row: logo + name */}
       <div className="flex items-center gap-3">
         <LogoBox src={party.logo ?? undefined} name={party.name} abbr={party.abbr} />
 
@@ -25,17 +26,20 @@ export default function CardParty({ party }: { party: Party }) {
         </div>
       </div>
 
-      {statusLabel && (
-        <div className="text-xs text-ink-600/70 mt-3">
+      {/* bottom row: TICKER LEFT + PILL RIGHT, no wrap */}
+      <div className="mt-3 flex items-center justify-between text-xs text-ink-600/80 gap-2">
+        <span className="truncate min-w-0">{party.abbr || '—'}</span>
+
+        {statusLabel && (
           <span
-            className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+            className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium ${
               isNational ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
             }`}
           >
             {statusLabel}
           </span>
-        </div>
-      )}
+        )}
+      </div>
     </Link>
   );
 }
