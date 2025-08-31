@@ -140,7 +140,7 @@ function mapParty(r: any): Party {
     firstNonEmpty(f, ['Name', 'Party Name', 'Party', 'party_name', 'party']) || '';
 
   const abbr =
-+    firstNonEmpty(f, ['Ticker', 'ticker', 'Assignee', 'Abbreviation', 'Abbr', 'Acronym', 'Short Name', 'abbreviation', 'abbr']);
+    firstNonEmpty(f, ['Ticker', 'ticker', 'Assignee', 'Abbreviation', 'Abbr', 'Acronym', 'Short Name', 'abbreviation', 'abbr']);
 
   const status =
     firstNonEmpty(f, ['Status', 'Recognition', 'Type']) || null;
