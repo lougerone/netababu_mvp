@@ -325,10 +325,25 @@ export async function getPoliticianBySlug(slug: string): Promise<Politician | nu
 }
 
 export async function getPartyBySlug(slug: string): Promise<Party | null> {
-  const data = await atFetch(T_PAR, { filterByFormula: `{slug} = "${slug}"`, maxRecords: '1' });
-  const rec = data.records[0];
+  const s = slug.toLowerCase().replace(/"/g, '\\"');
+
+  // Try case-insensitive match on both 'slug' and 'Slug'
+  try {
+    const data = await atFetch(T_PAR, {
+      filterByFormula: `OR(LOWER({slug}) = "${s}", LOWER({Slug}) = "${s}")`,
+      maxRecords: '1',
+    });
+    if (data.records?.[0]) return mapParty(data.records[0]);
+  } catch {
+    // ignore and fall through
+  }
+
+  // Fallback: compute slug locally from each record (handles rows without slug fields)
+  const all = await atFetchAll(T_PAR, { pageSize: '100' });
+  const rec = all.find((r) => mapParty(r).slug === slug);
   return rec ? mapParty(rec) : null;
 }
+
 
 export async function getPolitician(slugOrId: string): Promise<Politician | null> {
   if (slugOrId.startsWith('rec')) {
@@ -343,9 +358,7 @@ export async function getPolitician(slugOrId: string): Promise<Politician | null
 
 export async function allPartySlugs(): Promise<string[]> {
   const records = await atFetchAll(T_PAR, { pageSize: '100' });
-  return records
-    .map((r) => r.fields?.slug || r.fields?.Slug || toSlug(r.fields?.name || r.fields?.Name || '') || r.id)
-    .filter(Boolean);
+  return records.map((r) => mapParty(r).slug).filter(Boolean);
 }
 
 // Most recent by Founded — Parties
