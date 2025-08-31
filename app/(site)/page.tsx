@@ -22,28 +22,22 @@ export default async function HomePage() {
   return (
     <div className="space-y-12">
       {/* Hero */}
-      <section
-  className="
-    relative isolate overflow-hidden
-    w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]  /* full-bleed */
-    min-h-[56vh] md:min-h-[64vh] lg:min-h-[72vh]
-  "
->
-  {/* Background image (full width, full image shown) */}
+      <section className="relative isolate text-center space-y-4 overflow-hidden">
+  {/* Background image */}
   <Image
     src="/hero/hero-2560w.webp"
     alt="Watercolor collage of Indian political figures — Netababu"
     fill
     priority
-    className="absolute inset-0 -z-10 h-full w-full object-contain object-top"
+    className="absolute inset-0 -z-10 w-full h-full object-cover object-top"
     sizes="100vw"
   />
 
-  {/* Foreground content - moved higher */}
-  <div className="mx-auto max-w-6xl px-4 pt-4 md:pt-6 lg:pt-8 pb-24 md:pb-28">
+  {/* Content — untouched, original size + centered */}
+  <div className="mx-auto max-w-4xl px-4 py-16 md:py-20 lg:py-24">
     <div className="h-kicker">India • Politics • Data</div>
 
-    <h1 className="mt-1 text-4xl md:text-5xl font-semibold text-ink-700">
+    <h1 className="text-4xl md:text-5xl font-semibold text-ink-700">
       Netas, parties, drama — all in one place.
     </h1>
 
@@ -56,12 +50,13 @@ export default async function HomePage() {
       <button className="btn">Search</button>
     </div>
 
-    <div className="mt-2 text-sm text-ink-600/80">
-      Popular: <Link href="/politicians?query=modi" className="underline">Modi</Link> •{" "}
+    <div className="text-sm text-ink-600/80 mt-2">
+      Popular: <Link href="/politicians?query=modi" className="underline">Modi</Link> •{' '}
       <Link href="/parties?query=inc" className="underline">INC</Link>
     </div>
   </div>
 </section>
+
 
 
       {/* Explore cards */}
