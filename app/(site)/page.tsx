@@ -22,33 +22,33 @@ export default async function HomePage() {
   return (
     <div className="space-y-12">
       {/* Hero */}
-      <section
-        className="relative isolate text-center overflow-hidden
-                   h-[60vh] md:h-[70vh] lg:h-[80vh]"
-      >
-        {/* Background image */}
-        <Image
-          src="/hero/hero-2560w.webp"
-          alt="Watercolor collage of Indian political figures — Netababu"
-          fill
-          priority
-          className="absolute inset-0 -z-10 h-full w-full object-contain object-bottom opacity-60"
-          sizes="100vw"
-        />
+<section
+  className="relative isolate text-center overflow-hidden
+             h-[60vh] md:h-[70vh] lg:h-[80vh]"
+>
+  {/* Background image */}
+  <Image
+    src="/hero/hero-2560w.webp"
+    alt="Watercolor collage of Indian political figures — Netababu"
+    fill
+    priority
+    className="absolute inset-0 -z-10 h-full w-full object-contain object-bottom opacity-60"
+    sizes="100vw"
+  />
 
-        {/* Edge fades */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream-200 to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-cream-200 to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-cream-200 to-transparent" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
+  {/* Edge fades */}
+  <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream-200 to-transparent" />
+  <div className="pointer-events-none absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-cream-200 to-transparent" />
+  <div className="pointer-events-none absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-cream-200 to-transparent" />
+  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
 
-
-        <div className="relative mx-auto max-w-4xl px-4 pt-8 md:pt-10 lg:pt-12">
-  <div className="bg-blue-50/70 backdrop-blur-sm rounded-xl px-6 py-6">
+  <div className="relative mx-auto max-w-4xl px-4 pt-8 md:pt-10 lg:pt-12">
     <div className="h-kicker">India • Politics • Data</div>
 
-    <h1 className="whitespace-nowrap font-semibold text-ink-700 leading-tight tracking-tight 
-                   text-[clamp(22px,4.5vw,42px)]">
+    <h1
+      className="whitespace-nowrap font-semibold text-ink-700 leading-tight tracking-tight 
+                 text-[clamp(22px,4.5vw,42px)]"
+    >
       Netas, parties, drama — all in one place.
     </h1>
 
@@ -72,9 +72,7 @@ export default async function HomePage() {
       </Link>
     </div>
   </div>
-</div>
-      </section>
-
+</section>
       {/* Explore cards */}
       <section className="grid md:grid-cols-3 gap-4 mt-8">
         <div className="card p-5">
