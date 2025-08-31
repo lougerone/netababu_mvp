@@ -1,5 +1,11 @@
-// ---- Party type + helpers ----
-export type Party = {
+// app/(site)/parties/page.tsx
+import Link from 'next/link';
+import Image from 'next/image';
+import { listParties } from '@/lib/airtable'; // IMPORT ONLY — do not re-export
+
+export const dynamic = 'force-dynamic';
+
+type Party = {
   id: string;
   slug: string;
   name: string;
@@ -7,93 +13,141 @@ export type Party = {
   status?: string;
   founded?: string;
   logo?: string;
-  raw?: Record<string, any>;
 };
 
-const toSlug = (s = '') =>
-  s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+export default async function PartiesPage({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | undefined };
+}) {
+  const view: 'grid' | 'list' =
+    (searchParams?.view?.toLowerCase() as 'grid' | 'list') === 'list'
+      ? 'list'
+      : 'grid';
 
-function firstNonEmpty(f: Record<string, any>, keys: string[]) {
-  for (const k of keys) {
-    const v = f[k];
-    if (typeof v === 'string' && v.trim()) return v.trim();
-  }
-  return undefined;
-}
+  const parties: Party[] = await listParties();
+  const count = parties.length;
 
-// grab the first attachment that looks like an image from ANY column
-function findImageUrl(f: Record<string, any>) {
-  for (const v of Object.values(f)) {
-    if (Array.isArray(v) && v.length && v[0] && typeof v[0] === 'object') {
-      const url = v[0].url;
-      const type = v[0].type as string | undefined;
-      if (typeof url === 'string' && url && (!type || type.startsWith('image/'))) {
-        return url;
-      }
-    }
-    if (typeof v === 'string' && /^https?:\/\//.test(v) && /(\.png|\.jpg|\.jpeg|\.webp|upload\.wikimedia|airtableusercontent)/i.test(v)) {
-      return v;
-    }
-  }
-  return undefined;
-}
-
-function normalizeParty(rec: any): Party {
-  const f = rec.fields ?? rec;
-
-  // try the common names first; then fall back to any key that contains name/party
-  const name =
-    firstNonEmpty(f, ['Party Name', 'Name', 'Party', 'party_name', 'party']) ||
-    Object.keys(f)
-      .filter((k) => /name|party/i.test(k))
-      .map((k) => String(f[k]))
-      .find((s) => s && s.trim()) ||
-    '';
-
-  const abbr =
-    firstNonEmpty(f, ['Abbreviation', 'Abbr', 'Short Name', 'Acronym']) ||
-    undefined;
-
-  const status =
-    firstNonEmpty(f, ['Status', 'Recognition', 'Type']) || undefined;
-
-  const founded =
-    firstNonEmpty(f, ['Founded', 'Formed', 'Established', 'Year Founded']) ||
-    undefined;
-
-  const logo =
-    findImageUrl(
-      {
-        Logo: f['Logo'],
-        Symbol: f['Symbol'],
-        Emblem: f['Emblem'],
-        Image: f['Image'],
-        ...f, // fallback scan across everything
-      } as any
-    ) || undefined;
-
-  const slug = toSlug(f['Slug'] ?? name);
-
-  return {
-    id: rec.id ?? slug,
-    name,
-    abbr,
-    status,
-    founded,
-    logo,
-    slug,
-    raw: f,
-  };
-}
-
-export async function listParties(): Promise<Party[]> {
-  const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${encodeURIComponent(
-    process.env.AIRTABLE_PARTIES_TABLE!
-  )}`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY!}` },
-    cache: 'no-store', // or { next: { revalidate: 86400 } }
+  const base = new URLSearchParams();
+  Object.entries(searchParams ?? {}).forEach(([k, v]) => {
+    if (k !== 'view' && typeof v === 'string') base.set(k, v);
   });
-  const json = await res.json(); // { records: [...] }
-  return (json.records ?? []).map(normalizeParty);
+  const baseObj = Object.fromEntries(base);
+
+  return (
+    <main className="mx-auto max-w-6xl px-4 py-8">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Parties</h1>
+          <p className="text-sm text-black/60">Showing {count} parties</p>
+        </div>
+
+        <div className="inline-flex overflow-hidden rounded-lg border border-black/10">
+          <Link
+            href={{ pathname: '/parties', query: { ...baseObj, view: 'grid' } }}
+            className={`px-3 py-2 text-sm ${
+              view === 'grid' ? 'bg-black/5 font-medium' : 'hover:bg-black/5'
+            }`}
+          >
+            Grid
+          </Link>
+          <Link
+            href={{ pathname: '/parties', query: { ...baseObj, view: 'list' } }}
+            className={`px-3 py-2 text-sm border-l border-black/10 ${
+              view === 'list' ? 'bg-black/5 font-medium' : 'hover:bg-black/5'
+            }`}
+          >
+            List
+          </Link>
+        </div>
+      </header>
+
+      {view === 'grid' ? (
+        <GridView parties={parties} />
+      ) : (
+        <ListView parties={parties} />
+      )}
+    </main>
+  );
 }
+
+/* ------------------------------- Views -------------------------------- */
+
+function GridView({ parties }: { parties: Party[] }) {
+  return (
+    <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {parties.map((p) => (
+        <Link
+          key={p.id}
+          href={`/parties/${p.slug}`}
+          className="group rounded-xl border border-black/10 bg-white shadow-sm transition hover:border-black/20 hover:shadow-md"
+        >
+          <article className="p-4">
+            <div className="mb-3 flex items-center gap-3">
+              <LogoBox src={p.logo} alt={`${p.name} logo`} name={p.name} abbr={p.abbr} />
+              <div className="min-w-0">
+                <h2 className="truncate text-base font-medium group-hover:underline">{p.name || '—'}</h2>
+                <p className="truncate text-xs text-black/60">
+                  {[p.abbr, p.status].filter(Boolean).join(' • ') || '—'}
+                </p>
+              </div>
+            </div>
+            {p.founded ? <p className="text-xs text-black/60">Founded: {p.founded}</p> : null}
+          </article>
+        </Link>
+      ))}
+    </section>
+  );
+}
+
+function ListView({ parties }: { parties: Party[] }) {
+  return (
+    <section className="divide-y divide-black/10 rounded-xl border border-black/10 bg-white">
+      {parties.map((p) => (
+        <Link key={p.id} href={`/parties/${p.slug}`} className="block">
+          <article className="flex items-center gap-4 px-4 py-3 hover:bg-black/[.03]">
+            <LogoBox src={p.logo} alt={`${p.name} logo`} name={p.name} abbr={p.abbr} />
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate text-sm font-medium">{p.name || '—'}</h2>
+              <p className="truncate text-xs text-black/60">
+                {[p.abbr, p.status].filter(Boolean).join(' • ') || '—'}
+              </p>
+            </div>
+            {p.founded ? (
+              <span className="whitespace-nowrap text-xs text-black/60">Founded {p.founded}</span>
+            ) : null}
+          </article>
+        </Link>
+      ))}
+    </section>
+  );
+}
+
+/* ------------------------------ Atom ---------------------------------- */
+
+function LogoBox({
+  src,
+  alt,
+  name,
+  abbr,
+}: {
+  src?: string;
+  alt: string;
+  name?: string;
+  abbr?: string;
+}) {
+  if (!src) {
+    return (
+      <div className="flex h-8 w-8 items-center justify-center rounded bg-black/5 text-[10px] font-semibold">
+        {initials(name, abbr)}
+      </div>
+    );
+  }
+  return (
+    <div className="h-8 w-8 overflow-hidden rounded bg-black/5">
+      <Image src={src} alt={alt} width={64} height={64} className="h-full w-full object-cover" />
+    </div>
+  );
+}
+
+function initials(na
