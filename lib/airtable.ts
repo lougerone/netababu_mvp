@@ -170,6 +170,10 @@ function mapParty(r: AirtableRecord): Party {
 
   const symbolText = firstNonEmpty(f, ['Attachment Summary', 'Symbol Name']) || null;
 
+  // 👇 NEW: read party's state (text or single-select)
+  const state =
+    firstNonEmpty(f, ['State', 'state', 'Home State', 'Region']) || null;
+
   const leaders: string[] = (() => {
     const raw = f['Key Leader(s)'] ?? f['Leaders'] ?? f['Leader'];
     if (Array.isArray(raw)) return raw.filter(Boolean).map(String).map((s) => s.trim());
@@ -186,8 +190,22 @@ function mapParty(r: AirtableRecord): Party {
   const details = (f['Details'] as string) ?? null;
   const slug = toSlug(f['slug'] ?? f['Slug'] ?? name) || r.id;
 
-  return { id: r.id, slug, name, abbr, status, founded, logo, leaders, symbolText, seats, details };
+  return {
+    id: r.id,
+    slug,
+    name,
+    abbr,
+    state,     // 👈 include it in the payload
+    status,
+    founded,
+    logo,
+    leaders,
+    symbolText,
+    seats,
+    details,
+  };
 }
+
 
 /* -------------------------- Local text search ----------------------------- */
 
