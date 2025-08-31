@@ -46,9 +46,13 @@ export default async function HomePage() {
         <div className="relative mx-auto max-w-4xl px-4 pt-8 md:pt-10 lg:pt-12">
           <div className="h-kicker">India • Politics • Data</div>
 
-          <h1 className="whitespace-nowrap font-semibold text-ink-700 leading-tight tracking-tight text-[clamp(28px,6vw,56px)]">
-            Netas, parties, drama — all in one place.
-          </h1>
+          <h1
+  className="whitespace-nowrap font-semibold text-ink-700 leading-tight tracking-tight 
+             text-[clamp(22px,4.5vw,42px)]"
+>
+  Netas, parties, drama — all in one place.
+</h1>
+
 
           <div className="text-saffron-600 text-xl md:text-2xl font-semibold">
             नेताजी, पार्टियाँ और इंफो — एक ही जगह
