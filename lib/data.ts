@@ -1,5 +1,5 @@
 import type { Politician } from '@/components/CardPolitician';
-import type { Party } from '@/components/CardParty';
+import type { Party } from '@/lib/airtable';
 
 export const politicians: Politician[] = [
   {
