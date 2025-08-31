@@ -93,8 +93,11 @@ export type Party = {
   abbr?: string;
   status?: string | null;
   founded?: string | null;
-  logo?: string | null;   // what the UI expects
+  logo?: string | null;          // from "Symbol" attachment
   leaders?: string[];
+  symbolText?: string | null;    // from "Attachment Summary"
+  seats?: number | string | null; // from "Lok Sabha Seats (...)"
+  details?: string | null;       // from "Details"
 };
 
 /* --------------------------- Record mappers ------------------------------- */
@@ -134,36 +137,42 @@ function mapParty(r: any): Party {
   const f = r.fields || {};
 
   const name =
-    firstNonEmpty(f, ['Party Name', 'Name', 'Party', 'party_name', 'party']) || '';
+    firstNonEmpty(f, ['Name', 'Party Name', 'Party', 'party_name', 'party']) || '';
 
   const abbr =
-    firstNonEmpty(f, ['Abbreviation', 'Abbr', 'Acronym', 'Short Name', 'abbreviation', 'abbr']);
+    firstNonEmpty(f, ['Assignee', 'Abbreviation', 'Abbr', 'Acronym', 'Short Name', 'abbreviation', 'abbr']);
 
   const status =
     firstNonEmpty(f, ['Status', 'Recognition', 'Type']) || null;
 
   const founded =
-    firstNonEmpty(f, ['Founded', 'Formed', 'Established', 'Year Founded']) || null;
+    firstNonEmpty(f, ['Founded', 'Year Founded', 'Established', 'Formed', 'Year']) || null;
 
+  // your images are in "Symbol" (attachment)
   const logo =
-    getFirstAttachmentUrl(f['Logo']) ||
     getFirstAttachmentUrl(f['Symbol']) ||
+    getFirstAttachmentUrl(f['Logo']) ||
     getFirstAttachmentUrl(f['Emblem']) ||
     getFirstAttachmentUrl(f['Image']) ||
-    getFirstAttachmentUrl(f['logo']) ||
-    getFirstAttachmentUrl(f['image']) ||
-    getFirstAttachmentUrl(f['symbol']) ||
     null;
 
-  const leaders = Array.isArray(f['Leaders'])
-    ? f['Leaders']
-    : f['Leaders']
-    ? String(f['Leaders']).split(/\n|,|;/).map((s: string) => s.trim()).filter(Boolean)
+  // extras visible in your sheet
+  const symbolText =
+    firstNonEmpty(f, ['Attachment Summary', 'Symbol Name']) || null;
+
+  const leaders = Array.isArray(f['Key Leader(s)'])
+    ? f['Key Leader(s)']
+    : f['Key Leader(s)']
+    ? String(f['Key Leader(s)']).split(/\n|,|;/).map((s: string) => s.trim()).filter(Boolean)
     : [];
 
-  const slug = toSlug(f['Slug'] ?? name) || r.id;
+  const seats = f['Lok Sabha Seats'] ?? f['Lok Sabha Seats (2024)'] ?? f['Lok Sabha Seats (20)'] ?? null;
 
-  return { id: r.id, slug, name, abbr, status, founded, logo, leaders };
+  const details = (f['Details'] as string) ?? null;
+
+  const slug = toSlug(f['slug'] ?? f['Slug'] ?? name) || r.id;
+
+  return { id: r.id, slug, name, abbr, status, founded, logo, leaders, symbolText, seats, details };
 }
 
 /* ------------------------- List / Get utilities -------------------------- */
