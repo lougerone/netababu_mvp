@@ -227,7 +227,6 @@ function mapParty(r: AirtableRecord): Party {
     abbr,
     state,     // 👈 include it in the payload
     status,
-    founded,
     logo,
     leaders,
     symbolText,
