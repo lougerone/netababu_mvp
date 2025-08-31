@@ -1,5 +1,6 @@
 // app/parties/[slug]/page.tsx
 import Image from "next/image";
+import type { ReactNode } from "react";
 import { getPartyBySlug, allPartySlugs } from "@/lib/airtable";
 
 export const revalidate = Number(process.env.REVALIDATE_SECONDS || 3600);
@@ -34,7 +35,7 @@ export default async function PartyPage({ params }: { params: { slug: string } }
     (typeof v === "string" && v.trim() === "") ||
     (Array.isArray(v) && v.length === 0);
 
-  const formatValue = (v: any): React.ReactNode => {
+  const formatValue = (v: any): ReactNode => {
     if (isEmpty(v)) return "—";
     if (Array.isArray(v)) {
       // attachments / arrays of objects with url/filename
@@ -187,14 +188,3 @@ export default async function PartyPage({ params }: { params: { slug: string } }
     </main>
   );
 }
-
-// const { searchParams } = props;  // however you get them
-const q =
-  typeof searchParams?.q === 'string'
-    ? searchParams.q
-    : Array.isArray(searchParams?.q)
-    ? searchParams.q[0]
-    : undefined;
-
-const parties = await listParties({ query: q, limit: 100 });
-
