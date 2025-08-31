@@ -105,6 +105,7 @@ export type Party = {
   slug: string;
   name: string;
   abbr?: string;
+  state?: string | null;
   status?: string | null;
   founded?: string | null;
   logo?: string | null;
