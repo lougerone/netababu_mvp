@@ -19,6 +19,10 @@ export default function CardParty({ party }: { party: Party }) {
   const attachmentsCount = Array.isArray(ext['Attachments']) ? ext['Attachments'].length : 0;
   const assignee = (ext['Assignee'] as string | undefined) ?? undefined;
 
+  // 👇 new: determine national/state + state name
+  const isNational = (party.status || '').toLowerCase().includes('national');
+  const stateName = party.state || (ext['State'] as string | undefined) || undefined;
+
   return (
     <Link
       href={`/parties/${party.slug}`}
@@ -37,12 +41,10 @@ export default function CardParty({ party }: { party: Party }) {
             {party.status && (
               <span
                 className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                  party.status === 'National'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-purple-100 text-purple-700'
+                  isNational ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
                 }`}
               >
-                {party.status}
+                {isNational ? 'National' : (stateName || 'State')}
               </span>
             )}
           </div>
