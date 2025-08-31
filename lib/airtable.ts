@@ -1,336 +1,135 @@
-// lib/airtable.ts
+import Link from 'next/link';
+import CardPolitician from '@/components/CardPolitician';
+import CardParty from '@/components/CardParty';
+import { listPoliticians, listParties } from '@/lib/airtable';
 
-// Hard guard: if this ever gets imported in a Client Component, fail loudly.
-if (typeof window !== 'undefined') {
-  throw new Error('Do not import lib/airtable.ts from Client Components. Fetch via a server component, route handler, or server action.');
+export const dynamic = 'force-dynamic';
+
+export default async function HomePage() {
+  const [polAll, parAll] = await Promise.all([
+    listPoliticians({ limit: 8 }),
+    listParties({ limit: 8 }),
+  ]);
+
+  const featuredNetas = polAll.slice(0, 4);
+  const featuredParties = parAll.slice(0, 4);
+  const latestNetas = polAll.slice(4, 8);
+  const latestParties = parAll.slice(4, 8);
+
+  return (
+    <div className="space-y-12">
+      {/* Hero */}
+      <section className="text-center space-y-4">
+        <div className="h-kicker">India • Politics • Data</div>
+        <h1 className="text-4xl md:text-5xl font-semibold text-ink-700">
+          Netas, parties, drama — all in one place.
+        </h1>
+        <div className="text-saffron-600 text-xl md:text-2xl font-semibold">
+          नेताजी, पार्टियाँ और इंफो — एक ही जगह
+        </div>
+
+        <div className="max-w-2xl mx-auto mt-3 flex gap-2">
+          <input className="input-pill" placeholder="Search politicians, parties…" />
+          <button className="btn">Search</button>
+        </div>
+
+        <div className="text-sm text-ink-600/80">
+          Popular: <Link href="/politicians?query=modi" className="underline">Modi</Link> •{' '}
+          <Link href="/parties?query=inc" className="underline">INC</Link>
+        </div>
+      </section>
+
+      {/* Explore cards */}
+      <section className="grid md:grid-cols-3 gap-4 mt-8">
+        <div className="card p-5">
+          <div className="text-2xl">🏳️</div>
+          <h3 className="font-medium mt-1">Explore by Party</h3>
+          <p className="text-sm text-ink-600/80 mb-3">Browse active & latent parties.</p>
+          <Link href="/parties" className="text-saffron-600 font-medium">View all →</Link>
+        </div>
+
+        <div className="card p-5">
+          <div className="text-2xl">📍</div>
+          <h3 className="font-medium mt-1">Explore by State</h3>
+          <p className="text-sm text-ink-600/80 mb-3">Filter politicians by state.</p>
+          <Link href="/politicians?state=MH" className="text-saffron-600 font-medium">Try Maharashtra →</Link>
+        </div>
+
+        <div className="card p-5">
+          <div className="text-2xl">⚔️</div>
+          <h3 className="font-medium mt-1">Trending netas</h3>
+          <p className="text-sm text-ink-600/80 mb-3">Compare netas → spicy facts.</p>
+          <Link href="/compare" className="text-saffron-600 font-medium">Compare →</Link>
+        </div>
+      </section>
+
+      {/* Featured netas & parties */}
+      <section className="space-y-6">
+        <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-saffron-500 text-transparent bg-clip-text">
+          Featured netas &amp; parties
+        </h2>
+
+        <div className="space-y-8">
+          {/* Top netas: 4 across */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Top netas</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {featuredNetas.map((p) => (
+                <CardPolitician key={p.id} p={p} />
+              ))}
+            </div>
+          </div>
+
+          {/* Top parties: 4 across */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Top parties</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {featuredParties.map((party) => (
+                <CardParty key={party.id} party={party} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Latest netas & parties (two columns, each 2x2) */}
+      <section className="space-y-6">
+        <h2 className="text-2xl md:text-3xl font-extrabold">Latest netas &amp; parties</h2>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Latest netas: 2x2 */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Latest netas</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {latestNetas.map((p) => (
+                <CardPolitician key={p.id} p={p} />
+              ))}
+            </div>
+          </div>
+
+          {/* Latest parties: 2x2 */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Latest parties</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {latestParties.map((party) => (
+                <CardParty key={party.id} party={party} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Sources */}
+      <section className="space-y-2 mt-4">
+        <h2 className="text-xl font-semibold">Sources</h2>
+        <p className="text-sm text-ink-600/80 space-x-2">
+          <Link href="https://eci.gov.in" className="underline">ECI</Link> •
+          <Link href="https://prsindia.org" className="underline">PRS</Link> •
+          <Link href="https://loksabha.nic.in" className="underline">Lok Sabha</Link> •
+          <Link href="https://censusindia.gov.in" className="underline">Census</Link> •
+          <Link href="https://mospi.gov.in" className="underline">NSS</Link>
+        </p>
+      </section>
+    </div>
+  );
 }
-
-/* ----------------------------- Small helpers ----------------------------- */
-
-function parseList(value: any): string[] {
-  if (!value) return [];
-  if (Array.isArray(value)) return value.filter(Boolean).map(String).map((s) => s.trim());
-  if (typeof value === 'string') {
-    return value
-      .split(/[,\n;]/)
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-  return [];
-}
-
-const AIRTABLE_API = 'https://api.airtable.com/v0';
-const BASE_ID = process.env.AIRTABLE_BASE_ID!;
-const TOKEN = process.env.AIRTABLE_TOKEN!;
-
-const T_POL = process.env.AIRTABLE_TABLE_POLITICIANS || 'Politicians';
-const T_PAR = process.env.AIRTABLE_TABLE_PARTIES || 'Parties';
-
-const toSlug = (s = '') =>
-  s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-
-function firstNonEmpty(f: Record<string, any>, keys: string[]): string | undefined {
-  for (const k of keys) {
-    const v = f[k];
-    if (typeof v === 'string' && v.trim()) return v.trim();
-  }
-  return undefined;
-}
-
-function getFirstAttachmentUrl(v: any): string | undefined {
-  if (Array.isArray(v) && v.length && v[0]?.url) return v[0].url as string;
-  if (typeof v === 'string' && /^https?:\/\//.test(v)) return v;
-  return undefined;
-}
-
-type AirtableRecord = {
-  id: string;
-  createdTime: string;
-  fields: Record<string, any>;
-};
-
-type AirtablePage = { records: AirtableRecord[]; offset?: string };
-
-async function atFetch(
-  table: string,
-  params: Record<string, string | undefined> = {}
-): Promise<AirtablePage> {
-  const search = new URLSearchParams(params as Record<string, string>);
-  const url = `${AIRTABLE_API}/${BASE_ID}/${encodeURIComponent(table)}?${search.toString()}`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${TOKEN}` },
-    next: { revalidate: Number(process.env.REVALIDATE_SECONDS || 3600) },
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Airtable error ${res.status}: ${text}`);
-  }
-  return res.json();
-}
-
-// Accumulates all pages (or up to `max` records) using Airtable's `offset`
-async function atFetchAll(
-  table: string,
-  params: Record<string, string | undefined> = {},
-  max = Infinity
-): Promise<AirtableRecord[]> {
-  const results: AirtableRecord[] = [];
-  let offset: string | undefined;
-
-  do {
-    const page = await atFetch(table, { ...params, ...(offset ? { offset } : {}) });
-    results.push(...page.records);
-    offset = page.offset;
-    if (results.length >= max) break;
-  } while (offset);
-
-  return Number.isFinite(max) ? results.slice(0, max) : results;
-}
-
-/* --------------------------------- Types --------------------------------- */
-
-export type Attachment = {
-  url: string;
-  filename?: string;
-  width?: number;
-  height?: number;
-};
-
-export type Politician = {
-  id: string;
-  slug: string;
-  name: string;
-  dob?: string | null;
-  offices?: string[];
-  life_events?: string | null;
-  photo?: string;
-  links?: string[];
-  party: string;
-  state?: string;
-  current_position?: string;
-  position?: string;
-  constituency?: string;
-  age?: number | string | null;
-  yearsInPolitics?: number | string | null;
-  attendance?: string | null;
-  assets?: string | null;
-  liabilities?: string | null;
-  criminalCases?: number | string | null;
-  website?: string | null;
-};
-
-export type Party = {
-  id: string;
-  slug: string;
-  name: string;
-  abbr?: string;
-  status?: string | null;
-  founded?: string | null;
-  logo?: string | null;           // from "Symbol" attachment or similar
-  leaders?: string[];
-  symbolText?: string | null;     // from "Attachment Summary"
-  seats?: number | string | null; // from "Lok Sabha Seats (...)"
-  details?: string | null;        // from "Details"
-};
-
-/* --------------------------- Record mappers ------------------------------- */
-
-function mapPolitician(r: AirtableRecord): Politician {
-  const f = r.fields || {};
-  const getFirst = (arr?: any[]) => (Array.isArray(arr) && arr.length ? arr[0] : null);
-
-  return {
-    id: r.id,
-    slug: f.slug || f.Slug || toSlug(f.name || f.Name || '') || r.id,
-    name: f.name || f.Name || '',
-    dob: f.dob || f.DOB || null,
-    offices: parseList(f.offices || f.Offices),
-    life_events: f.life_events || f['Life Events'] || null,
-    photo: (() => {
-      const att = getFirst(f.photo || f.Photo || f.Image);
-      return att && att.url ? (att.url as string) : undefined;
-    })(),
-    links: parseList(f.links || f.Links),
-    party: (f.Party || f.party || '') as string,
-    state: f.Constituency || f.State || f.state,
-    current_position: f.Position || f['Current Position'] || f.position,
-    position: f.Position || f['Current Position'] || f.position,
-    constituency: f.Constituency || f.constituency,
-    age: f.Age || f.age,
-    yearsInPolitics: f['Years in politics'] || f['Years in office'] || f['Experience (Years)'],
-    attendance: f['% Parliament Attendance'] || f['Parliament Attendance'],
-    assets: f['Declared Assets'] || f.assets,
-    liabilities: f['Declared Liabilities'] || f.liabilities,
-    criminalCases: f['Criminal Cases'] || f.criminalCases,
-    website: f.Website || f.website,
-  };
-}
-
-function mapParty(r: AirtableRecord): Party {
-  const f = r.fields || {};
-
-  const name =
-    firstNonEmpty(f, ['Name', 'Party Name', 'Party', 'party_name', 'party']) || '';
-
-  // Abbreviation lives in "Ticker" (per your base)
-  const abbr =
-    firstNonEmpty(f, [
-      'Ticker',
-      'ticker',
-      'Assignee',
-      'Abbreviation',
-      'Abbr',
-      'Acronym',
-      'Short Name',
-      'abbreviation',
-      'abbr',
-    ]);
-
-  const status = firstNonEmpty(f, ['Status', 'Recognition', 'Type']) || null;
-
-  const founded =
-    firstNonEmpty(f, [
-      'Date of Establishment',
-      'Founded',
-      'Year Founded',
-      'Established',
-      'Formed',
-      'Year',
-    ]) || null;
-
-  // Images: prefer "Symbol"
-  const logo =
-    getFirstAttachmentUrl(f['Symbol']) ||
-    getFirstAttachmentUrl(f['Logo']) ||
-    getFirstAttachmentUrl(f['Emblem']) ||
-    getFirstAttachmentUrl(f['Image']) ||
-    null;
-
-  const symbolText = firstNonEmpty(f, ['Attachment Summary', 'Symbol Name']) || null;
-
-  const leaders: string[] = (() => {
-    const raw = f['Key Leader(s)'] ?? f['Leaders'] ?? f['Leader'];
-    if (Array.isArray(raw)) return raw.filter(Boolean).map(String).map((s) => s.trim());
-    if (raw) return String(raw).split(/\n|,|;/).map((s) => s.trim()).filter(Boolean);
-    return [];
-  })();
-
-  const seats =
-    f['Lok Sabha Seats'] ??
-    f['Lok Sabha Seats (2024)'] ??
-    f['Lok Sabha Seats (20)'] ??
-    null;
-
-  const details = (f['Details'] as string) ?? null;
-
-  const slug = toSlug(f['slug'] ?? f['Slug'] ?? name) || r.id;
-
-  return { id: r.id, slug, name, abbr, status, founded, logo, leaders, symbolText, seats, details };
-}
-
-/* -------------------------- Local text search ----------------------------- */
-
-function makeSearchText(o: Record<string, any>): string {
-  const parts = [
-    o.name,
-    o.slug,
-    o.abbr,
-    o.status,
-    o.founded,
-    o.details,
-    ...(Array.isArray(o.leaders) ? o.leaders : []),
-    ...(Array.isArray(o.offices) ? o.offices : []),
-    o.party,
-    o.state,
-    o.position,
-    o.constituency,
-  ]
-    .filter(Boolean)
-    .map(String)
-    .map((s) => s.toLowerCase());
-  return parts.join(' ');
-}
-
-/* ------------------------- List / Get utilities -------------------------- */
-
-export async function listPoliticians(opts: { limit?: number; query?: string } = {}): Promise<Politician[]> {
-  const max = opts.limit && opts.limit > 0 ? opts.limit : Infinity;
-  const records = await atFetchAll(T_POL, { pageSize: '100' }, max === Infinity ? Infinity : Math.max(max, 100));
-  let mapped = records.map(mapPolitician);
-  if (opts.query) {
-    const q = opts.query.toLowerCase();
-    mapped = mapped.filter((p) => makeSearchText(p).includes(q));
-  }
-  return Number.isFinite(max) ? mapped.slice(0, Number(max)) : mapped;
-}
-
-export async function listParties(opts: { limit?: number; query?: string } = {}): Promise<Party[]> {
-  const max = opts.limit && opts.limit > 0 ? opts.limit : Infinity;
-  const records = await atFetchAll(T_PAR, { pageSize: '100' }, max === Infinity ? Infinity : Math.max(max, 100));
-  let mapped = records.map(mapParty);
-  if (opts.query) {
-    const q = opts.query.toLowerCase();
-    mapped = mapped.filter((p) => makeSearchText(p).includes(q));
-  }
-  return Number.isFinite(max) ? mapped.slice(0, Number(max)) : mapped;
-}
-
-export async function getPoliticianBySlug(slug: string): Promise<Politician | null> {
-  const data = await atFetch(T_POL, { filterByFormula: `{slug} = "${slug}"`, maxRecords: '1' });
-  const rec = data.records[0];
-  return rec ? mapPolitician(rec) : null;
-}
-
-export async function getPartyBySlug(slug: string): Promise<Party | null> {
-  const data = await atFetch(T_PAR, { filterByFormula: `{slug} = "${slug}"`, maxRecords: '1' });
-  const rec = data.records[0];
-  return rec ? mapParty(rec) : null;
-}
-
-export async function getPolitician(slugOrId: string): Promise<Politician | null> {
-  if (slugOrId.startsWith('rec')) {
-    const url = `${AIRTABLE_API}/${BASE_ID}/${encodeURIComponent(T_POL)}/${slugOrId}`;
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${TOKEN}` } });
-    if (!res.ok) return null;
-    const data = (await res.json()) as AirtableRecord;
-    return mapPolitician(data);
-  }
-  return getPoliticianBySlug(slugOrId);
-}
-
-export async function allPartySlugs(): Promise<string[]> {
-  const records = await atFetchAll(T_PAR, { pageSize: '100' });
-  return records
-    .map((r) => r.fields?.slug || r.fields?.Slug || toSlug(r.fields?.name || r.fields?.Name || '') || r.id)
-    .filter(Boolean);
-}
-
-// N most recently created Politician records (default 4)
-export async function listRecentPoliticians(limit = 4): Promise<Politician[]> {
-  const view = process.env.AIRTABLE_POLITICIANS_VIEW || 'Grid view';
-  const createdField =
-    process.env.AIRTABLE_POLITICIANS_CREATED_FIELD || 'Created'; // add a CREATED_TIME field named "Created" in Politicians
-
-  // Try server-side sort
-  try {
-    const data = await atFetch(T_POL, {
-      view,
-      pageSize: String(Math.min(Math.max(limit, 1), 100)),
-      [`sort[0][field]`]: createdField,
-      [`sort[0][direction]`]: 'desc',
-    });
-    if (data.records?.length) return data.records.slice(0, limit).map(mapPolitician);
-  } catch {
-    // fall through
-  }
-
-  // Fallback: use record.createdTime
-  const page = await atFetch(T_POL, { view, pageSize: '100' });
-  const recent = page.records
-    .slice()
-    .sort((a, b) => new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime())
-    .slice(0, limit);
-
-  return recent.map(mapPolitician);
-}
-
