@@ -22,24 +22,28 @@ export default async function HomePage() {
   return (
     <div className="space-y-12">
       {/* Hero */}
-      <section className="relative isolate text-center overflow-hidden">
-  {/* Background image behind content */}
+      <section
+  className="
+    relative isolate overflow-hidden
+    w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]  /* full-bleed */
+    min-h-[56vh] md:min-h-[64vh] lg:min-h-[72vh]
+  "
+>
+  {/* Background image (full width, full image shown) */}
   <Image
     src="/hero/hero-2560w.webp"
     alt="Watercolor collage of Indian political figures — Netababu"
     fill
     priority
-    className="absolute inset-0 -z-10 h-full w-full object-cover object-top"
+    className="absolute inset-0 -z-10 h-full w-full object-contain object-top"
     sizes="100vw"
   />
 
-  {/* ↑ Removed the cream overlay and the saffron band */}
-
-  {/* Content sits near the top, like before */}
-  <div className="mx-auto max-w-4xl px-4 pt-10 md:pt-14 lg:pt-16 pb-24 md:pb-28 lg:pb-32 min-h-[56vh]">
+  {/* Foreground content - moved higher */}
+  <div className="mx-auto max-w-6xl px-4 pt-4 md:pt-6 lg:pt-8 pb-24 md:pb-28">
     <div className="h-kicker">India • Politics • Data</div>
 
-    <h1 className="mt-2 text-4xl md:text-5xl font-semibold text-ink-700">
+    <h1 className="mt-1 text-4xl md:text-5xl font-semibold text-ink-700">
       Netas, parties, drama — all in one place.
     </h1>
 
@@ -58,6 +62,7 @@ export default async function HomePage() {
     </div>
   </div>
 </section>
+
 
       {/* Explore cards */}
       <section className="grid md:grid-cols-3 gap-4 mt-8">
