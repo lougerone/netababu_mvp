@@ -22,9 +22,9 @@ export default async function HomePage() {
   return (
     <div className="space-y-12">
       {/* Hero */}
-      <section
-  className="relative isolate text-center space-y-4 
-  h-[60vh] md:h-[70vh] lg:h-[80vh] 
+     <section
+  className="relative isolate text-center space-y-4
+  h-[60vh] md:h-[70vh] lg:h-[80vh]
   flex flex-col items-center justify-center overflow-hidden"
 >
   {/* Background image */}
@@ -37,8 +37,9 @@ export default async function HomePage() {
     sizes="100vw"
   />
 
-  {/* Bottom gradient fade */}
-  <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
+  {/* Top & bottom gradient fades */}
+  <div className="pointer-events-none absolute inset-x-0 top-0 h-20 md:h-24 bg-gradient-to-b from-cream-200 to-transparent" />
+  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
 
   {/* Content — original size, centered */}
   <div className="max-w-4xl px-4">
@@ -58,14 +59,8 @@ export default async function HomePage() {
     </div>
 
     <div className="text-sm text-ink-600/80 mt-2">
-      Popular:{" "}
-      <Link href="/politicians?query=modi" className="underline">
-        Modi
-      </Link>{" "}
-      •{" "}
-      <Link href="/parties?query=inc" className="underline">
-        INC
-      </Link>
+      Popular: <Link href="/politicians?query=modi" className="underline">Modi</Link> •{" "}
+      <Link href="/parties?query=inc" className="underline">INC</Link>
     </div>
   </div>
 </section>
