@@ -2,6 +2,7 @@ import Link from 'next/link';
 import CardPolitician from '@/components/CardPolitician';
 import CardParty from '@/components/CardParty';
 import { listPoliticians, listParties } from '@/lib/airtable';
+import Hero from '@/components/Hero';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +38,9 @@ export default async function HomePage() {
           Popular: <Link href="/politicians?query=modi" className="underline">Modi</Link> •{' '}
           <Link href="/parties?query=inc" className="underline">INC</Link>
         </div>
+        <div className="space-y-12">
+      <Hero />
+    </div>
       </section>
 
       {/* Explore cards */}
