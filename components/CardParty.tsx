@@ -5,42 +5,34 @@ import type { Party } from '@/lib/airtable';
 
 export default function CardParty({ party }: { party: Party }) {
   const status = (party.status || '').toLowerCase();
-  const isNational = status.includes('national');
-  const statusLabel = isNational ? 'National' : 'State';
+  const statusLabel = status.includes('national') ? 'National' : 'State';
+  const subtitle = [party.abbr, party.status ? statusLabel : undefined]
+    .filter(Boolean)
+    .join(' • ') || '—';
 
   return (
     <Link
       href={`/parties/${party.slug}`}
       aria-label={`Open ${party.name} party page`}
-      className="card block relative p-4 hover:shadow-lg transition-shadow
+      className="card block p-4 hover:shadow-lg transition-shadow
                  before:content-[''] before:block before:h-1.5 before:rounded-t-xl
                  before:bg-gradient-to-r before:from-saffron-500 before:to-ink-600
-                 h-[96px]" /* fixed height for consistent cards */
+                 h-[116px]"  // match politician card height
     >
       <div className="flex h-full items-start gap-3">
         <LogoBox src={party.logo ?? undefined} name={party.name} abbr={party.abbr} />
 
-        <div className="min-w-0 flex-1">
-          {/* Name: clamp to 2 lines; reserve space so cards align */}
-          <div className="mb-1 font-medium text-ink-700 leading-snug line-clamp-2 min-h-[2.4em]">
+        {/* same layout as CardPolitician: title, subtitle, bottom spacer */}
+        <div className="min-w-0 flex-1 flex flex-col">
+          <div className="font-medium text-ink-700 leading-snug line-clamp-1">
             {party.name || '—'}
           </div>
-
-          {/* Meta row + compact badge on the right */}
-          <div className="flex items-center justify-between text-xs text-ink-600/80">
-            <span className="truncate">
-              {[party.abbr, statusLabel].filter(Boolean).join(' • ') || '—'}
-            </span>
-            {party.status && (
-              <span
-                className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                  isNational ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
-                }`}
-              >
-                {statusLabel}
-              </span>
-            )}
+          <div className="text-xs text-ink-600/80 line-clamp-1">
+            {subtitle}
           </div>
+
+          {/* bottom line kept empty to give breathing room & align bottoms */}
+          <div className="mt-auto text-xs text-ink-600/60">&nbsp;</div>
         </div>
       </div>
     </Link>
@@ -60,18 +52,22 @@ function LogoBox({
 }) {
   if (!src) {
     return (
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-black/5 text-[11px] font-semibold">
+      <div
+        className="h-10 w-10 rounded-lg bg-black/5 flex items-center justify-center
+                   text-[11px] font-semibold"
+        aria-hidden
+      >
         {initials(name, abbr)}
       </div>
     );
   }
   return (
-    <div className="h-10 w-10 overflow-hidden rounded-lg bg-white p-1">
+    <div className="h-10 w-10 overflow-hidden rounded-lg bg-white">
       <Image
         src={src}
         alt={`${name ?? ''} logo`}
-        width={64}
-        height={64}
+        width={40}
+        height={40}
         className="h-full w-full object-contain"
       />
     </div>
