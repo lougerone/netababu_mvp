@@ -13,26 +13,25 @@ export default function CardParty({ party }: { party: Party }) {
       href={`/parties/${party.slug}`}
       className="card p-4 block relative group hover:shadow-lg transition-shadow
                  before:content-[''] before:block before:h-1.5 before:rounded-t-xl
-                 before:bg-gradient-to-r before:from-saffron-500 before:to-ink-600"
+                 before:bg-gradient-to-r before:from-saffron-500 before:to-ink-600
+                 h-[92px]"           /* 👈 fixed height for consistent cards */
       aria-label={`Open ${party.name} party page`}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-3 h-full">
         <LogoBox src={party.logo ?? undefined} name={party.name} abbr={party.abbr} />
 
         <div className="min-w-0 flex-1">
-          {/* Name: wrap nicely to two lines max */}
-          <div className="font-medium text-ink-700 mb-1 leading-snug line-clamp-2">
+          {/* Name: exactly up to two lines, reserved space so height won’t shrink */}
+          <div className="font-medium text-ink-700 mb-1 leading-snug line-clamp-2 min-h-[2.4em]">
             {party.name || '—'}
           </div>
 
-          {/* Meta row + status badge (right) */}
+          {/* Meta row + status badge */}
           <div className="flex items-center justify-between text-xs text-ink-600/80">
-            {/* Left: Ticker • Status */}
             <span className="truncate">
               {[party.abbr, statusLabel].filter(Boolean).join(' • ') || '—'}
             </span>
 
-            {/* Right: Status badge */}
             {party.status && (
               <span
                 className={`px-2 py-0.5 rounded-full text-xs font-medium ${
