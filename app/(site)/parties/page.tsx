@@ -187,3 +187,14 @@ export default async function PartyPage({ params }: { params: { slug: string } }
     </main>
   );
 }
+
+// const { searchParams } = props;  // however you get them
+const q =
+  typeof searchParams?.q === 'string'
+    ? searchParams.q
+    : Array.isArray(searchParams?.q)
+    ? searchParams.q[0]
+    : undefined;
+
+const parties = await listParties({ query: q, limit: 100 });
+
