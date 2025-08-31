@@ -234,3 +234,30 @@ export async function allPartySlugs(): Promise<string[]> {
   const data = await atFetch(T_PAR);
   return data.records.map((r: any) => r.fields?.slug || toSlug(r.fields?.name || '') || r.id).filter(Boolean);
 }
+// Return the N most recently created Party records (default 5)
+export async function listRecentParties(limit = 5): Promise<Party[]> {
+  const view = process.env.AIRTABLE_PARTIES_VIEW || 'Grid view';
+  const createdField = process.env.AIRTABLE_PARTIES_CREATED_FIELD || 'Created'; // create a "Created" (CREATED_TIME) field in Airtable to enable server-side sort
+
+  // Try server-side sort by a Created-time field if you have it
+  const data = await atFetch(T_PAR, {
+    view,
+    pageSize: String(limit),
+    [`sort[0][field]`]: createdField,
+    [`sort[0][direction]`]: 'desc',
+  }).catch(() => null);
+
+  if (data && data.records?.length) {
+    return data.records.map(mapParty);
+  }
+
+  // Fallback: fetch a page and sort locally by record.createdTime metadata
+  const page = await atFetch(T_PAR, { view, pageSize: '50' });
+  const recent = page.records
+    .sort(
+      (a, b) =>
+        new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime()
+    )
+    .slice(0, limit);
+  return recent.map(mapParty);
+}
