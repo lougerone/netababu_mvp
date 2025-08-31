@@ -12,10 +12,7 @@ export default function CardParty({ party }: { party: Party }) {
     <Link
       href={`/parties/${party.slug}`}
       aria-label={`Open ${party.name} party page`}
-      className="
-        card p-4 block hover:shadow-lg transition-shadow
-        bg-violet-50 border-violet-200
-      "
+      className="card card-compact p-4 block hover:shadow-lg transition-shadow bg-violet-50 border-violet-200"
     >
       {/* top row: logo + name */}
       <div className="flex items-center gap-3">
@@ -28,7 +25,7 @@ export default function CardParty({ party }: { party: Party }) {
       </div>
 
       {/* bottom row: ticker left + pill right */}
-      <div className="mt-3 flex items-center justify-between text-xs text-ink-600/80 gap-2">
+      <div className="mt-2 flex items-center justify-between text-xs text-ink-600/80 gap-2">
         <span className="truncate min-w-0">{party.abbr || '—'}</span>
 
         {statusLabel && (
