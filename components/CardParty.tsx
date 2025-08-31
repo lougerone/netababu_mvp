@@ -23,8 +23,7 @@ export default function CardParty({ party }: { party: Party }) {
         <div className="font-medium text-ink-700 mb-1">{party.name}</div>
         <div className="flex items-center justify-between text-xs text-ink-600/80">
           <span>
-            {party.abbrev ? `${party.abbrev} • ` : ''}
-            {party.status ?? '—'}
+            {[party.abbr, party.status].filter(Boolean).join(' • ') || '—'}
           </span>
           {/* Status Badge */}
           {party.status && (
