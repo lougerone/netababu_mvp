@@ -1,5 +1,9 @@
 // lib/airtable.ts
-import 'server-only';
+
+// Hard guard: if this ever gets imported in a Client Component, fail loudly.
+if (typeof window !== 'undefined') {
+  throw new Error('Do not import lib/airtable.ts from Client Components. Fetch via a server component, route handler, or server action.');
+}
 
 /* ----------------------------- Small helpers ----------------------------- */
 
@@ -122,11 +126,11 @@ export type Party = {
   abbr?: string;
   status?: string | null;
   founded?: string | null;
-  logo?: string | null;           // from "Symbol" attachment (or similar)
+  logo?: string | null;           // from "Symbol" attachment or similar
   leaders?: string[];
-  symbolText?: string | null;     // "Attachment Summary"
-  seats?: number | string | null; // "Lok Sabha Seats (…)” any year variant
-  details?: string | null;        // "Details"
+  symbolText?: string | null;     // from "Attachment Summary"
+  seats?: number | string | null; // from "Lok Sabha Seats (...)"
+  details?: string | null;        // from "Details"
 };
 
 /* --------------------------- Record mappers ------------------------------- */
@@ -168,18 +172,33 @@ function mapParty(r: AirtableRecord): Party {
   const name =
     firstNonEmpty(f, ['Name', 'Party Name', 'Party', 'party_name', 'party']) || '';
 
-  // Abbreviation lives in "Ticker" for your base
+  // Abbreviation lives in "Ticker" (per your base)
   const abbr =
-    firstNonEmpty(f, ['Ticker', 'ticker', 'Assignee', 'Abbreviation', 'Abbr', 'Acronym', 'Short Name', 'abbreviation', 'abbr']) ||
-    undefined;
+    firstNonEmpty(f, [
+      'Ticker',
+      'ticker',
+      'Assignee',
+      'Abbreviation',
+      'Abbr',
+      'Acronym',
+      'Short Name',
+      'abbreviation',
+      'abbr',
+    ]);
 
-  const status =
-    firstNonEmpty(f, ['Status', 'Recognition', 'Type']) || null;
+  const status = firstNonEmpty(f, ['Status', 'Recognition', 'Type']) || null;
 
   const founded =
-    firstNonEmpty(f, ['Founded', 'Year Founded', 'Established', 'Formed', 'Year']) || null;
+    firstNonEmpty(f, [
+      'Date of Establishment',
+      'Founded',
+      'Year Founded',
+      'Established',
+      'Formed',
+      'Year',
+    ]) || null;
 
-  // Symbol attachment is your logo column; fallbacks included
+  // Images: prefer "Symbol"
   const logo =
     getFirstAttachmentUrl(f['Symbol']) ||
     getFirstAttachmentUrl(f['Logo']) ||
@@ -187,88 +206,83 @@ function mapParty(r: AirtableRecord): Party {
     getFirstAttachmentUrl(f['Image']) ||
     null;
 
-  const symbolText =
-    firstNonEmpty(f, ['Attachment Summary', 'Symbol Name']) || null;
+  const symbolText = firstNonEmpty(f, ['Attachment Summary', 'Symbol Name']) || null;
 
-  const leaders = Array.isArray(f['Key Leader(s)'])
-    ? f['Key Leader(s)']
-    : f['Key Leader(s)']
-    ? String(f['Key Leader(s)']).split(/\n|,|;/).map((s: string) => s.trim()).filter(Boolean)
-    : [];
+  const leaders: string[] = (() => {
+    const raw = f['Key Leader(s)'] ?? f['Leaders'] ?? f['Leader'];
+    if (Array.isArray(raw)) return raw.filter(Boolean).map(String).map((s) => s.trim());
+    if (raw) return String(raw).split(/\n|,|;/).map((s) => s.trim()).filter(Boolean);
+    return [];
+  })();
 
-  // Capture any column that starts with "Lok Sabha Seats"
-  const seatsKey = Object.keys(f).find((k) => /^Lok Sabha Seats/i.test(k));
-  const seats = seatsKey ? f[seatsKey] : null;
+  const seats =
+    f['Lok Sabha Seats'] ??
+    f['Lok Sabha Seats (2024)'] ??
+    f['Lok Sabha Seats (20)'] ??
+    null;
 
-  const details = (f['Details'] as string | undefined) ?? null;
+  const details = (f['Details'] as string) ?? null;
 
   const slug = toSlug(f['slug'] ?? f['Slug'] ?? name) || r.id;
 
   return { id: r.id, slug, name, abbr, status, founded, logo, leaders, symbolText, seats, details };
 }
 
+/* -------------------------- Local text search ----------------------------- */
+
+function makeSearchText(o: Record<string, any>): string {
+  const parts = [
+    o.name,
+    o.slug,
+    o.abbr,
+    o.status,
+    o.founded,
+    o.details,
+    ...(Array.isArray(o.leaders) ? o.leaders : []),
+    ...(Array.isArray(o.offices) ? o.offices : []),
+    o.party,
+    o.state,
+    o.position,
+    o.constituency,
+  ]
+    .filter(Boolean)
+    .map(String)
+    .map((s) => s.toLowerCase());
+  return parts.join(' ');
+}
+
 /* ------------------------- List / Get utilities -------------------------- */
 
 export async function listPoliticians(opts: { limit?: number; query?: string } = {}): Promise<Politician[]> {
-  const filter = opts.query
-    ? `FIND(LOWER("${opts.query}"), LOWER({name}&" "&{slug}&" "&{offices}))`
-    : undefined;
-
-  const data = await atFetch(T_POL, {
-    ...(filter ? { filterByFormula: filter } : {}),
-    ...(opts.limit ? { maxRecords: String(opts.limit) } : {}),
-  });
-
-  return data.records.map(mapPolitician);
+  const max = opts.limit && opts.limit > 0 ? opts.limit : Infinity;
+  const records = await atFetchAll(T_POL, { pageSize: '100' }, max === Infinity ? Infinity : Math.max(max, 100));
+  let mapped = records.map(mapPolitician);
+  if (opts.query) {
+    const q = opts.query.toLowerCase();
+    mapped = mapped.filter((p) => makeSearchText(p).includes(q));
+  }
+  return Number.isFinite(max) ? mapped.slice(0, Number(max)) : mapped;
 }
 
 export async function listParties(opts: { limit?: number; query?: string } = {}): Promise<Party[]> {
-  const filter = opts.query
-    ? `FIND(LOWER("${opts.query}"), LOWER({name}&" "&{slug}&" "&{status}&" "&{Ticker}))`
-    : undefined;
-
-  const data = await atFetch(T_PAR, {
-    ...(filter ? { filterByFormula: filter } : {}),
-    ...(opts.limit ? { maxRecords: String(opts.limit) } : {}),
-  });
-
-  return data.records.map(mapParty);
-}
-
-// Latest N parties (by Created time). Works with/without a "Created" field.
-export async function listRecentParties(limit = 4): Promise<Party[]> {
-  const view = process.env.AIRTABLE_PARTIES_VIEW || 'Grid view';
-  const createdField = process.env.AIRTABLE_PARTIES_CREATED_FIELD || 'Created'; // optional Created-time field
-
-  try {
-    const sorted = await atFetch(T_PAR, {
-      view,
-      pageSize: String(limit),
-      [`sort[0][field]`]: createdField,
-      [`sort[0][direction]`]: 'desc',
-    });
-    if (sorted.records?.length) return sorted.records.map(mapParty);
-  } catch {
-    // fall through to fallback
+  const max = opts.limit && opts.limit > 0 ? opts.limit : Infinity;
+  const records = await atFetchAll(T_PAR, { pageSize: '100' }, max === Infinity ? Infinity : Math.max(max, 100));
+  let mapped = records.map(mapParty);
+  if (opts.query) {
+    const q = opts.query.toLowerCase();
+    mapped = mapped.filter((p) => makeSearchText(p).includes(q));
   }
-
-  const page = await atFetch(T_PAR, { view, pageSize: '50' });
-  return page.records
-    .sort(
-      (a, b) => new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime()
-    )
-    .slice(0, limit)
-    .map(mapParty);
+  return Number.isFinite(max) ? mapped.slice(0, Number(max)) : mapped;
 }
 
 export async function getPoliticianBySlug(slug: string): Promise<Politician | null> {
-  const data = await atFetch(T_POL, { filterByFormula: `{slug} = "${slug}"` });
+  const data = await atFetch(T_POL, { filterByFormula: `{slug} = "${slug}"`, maxRecords: '1' });
   const rec = data.records[0];
   return rec ? mapPolitician(rec) : null;
 }
 
 export async function getPartyBySlug(slug: string): Promise<Party | null> {
-  const data = await atFetch(T_PAR, { filterByFormula: `{slug} = "${slug}"` });
+  const data = await atFetch(T_PAR, { filterByFormula: `{slug} = "${slug}"`, maxRecords: '1' });
   const rec = data.records[0];
   return rec ? mapParty(rec) : null;
 }
@@ -278,17 +292,41 @@ export async function getPolitician(slugOrId: string): Promise<Politician | null
     const url = `${AIRTABLE_API}/${BASE_ID}/${encodeURIComponent(T_POL)}/${slugOrId}`;
     const res = await fetch(url, { headers: { Authorization: `Bearer ${TOKEN}` } });
     if (!res.ok) return null;
-    const data = await res.json();
+    const data = (await res.json()) as AirtableRecord;
     return mapPolitician(data);
   }
-  const data = await atFetch(T_POL, { filterByFormula: `{slug} = "${slugOrId}"` });
-  const rec = data.records[0];
-  return rec ? mapPolitician(rec) : null;
+  return getPoliticianBySlug(slugOrId);
 }
 
 export async function allPartySlugs(): Promise<string[]> {
-  const data = await atFetchAll(T_PAR, {}, 5000);
-  return data
+  const records = await atFetchAll(T_PAR, { pageSize: '100' });
+  return records
     .map((r) => r.fields?.slug || r.fields?.Slug || toSlug(r.fields?.name || r.fields?.Name || '') || r.id)
     .filter(Boolean);
+}
+
+// N most recently created Party records (default 5)
+export async function listRecentParties(limit = 5): Promise<Party[]> {
+  const view = process.env.AIRTABLE_PARTIES_VIEW || 'Grid view';
+  const createdField = process.env.AIRTABLE_PARTIES_CREATED_FIELD || 'Created';
+
+  try {
+    const data = await atFetch(T_PAR, {
+      view,
+      pageSize: String(Math.min(Math.max(limit, 1), 100)),
+      [`sort[0][field]`]: createdField,
+      [`sort[0][direction]`]: 'desc',
+    });
+    if (data.records?.length) return data.records.slice(0, limit).map(mapParty);
+  } catch {
+    // fallback below
+  }
+
+  const page = await atFetch(T_PAR, { view, pageSize: '100' });
+  const recent = page.records
+    .slice()
+    .sort((a, b) => new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime())
+    .slice(0, limit);
+
+  return recent.map(mapParty);
 }
