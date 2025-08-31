@@ -2,20 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
+/* --------------------- Base --------------------- */
+
 /* Light theme base */
-html, body { height: 100%; }
-body { background: #FFF6E6; color: #113A66; font-family: Inter, system-ui, sans-serif; }
+html,
+body {
+  height: 100%;
+}
+body {
+  background: #FFF6E6; /* cream background */
+  color: #113A66; /* ink color */
+  font-family: Inter, system-ui, sans-serif;
+}
 
-/* Cards */
-.card { @apply rounded-xl border border-black/5 bg-white shadow-card; }
-.card:hover { @apply shadow-soft; }
+/* --------------------- Cards --------------------- */
 
-/* Tiny heading/kicker */
-.h-kicker { @apply text-[11px] uppercase tracking-[0.14em] text-ink-500/70; }
+/* Default card */
+.card {
+  @apply rounded-xl border border-black/5 bg-white shadow-card;
+}
+.card:hover {
+  @apply shadow-soft;
+}
+
+/* Compact variant for grid cards (politicians + parties) */
+.card-compact {
+  @apply h-[112px] flex flex-col justify-between;
+}
+
+/* --------------------- Typography --------------------- */
+
+/* Tiny heading / kicker */
+.h-kicker {
+  @apply text-[11px] uppercase tracking-[0.14em] text-ink-500/70;
+}
+
+/* --------------------- Forms --------------------- */
 
 /* Search pill */
-.input-pill { @apply w-full rounded-full bg-white border border-black/10 p-3 outline-none focus:border-ink-500; }
+.input-pill {
+  @apply w-full rounded-full bg-white border border-black/10 p-3 outline-none focus:border-ink-500;
+}
 
-/* Buttons */
-.btn { @apply rounded-full px-5 py-2 text-white bg-saffron-500 hover:bg-saffron-400 transition; }
-.btn-ghost { @apply rounded-full px-5 py-2 border border-black/10 text-ink-600 bg-white hover:bg-cream-100; }
+/* --------------------- Buttons --------------------- */
+
+.btn {
+  @apply rounded-full px-5 py-2 text-white bg-saffron-500 hover:bg-saffron-400 transition;
+}
+.btn-ghost {
+  @apply rounded-full px-5 py-2 border border-black/10 text-ink-600 bg-white hover:bg-cream-100;
+}
