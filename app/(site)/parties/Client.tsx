@@ -1,10 +1,15 @@
 // app/(site)/parties/Client.tsx
-// Enhanced version that adds more filtering while keeping your existing structure
+// Enhanced version with proper TypeScript handling for dynamic Airtable fields
 'use client';
 import { useState, useMemo } from 'react';
 import CardParty from '@/components/CardParty';
 import SearchBar from '@/components/SearchBar';
 import type { Party } from '@/lib/airtable';
+
+// Extend the Party type to include all your Airtable fields
+interface ExtendedParty extends Party {
+  [key: string]: any; // Allow dynamic property access for Airtable fields
+}
 
 export default function PartiesClient({ initialData }: { initialData: Party[] }) {
   // Existing query state
@@ -14,41 +19,51 @@ export default function PartiesClient({ initialData }: { initialData: Party[] })
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('name');
 
-  // Debug: Log the data structure to help troubleshoot
+  // Debug: Log the data structure
   console.log('PartiesClient received data:', initialData);
   console.log('First party structure:', initialData[0]);
 
-  // Enhanced filtering that searches across all your Airtable columns
+  // Enhanced filtering with safe property access
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
     
     let filteredParties = initialData.filter(party => {
-      // Enhanced search across all available fields
-      const searchMatch = 
-        (party.name || '').toLowerCase().includes(q) ||
-        (party.slug || '').toLowerCase().includes(q) ||
-        (party.status || '').toLowerCase().includes(q) ||
-        (party['Key Leader(s)'] || '').toLowerCase().includes(q) ||
-        (party.assignee || '').toLowerCase().includes(q) ||
-        (party.details || '').toLowerCase().includes(q) ||
-        (party.notes || '').toLowerCase().includes(q);
+      const extParty = party as ExtendedParty;
+      
+      // Safe property access for all searchable fields
+      const searchableFields = [
+        extParty.name,
+        extParty.slug,
+        extParty.status,
+        extParty['Key Leader(s)'],
+        extParty.assignee,
+        extParty.details,
+        extParty.notes
+      ];
 
-      const statusMatch = statusFilter === 'all' || party.status === statusFilter;
+      const searchMatch = searchableFields
+        .filter(field => field != null)
+        .some(field => String(field).toLowerCase().includes(q));
+
+      const statusMatch = statusFilter === 'all' || extParty.status === statusFilter;
       
       return searchMatch && statusMatch;
     });
 
-    // Sort the results
+    // Sort the results with safe property access
     filteredParties.sort((a, b) => {
+      const extA = a as ExtendedParty;
+      const extB = b as ExtendedParty;
+      
       switch (sortBy) {
         case 'name':
-          return (a.name || '').localeCompare(b.name || '');
+          return (extA.name || '').localeCompare(extB.name || '');
         case 'seats':
-          const aSeats = a['Lok Sabha Seats (2019)'] || 0;
-          const bSeats = b['Lok Sabha Seats (2019)'] || 0;
-          return bSeats - aSeats;
+          const aSeats = extA['Lok Sabha Seats (2019)'] || 0;
+          const bSeats = extB['Lok Sabha Seats (2019)'] || 0;
+          return Number(bSeats) - Number(aSeats);
         case 'status':
-          return (a.status || '').localeCompare(b.status || '');
+          return (extA.status || '').localeCompare(extB.status || '');
         default:
           return 0;
       }
@@ -134,6 +149,18 @@ export default function PartiesClient({ initialData }: { initialData: Party[] })
           <p className="text-lg mb-2">No parties found</p>
           <p className="text-sm">Try adjusting your search or filters</p>
         </div>
+      )}
+
+      {/* Debug Panel (only in development) */}
+      {process.env.NODE_ENV === 'development' && initialData.length > 0 && (
+        <details className="mt-8 p-4 bg-gray-100 rounded-lg">
+          <summary className="cursor-pointer text-sm font-medium text-gray-700">
+            Debug: View Data Structure
+          </summary>
+          <pre className="mt-2 text-xs bg-white p-3 rounded border overflow-auto max-h-40">
+            {JSON.stringify(initialData[0], null, 2)}
+          </pre>
+        </details>
       )}
     </div>
   );
