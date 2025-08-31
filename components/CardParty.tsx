@@ -19,18 +19,8 @@ export default function CardParty({ party }: { party: Party }) {
   const attachmentsCount = Array.isArray(ext['Attachments']) ? ext['Attachments'].length : 0;
   const assignee = (ext['Assignee'] as string | undefined) ?? undefined;
 
-  // 👇 new: determine national/state + state name
-const isNational = (party.status || '').toLowerCase().includes('national');
-const stateName = party.state; // rely on mapped field only
-
-{party.status && (
-  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-    isNational ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
-  }`}>
-    {isNational ? 'National' : (stateName || 'State')}
-  </span>
-)}
-
+  // display logic
+  const isNational = (party.status || '').toLowerCase().includes('national');
 
   return (
     <Link
@@ -45,15 +35,21 @@ const stateName = party.state; // rely on mapped field only
         <LogoBox src={party.logo ?? undefined} name={party.name} abbr={party.abbr} />
         <div className="min-w-0 flex-1">
           <div className="font-medium text-ink-700 mb-1">{party.name || '—'}</div>
+
+          {/* meta row: ticker + (only show 'National' here; never 'State') */}
           <div className="flex items-center justify-between text-xs text-ink-600/80">
-            <span>{[party.abbr, party.status].filter(Boolean).join(' • ') || '—'}</span>
+            <span>
+              {[party.abbr, isNational ? 'National' : undefined].filter(Boolean).join(' • ') || '—'}
+            </span>
+
+            {/* badge: show National (blue) or literal State (purple) */}
             {party.status && (
               <span
                 className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                   isNational ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
                 }`}
               >
-                {isNational ? 'National' : (stateName || 'State')}
+                {isNational ? 'National' : 'State'}
               </span>
             )}
           </div>
