@@ -2,7 +2,14 @@
 import Link from 'next/link';
 import type { Party } from '@/lib/airtable';
 
+// Extended interface to handle dynamic Airtable fields
+interface ExtendedParty extends Party {
+  [key: string]: any;
+}
+
 export default function CardParty({ party }: { party: Party }) {
+  // Cast to extended type for safe dynamic property access
+  const extParty = party as ExtendedParty;
   return (
     <Link
       href={`/parties/${party.slug}`}
@@ -33,63 +40,63 @@ export default function CardParty({ party }: { party: Party }) {
       </div>
 
       {/* Key Leader */}
-      {party['Key Leader(s)'] && (
+      {extParty['Key Leader(s)'] && (
         <div className="mb-2">
           <div className="text-xs text-ink-600/60 uppercase tracking-wide">Leader</div>
-          <div className="text-sm text-ink-700 font-medium">{party['Key Leader(s)']}</div>
+          <div className="text-sm text-ink-700 font-medium">{extParty['Key Leader(s)']}</div>
         </div>
       )}
 
       {/* Lok Sabha Seats */}
-      {party['Lok Sabha Seats (2019)'] !== undefined && (
+      {extParty['Lok Sabha Seats (2019)'] !== undefined && (
         <div className="mb-2">
           <div className="text-xs text-ink-600/60 uppercase tracking-wide">Lok Sabha Seats (2019)</div>
-          <div className="text-lg font-bold text-ink-800">{party['Lok Sabha Seats (2019)']}</div>
+          <div className="text-lg font-bold text-ink-800">{extParty['Lok Sabha Seats (2019)']}</div>
         </div>
       )}
 
       {/* Symbol/Notes */}
-      {party.notes && (
+      {extParty.notes && (
         <div className="mb-2">
           <div className="text-xs text-ink-600/60 uppercase tracking-wide">Symbol</div>
-          <div className="text-sm text-ink-700">{party.notes}</div>
+          <div className="text-sm text-ink-700">{extParty.notes}</div>
         </div>
       )}
 
       {/* Details Preview */}
-      {party.details && (
+      {extParty.details && (
         <div className="mb-2">
           <div className="text-xs text-ink-600/60 uppercase tracking-wide">About</div>
           <div className="text-sm text-ink-700 leading-relaxed">
-            {party.details.length > 80 
-              ? `${party.details.substring(0, 80)}...` 
-              : party.details
+            {extParty.details.length > 80 
+              ? `${extParty.details.substring(0, 80)}...` 
+              : extParty.details
             }
           </div>
         </div>
       )}
 
       {/* Year/Attachment Sum */}
-      {party['Attachment Sum'] && (
+      {extParty['Attachment Sum'] && (
         <div className="mb-2">
           <div className="text-xs text-ink-600/60 uppercase tracking-wide">Established</div>
-          <div className="text-sm text-ink-700 font-medium">{party['Attachment Sum']}</div>
+          <div className="text-sm text-ink-700 font-medium">{extParty['Attachment Sum']}</div>
         </div>
       )}
 
       {/* Footer with additional info */}
       <div className="mt-3 pt-3 border-t border-ink-100 flex items-center justify-between text-xs">
         {/* Assignee */}
-        {party.assignee && (
+        {extParty.assignee && (
           <span className="text-ink-600/70">
-            Assigned to: {party.assignee}
+            Assigned to: {extParty.assignee}
           </span>
         )}
         
         {/* Attachments indicator */}
-        {party.attachments && party.attachments.length > 0 && (
+        {extParty.attachments && extParty.attachments.length > 0 && (
           <span className="bg-ink-100 text-ink-600 px-2 py-1 rounded-full">
-            {party.attachments.length} files
+            {extParty.attachments.length} files
           </span>
         )}
       </div>
