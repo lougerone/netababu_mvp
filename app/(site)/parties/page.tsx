@@ -1,7 +1,7 @@
 // app/(site)/parties/page.tsx
 import Link from 'next/link';
 import Image from 'next/image';
-import { listParties } from '@/lib/airtable'; // IMPORT ONLY — do not re-export
+import { listParties } from '@/lib/airtable';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,9 +21,7 @@ export default async function PartiesPage({
   searchParams?: { [key: string]: string | undefined };
 }) {
   const view: 'grid' | 'list' =
-    (searchParams?.view?.toLowerCase() as 'grid' | 'list') === 'list'
-      ? 'list'
-      : 'grid';
+    (searchParams?.view?.toLowerCase() as 'grid' | 'list') === 'list' ? 'list' : 'grid';
 
   const parties: Party[] = await listParties();
   const count = parties.length;
@@ -41,13 +39,10 @@ export default async function PartiesPage({
           <h1 className="text-2xl font-semibold">Parties</h1>
           <p className="text-sm text-black/60">Showing {count} parties</p>
         </div>
-
         <div className="inline-flex overflow-hidden rounded-lg border border-black/10">
           <Link
             href={{ pathname: '/parties', query: { ...baseObj, view: 'grid' } }}
-            className={`px-3 py-2 text-sm ${
-              view === 'grid' ? 'bg-black/5 font-medium' : 'hover:bg-black/5'
-            }`}
+            className={`px-3 py-2 text-sm ${view === 'grid' ? 'bg-black/5 font-medium' : 'hover:bg-black/5'}`}
           >
             Grid
           </Link>
@@ -62,16 +57,10 @@ export default async function PartiesPage({
         </div>
       </header>
 
-      {view === 'grid' ? (
-        <GridView parties={parties} />
-      ) : (
-        <ListView parties={parties} />
-      )}
+      {view === 'grid' ? <GridView parties={parties} /> : <ListView parties={parties} />}
     </main>
   );
 }
-
-/* ------------------------------- Views -------------------------------- */
 
 function GridView({ parties }: { parties: Party[] }) {
   return (
@@ -113,17 +102,13 @@ function ListView({ parties }: { parties: Party[] }) {
                 {[p.abbr, p.status].filter(Boolean).join(' • ') || '—'}
               </p>
             </div>
-            {p.founded ? (
-              <span className="whitespace-nowrap text-xs text-black/60">Founded {p.founded}</span>
-            ) : null}
+            {p.founded ? <span className="whitespace-nowrap text-xs text-black/60">Founded {p.founded}</span> : null}
           </article>
         </Link>
       ))}
     </section>
   );
 }
-
-/* ------------------------------ Atom ---------------------------------- */
 
 function LogoBox({
   src,
@@ -137,6 +122,7 @@ function LogoBox({
   abbr?: string;
 }) {
   if (!src) {
+    // clean fallback (initials) when no image or an attachment isn’t provided
     return (
       <div className="flex h-8 w-8 items-center justify-center rounded bg-black/5 text-[10px] font-semibold">
         {initials(name, abbr)}
@@ -150,4 +136,9 @@ function LogoBox({
   );
 }
 
-function initials(na
+function initials(name?: string, abbr?: string) {
+  const s = (abbr || name || '').trim();
+  if (!s) return '—';
+  const parts = s.split(/\s+/).slice(0, 2);
+  return parts.map((p) => p[0]).join('').toUpperCase();
+}
