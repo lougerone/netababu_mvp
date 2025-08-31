@@ -25,13 +25,42 @@ const T_PAR = process.env.AIRTABLE_TABLE_PARTIES || 'Parties';
 
 const toSlug = (s = '') => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
+function toText(v: any): string | undefined {
+  if (v == null) return undefined;
+
+  // plain string
+  if (typeof v === 'string') {
+    const s = v.trim();
+    return s ? s : undefined;
+  }
+
+  // numbers / booleans → stringify
+  if (typeof v === 'number' || typeof v === 'boolean') {
+    return String(v);
+  }
+
+  // arrays (e.g., single-select in array, or linked-record lookups)
+  if (Array.isArray(v)) {
+    if (!v.length) return undefined;
+    return toText(v[0]); // take first non-empty as text
+  }
+
+  // Airtable single-select/record object often has a "name"
+  if (typeof v === 'object' && 'name' in v) {
+    return toText((v as any).name);
+  }
+
+  return undefined;
+}
+
 function firstNonEmpty(f: Record<string, any>, keys: string[]): string | undefined {
   for (const k of keys) {
-    const v = f[k];
-    if (typeof v === 'string' && v.trim()) return v.trim();
+    const s = toText(f[k]);
+    if (s) return s;
   }
   return undefined;
 }
+
 
 function getFirstAttachmentUrl(v: any): string | undefined {
   if (Array.isArray(v) && v.length && v[0]?.url) return v[0].url as string;
