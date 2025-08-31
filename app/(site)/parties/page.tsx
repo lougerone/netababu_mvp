@@ -1,118 +1,189 @@
-// app/(site)/parties/page.tsx
-import Link from 'next/link';
-import Image from 'next/image';
-import { listParties } from '@/lib/airtable';
-import type { Party } from '@/lib/airtable';   // ← use the source of truth
+// app/parties/[slug]/page.tsx
+import Image from "next/image";
+import { getPartyBySlug, allPartySlugs } from "@/lib/airtable";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = Number(process.env.REVALIDATE_SECONDS || 3600);
 
-export default async function PartiesPage({
-  searchParams,
-}: { searchParams?: { [key: string]: string | undefined } }) {
-  const view: 'grid' | 'list' =
-    (searchParams?.view?.toLowerCase() as 'grid' | 'list') === 'list' ? 'list' : 'grid';
+export async function generateStaticParams() {
+  const slugs = await allPartySlugs();
+  return slugs.slice(0, 2000).map((slug) => ({ slug }));
+}
 
-  const parties = await listParties();        // ← no manual annotation
-  const count = parties.length;
+type ExtParty = Record<string, any> & {
+  id: string;
+  slug: string;
+  name: string;
+  abbr?: string | null;
+  status?: string | null;
+  state?: string | null;
+  founded?: string | null;
+  logo?: string | null;
+  leaders?: string[];
+  symbolText?: string | null;
+  seats?: number | string | null;
+  details?: string | null;
+};
 
-  const base = new URLSearchParams();
-  Object.entries(searchParams ?? {}).forEach(([k, v]) => {
-    if (k !== 'view' && typeof v === 'string') base.set(k, v);
-  });
-  const baseObj = Object.fromEntries(base);
+export default async function PartyPage({ params }: { params: { slug: string } }) {
+  const p = (await getPartyBySlug(params.slug)) as ExtParty | null;
+  if (!p) return <div className="mx-auto max-w-3xl p-6">Not found.</div>;
+
+  // helpers
+  const isEmpty = (v: any) =>
+    v == null ||
+    (typeof v === "string" && v.trim() === "") ||
+    (Array.isArray(v) && v.length === 0);
+
+  const formatValue = (v: any): React.ReactNode => {
+    if (isEmpty(v)) return "—";
+    if (Array.isArray(v)) {
+      // attachments / arrays of objects with url/filename
+      if (v[0] && typeof v[0] === "object" && ("url" in v[0] || "filename" in v[0])) {
+        return (
+          <ul className="space-y-1">
+            {v.map((a: any, i: number) => (
+              <li key={i}>
+                {"url" in a ? (
+                  <a className="underline hover:no-underline" href={a.url} target="_blank" rel="noopener noreferrer">
+                    {a.filename || a.name || `File ${i + 1}`}
+                  </a>
+                ) : (
+                  String(a.filename || a.name || `File ${i + 1}`)
+                )}
+              </li>
+            ))}
+          </ul>
+        );
+      }
+      return v
+        .map((x: any) =>
+          typeof x === "object" && x && "name" in x ? String(x.name) : String(x)
+        )
+        .filter(Boolean)
+        .join(", ");
+    }
+    if (typeof v === "object" && v) {
+      if ("name" in v) return String((v as any).name);
+      if ("url" in v) {
+        const a = v as any;
+        return (
+          <a className="underline hover:no-underline" href={a.url} target="_blank" rel="noopener noreferrer">
+            {a.filename || a.url}
+          </a>
+        );
+      }
+      try { return JSON.stringify(v); } catch { return String(v); }
+    }
+    return String(v);
+  };
+
+  // fields to hide from the generic table (already shown or noisy)
+  const EXCLUDE = new Set<string>([
+    // technical
+    "id","createdTime","Created","slug","Slug",
+    // already surfaced/normalized
+    "name","Name","Party","Party Name","party_name",
+    "Logo","Symbol","Emblem","Image","Attachments",
+    "abbr","Abbreviation","Short Name","Acronym","ticker","Ticker",
+    "status","Recognition","Type",
+    "state","State","State Name","Home State","Region",
+    "founded","Founded","Date of Establishment","Year Founded","Established","Formed","Year","D.",
+    "leaders","Leader","Leaders","Key Leader(s)",
+    "seats","Lok Sabha Seats","Lok Sabha Seats (2024)","Lok Sabha Seats (20)",
+    "symbolText","Attachment Summary","Symbol Name",
+    "details","Details",
+  ]);
+
+  const allEntries = Object.entries(p)
+    .filter(([k, v]) => !EXCLUDE.has(k) && !isEmpty(v) && typeof v !== "function")
+    .sort(([a], [b]) => a.localeCompare(b));
+
+  // Handy picks if they exist on the record
+  const rajyaSeats = p["Rajya Sabha Seats"];
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Parties</h1>
-          <p className="text-sm text-black/60">Showing {count} parties</p>
-        </div>
-        <div className="inline-flex overflow-hidden rounded-lg border border-black/10">
-          <Link href={{ pathname: '/parties', query: { ...baseObj, view: 'grid' } }}
-                className={`px-3 py-2 text-sm ${view === 'grid' ? 'bg-black/5 font-medium' : 'hover:bg-black/5'}`}>
-            Grid
-          </Link>
-          <Link href={{ pathname: '/parties', query: { ...baseObj, view: 'list' } }}
-                className={`px-3 py-2 text-sm border-l border-black/10 ${view === 'list' ? 'bg-black/5 font-medium' : 'hover:bg-black/5'}`}>
-            List
-          </Link>
+    <main className="mx-auto max-w-3xl p-6 space-y-8">
+      {/* Header */}
+      <header className="flex items-start gap-4">
+        {p.logo ? (
+          <Image
+            src={p.logo}
+            alt={`${p.name} logo`}
+            width={96}
+            height={96}
+            className="rounded-lg object-contain bg-white p-2"
+          />
+        ) : (
+          <div className="w-24 h-24 rounded-lg bg-black/10" />
+        )}
+
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold">{p.name}</h1>
+          <p className="text-sm text-black/60">
+            {[p.abbr, p.status].filter(Boolean).join(" • ") || "—"}
+          </p>
+          {!!p.leaders?.length && (
+            <p className="text-sm mt-1">Leaders: {p.leaders.join(", ")}</p>
+          )}
         </div>
       </header>
 
-      {view === 'grid' ? <GridView parties={parties} /> : <ListView parties={parties} />}
+      {/* Quick facts */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {p.founded && (
+          <div className="rounded-lg border border-black/10 bg-white/40 p-3">
+            <div className="text-[11px] uppercase tracking-wide text-black/60">Founded</div>
+            <div className="text-sm font-medium">{p.founded}</div>
+          </div>
+        )}
+        {p.state && (
+          <div className="rounded-lg border border-black/10 bg-white/40 p-3">
+            <div className="text-[11px] uppercase tracking-wide text-black/60">State</div>
+            <div className="text-sm font-medium">{p.state}</div>
+          </div>
+        )}
+        {p.seats != null && (
+          <div className="rounded-lg border border-black/10 bg-white/40 p-3">
+            <div className="text-[11px] uppercase tracking-wide text-black/60">Lok Sabha Seats</div>
+            <div className="text-sm font-medium">{String(p.seats)}</div>
+          </div>
+        )}
+        {rajyaSeats != null && (
+          <div className="rounded-lg border border-black/10 bg-white/40 p-3">
+            <div className="text-[11px] uppercase tracking-wide text-black/60">Rajya Sabha Seats</div>
+            <div className="text-sm font-medium">{formatValue(rajyaSeats)}</div>
+          </div>
+        )}
+        {p.symbolText && (
+          <div className="rounded-lg border border-black/10 bg-white/40 p-3 sm:col-span-2">
+            <div className="text-[11px] uppercase tracking-wide text-black/60">Symbol</div>
+            <div className="text-sm">{p.symbolText}</div>
+          </div>
+        )}
+      </section>
+
+      {/* About */}
+      {p.details && (
+        <section>
+          <h2 className="text-lg font-semibold mb-2">About</h2>
+          <p className="text-sm leading-relaxed">{p.details}</p>
+        </section>
+      )}
+
+      {/* All Airtable fields */}
+      {allEntries.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold mb-3">All fields</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {allEntries.map(([key, val]) => (
+              <div key={key} className="rounded-lg border border-black/10 bg-white/40 p-3">
+                <div className="text-[11px] uppercase tracking-wide text-black/60">{key}</div>
+                <div className="text-sm break-words">{formatValue(val)}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
-}
-
-function GridView({ parties }: { parties: Party[] }) {
-  return (
-    <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {parties.map((p) => (
-        <Link key={p.id} href={`/parties/${p.slug}`}
-              className="group rounded-xl border border-black/10 bg-white shadow-sm transition hover:border-black/20 hover:shadow-md">
-          <article className="p-4">
-            <div className="mb-3 flex items-center gap-3">
-              <LogoBox src={p.logo ?? undefined} alt={`${p.name} logo`} name={p.name} abbr={p.abbr} />
-              <div className="min-w-0">
-                <h2 className="truncate text-base font-medium group-hover:underline">{p.name || '—'}</h2>
-                <p className="truncate text-xs text-black/60">
-                  {[p.abbr, p.status].filter(Boolean).join(' • ') || '—'}
-                </p>
-              </div>
-            </div>
-            {p.founded ? <p className="text-xs text-black/60">Founded: {p.founded}</p> : null}
-          </article>
-        </Link>
-      ))}
-    </section>
-  );
-}
-
-function ListView({ parties }: { parties: Party[] }) {
-  return (
-    <section className="divide-y divide-black/10 rounded-xl border border-black/10 bg-white">
-      {parties.map((p) => (
-        <Link key={p.id} href={`/parties/${p.slug}`} className="block">
-          <article className="flex items-center gap-4 px-4 py-3 hover:bg-black/[.03]">
-            <LogoBox src={p.logo ?? undefined} alt={`${p.name} logo`} name={p.name} abbr={p.abbr} />
-            <div className="min-w-0 flex-1">
-              <h2 className="truncate text-sm font-medium">{p.name || '—'}</h2>
-              <p className="truncate text-xs text-black/60">
-                {[p.abbr, p.status].filter(Boolean).join(' • ') || '—'}
-              </p>
-            </div>
-            {p.founded ? <span className="whitespace-nowrap text-xs text-black/60">Founded {p.founded}</span> : null}
-          </article>
-        </Link>
-      ))}
-    </section>
-  );
-}
-
-function LogoBox({
-  src,
-  alt,
-  name,
-  abbr,
-}: { src?: string; alt: string; name?: string; abbr?: string }) {
-  if (!src) {
-    return (
-      <div className="flex h-8 w-8 items-center justify-center rounded bg-black/5 text-[10px] font-semibold">
-        {initials(name, abbr)}
-      </div>
-    );
-  }
-  return (
-    <div className="h-8 w-8 overflow-hidden rounded bg-black/5">
-      <Image src={src} alt={alt} width={64} height={64} className="h-full w-full object-cover" />
-    </div>
-  );
-}
-
-function initials(name?: string, abbr?: string) {
-  const s = (abbr || name || '').trim();
-  if (!s) return '—';
-  const parts = s.split(/\s+/).slice(0, 2);
-  return parts.map((p) => p[0]).join('').toUpperCase();
 }
