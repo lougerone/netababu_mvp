@@ -200,9 +200,16 @@ function mapParty(r: AirtableRecord): Party {
 
   const symbolText = firstNonEmpty(f, ['Attachment Summary', 'Symbol Name']) || null;
 
-  // 👇 NEW: read party's state (text or single-select)
-  const state =
-    firstNonEmpty(f, ['State', 'state', 'Home State', 'Region']) || null;
+// Prefer explicit text/lookup; then fall back.
+// If it's a linked record (recXXXXXXXXXXXXX), ignore those IDs.
+let state =
+  firstNonEmpty(f, ['State Name', 'State', 'state', 'Home State', 'Region']) || null;
+
+if (state && /^rec[a-zA-Z0-9]{14,}/.test(state)) {
+  // looks like a linked-record ID, not a readable state name
+  state = null;
+}
+
 
   const leaders: string[] = (() => {
     const raw = f['Key Leader(s)'] ?? f['Leaders'] ?? f['Leader'];
