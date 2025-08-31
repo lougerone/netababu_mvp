@@ -22,10 +22,9 @@ export default async function HomePage() {
   return (
     <div className="space-y-12">
       {/* Hero */}
-     <section
+    <section
   className="relative isolate text-center overflow-hidden
-             h-[60vh] md:h-[70vh] lg:h-[80vh]
-             flex flex-col items-center justify-center"
+             h-[60vh] md:h-[70vh] lg:h-[80vh]"
 >
   {/* Background image */}
   <Image
@@ -37,14 +36,14 @@ export default async function HomePage() {
     sizes="100vw"
   />
 
-  {/* Bottom fade only */}
+  {/* Bottom fade only (removed the top fade that caused the bar) */}
   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
 
-  {/* Content — vertically centered, title forced to single line */}
-  <div className="max-w-4xl px-4">
+  {/* Content — original sizes, pushed higher with top padding */}
+  <div className="mx-auto max-w-4xl px-4 pt-8 md:pt-10 lg:pt-12">
     <div className="h-kicker">India • Politics • Data</div>
 
-    <h1 className="whitespace-nowrap text-4xl md:text-5xl font-semibold text-ink-700">
+    <h1 className="text-4xl md:text-5xl font-semibold text-ink-700">
       Netas, parties, drama — all in one place.
     </h1>
 
@@ -58,14 +57,8 @@ export default async function HomePage() {
     </div>
 
     <div className="mt-2 text-sm text-ink-600/80">
-      Popular:{" "}
-      <Link href="/politicians?query=modi" className="underline">
-        Modi
-      </Link>{" "}
-      •{" "}
-      <Link href="/parties?query=inc" className="underline">
-        INC
-      </Link>
+      Popular: <Link href="/politicians?query=modi" className="underline">Modi</Link> •{" "}
+      <Link href="/parties?query=inc" className="underline">INC</Link>
     </div>
   </div>
 </section>
