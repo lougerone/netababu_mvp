@@ -42,21 +42,6 @@ export default async function HomePage() {
   <div className="pointer-events-none absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-cream-200 to-transparent" />
   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
 
-{/* Radial haze behind content (inline CSS so it never gets purged) */}
-<div
-  className="pointer-events-none absolute inset-0 z-0 flex items-start justify-center pt-8 md:pt-10 lg:pt-12"
->
-  <div
-    style={{
-      width: 'min(92%, 900px)',
-      height: '220px',
-      filter: 'blur(22px)',
-      background:
-        'radial-gradient(ellipse at center, rgba(180,210,255,0.70) 0%, rgba(180,210,255,0.35) 38%, rgba(180,210,255,0.18) 60%, rgba(180,210,255,0) 72%)',
-    }}
-  />
-</div>
-
   <div className="relative mx-auto max-w-4xl px-4 pt-8 md:pt-10 lg:pt-12">
     <div className="h-kicker">India • Politics • Data</div>
 
