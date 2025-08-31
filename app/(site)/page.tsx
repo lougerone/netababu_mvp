@@ -83,7 +83,7 @@ export default async function HomePage() {
           {/* Top parties: 4 across */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Top parties</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
               {featuredParties.map((party) => (
                 <CardParty key={party.id} party={party} />
               ))}
@@ -110,7 +110,7 @@ export default async function HomePage() {
           {/* Latest parties: 2x2 */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Latest parties</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
               {latestParties.map((party) => (
                 <CardParty key={party.id} party={party} />
               ))}
