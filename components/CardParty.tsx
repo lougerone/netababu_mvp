@@ -15,24 +15,23 @@ export default function CardParty({ party }: { party: Party }) {
       className="card block p-4 hover:shadow-lg transition-shadow
                  before:content-[''] before:block before:h-1.5 before:rounded-t-xl
                  before:bg-gradient-to-r before:from-saffron-500 before:to-ink-600
-                 h-[116px]"  /* match politician card height */
+                 h-full flex flex-col min-h-[116px]" // match politician card height
     >
-      <div className="flex h-full items-start gap-3">
+      <div className="flex flex-1 items-start gap-3">
         <LogoBox src={party.logo ?? undefined} name={party.name} abbr={party.abbr} />
 
-        {/* same vertical rhythm as CardPolitician */}
         <div className="min-w-0 flex-1 flex flex-col">
-          {/* Name (single line like neta card) */}
+          {/* Party name (single line) */}
           <div className="font-medium text-ink-700 leading-snug line-clamp-1">
             {party.name || '—'}
           </div>
 
-          {/* push meta to the bottom so rows align */}
-          <div className="mt-auto flex items-center justify-between text-xs text-ink-600/80">
-            {/* LEFT: Ticker ONLY (no grey “• State”) */}
+          {/* Spacer pushes meta to bottom */}
+          <div className="mt-auto flex items-center justify-between text-xs text-ink-600/80 pt-1">
+            {/* Abbreviation */}
             <span className="truncate">{party.abbr || '—'}</span>
 
-            {/* RIGHT: status pill — purple for State, blue for National */}
+            {/* Status pill */}
             {statusLabel && (
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
