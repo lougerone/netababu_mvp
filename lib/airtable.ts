@@ -1,3 +1,15 @@
+
+function parseList(value: any): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    // Handle comma-separated values or newline-separated values
+    return value.split(/[,\n]/).map(item => item.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+
 // lib/airtable.ts
 const AIRTABLE_API = "https://api.airtable.com/v0";
 
