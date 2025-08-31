@@ -23,9 +23,9 @@ export default async function HomePage() {
     <div className="space-y-12">
       {/* Hero */}
      <section
-  className="relative isolate text-center space-y-4
-  h-[60vh] md:h-[70vh] lg:h-[80vh]
-  flex flex-col items-center justify-center overflow-hidden"
+  className="relative isolate text-center overflow-hidden
+             h-[60vh] md:h-[70vh] lg:h-[80vh]
+             flex flex-col items-center justify-center"
 >
   {/* Background image */}
   <Image
@@ -37,15 +37,14 @@ export default async function HomePage() {
     sizes="100vw"
   />
 
-  {/* Top & bottom gradient fades */}
-  <div className="pointer-events-none absolute inset-x-0 top-0 h-20 md:h-24 bg-gradient-to-b from-cream-200 to-transparent" />
+  {/* Bottom fade only */}
   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
 
-  {/* Content — original size, centered */}
+  {/* Content — vertically centered, title forced to single line */}
   <div className="max-w-4xl px-4">
     <div className="h-kicker">India • Politics • Data</div>
 
-    <h1 className="text-4xl md:text-5xl font-semibold text-ink-700">
+    <h1 className="whitespace-nowrap text-4xl md:text-5xl font-semibold text-ink-700">
       Netas, parties, drama — all in one place.
     </h1>
 
@@ -58,9 +57,15 @@ export default async function HomePage() {
       <button className="btn">Search</button>
     </div>
 
-    <div className="text-sm text-ink-600/80 mt-2">
-      Popular: <Link href="/politicians?query=modi" className="underline">Modi</Link> •{" "}
-      <Link href="/parties?query=inc" className="underline">INC</Link>
+    <div className="mt-2 text-sm text-ink-600/80">
+      Popular:{" "}
+      <Link href="/politicians?query=modi" className="underline">
+        Modi
+      </Link>{" "}
+      •{" "}
+      <Link href="/parties?query=inc" className="underline">
+        INC
+      </Link>
     </div>
   </div>
 </section>
