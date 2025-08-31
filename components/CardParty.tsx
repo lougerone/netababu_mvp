@@ -5,10 +5,8 @@ import type { Party } from '@/lib/airtable';
 
 export default function CardParty({ party }: { party: Party }) {
   const status = (party.status || '').toLowerCase();
-  const statusLabel = status.includes('national') ? 'National' : 'State';
-  const subtitle = [party.abbr, party.status ? statusLabel : undefined]
-    .filter(Boolean)
-    .join(' • ') || '—';
+  const isNational = status.includes('national');
+  const statusLabel = party.status ? (isNational ? 'National' : 'State') : undefined;
 
   return (
     <Link
@@ -17,22 +15,34 @@ export default function CardParty({ party }: { party: Party }) {
       className="card block p-4 hover:shadow-lg transition-shadow
                  before:content-[''] before:block before:h-1.5 before:rounded-t-xl
                  before:bg-gradient-to-r before:from-saffron-500 before:to-ink-600
-                 h-[116px]"  // match politician card height
+                 h-[116px]"  /* match politician card height */
     >
       <div className="flex h-full items-start gap-3">
         <LogoBox src={party.logo ?? undefined} name={party.name} abbr={party.abbr} />
 
-        {/* same layout as CardPolitician: title, subtitle, bottom spacer */}
+        {/* same vertical rhythm as CardPolitician */}
         <div className="min-w-0 flex-1 flex flex-col">
+          {/* Name (single line like neta card) */}
           <div className="font-medium text-ink-700 leading-snug line-clamp-1">
             {party.name || '—'}
           </div>
-          <div className="text-xs text-ink-600/80 line-clamp-1">
-            {subtitle}
-          </div>
 
-          {/* bottom line kept empty to give breathing room & align bottoms */}
-          <div className="mt-auto text-xs text-ink-600/60">&nbsp;</div>
+          {/* push meta to the bottom so rows align */}
+          <div className="mt-auto flex items-center justify-between text-xs text-ink-600/80">
+            {/* LEFT: Ticker ONLY (no grey “• State”) */}
+            <span className="truncate">{party.abbr || '—'}</span>
+
+            {/* RIGHT: status pill — purple for State, blue for National */}
+            {statusLabel && (
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                  isNational ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                }`}
+              >
+                {statusLabel}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </Link>
