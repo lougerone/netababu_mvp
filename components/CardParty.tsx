@@ -1,16 +1,6 @@
 // components/CardParty.tsx
 import Link from 'next/link';
-
-// components/CardParty.tsx
-
-export type Party = {
-  id: string;
-  slug: string;
-  name: string;
-  abbrev?: string;
-  // Allow any string or null instead of only "Active" | "Inactive"
-  status?: string | null;
-};
+import type { Party } from '@/lib/airtable';
 
 export default function CardParty({ party }: { party: Party }) {
   return (
