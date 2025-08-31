@@ -7,6 +7,17 @@ if (typeof window !== 'undefined') {
 
 /* ----------------------------- Small helpers ----------------------------- */
 
+function toNumber(v: any): number | null {
+  if (v == null) return null;
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  if (typeof v === 'string') {
+    const n = parseInt(v.replace(/[, ]+/g, ''), 10);
+    return Number.isNaN(n) ? null : n;
+  }
+  return null;
+}
+
+
 function parseList(value: any): string[] {
   if (!value) return [];
   if (Array.isArray(value)) return value.filter(Boolean).map(String).map((s) => s.trim());
@@ -281,6 +292,31 @@ export async function listParties(opts: { limit?: number; query?: string } = {})
   }
   return Number.isFinite(max) ? mapped.slice(0, Number(max)) : mapped;
 }
+
+export async function listTopPartiesBySeats(limit = 6): Promise<Party[]> {
+  const records = await atFetchAll(T_PAR, { pageSize: '100' });
+  const mapped = records.map(mapParty);
+
+  const ranked = mapped
+    .map((p) => {
+      // normalize seats into a number
+      const val = p.seats;
+      let n: number | null = null;
+      if (typeof val === 'number') n = val;
+      else if (typeof val === 'string') {
+        const parsed = parseInt(val.replace(/[, ]+/g, ''), 10);
+        if (!Number.isNaN(parsed)) n = parsed;
+      }
+      return { party: p, seatsNum: n };
+    })
+    .filter((x) => x.seatsNum !== null)
+    .sort((a, b) => (b.seatsNum! - a.seatsNum!)) // highest → lowest
+    .slice(0, Math.max(1, limit))
+    .map((x) => x.party);
+
+  return ranked;
+}
+
 
 export async function getPoliticianBySlug(slug: string): Promise<Politician | null> {
   const data = await atFetch(T_POL, { filterByFormula: `{slug} = "${slug}"`, maxRecords: '1' });
