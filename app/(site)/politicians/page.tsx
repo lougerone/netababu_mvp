@@ -2,13 +2,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Politician } from '@/lib/airtable';
-import { getPoliticians } from '@/lib/airtable';
+import { listPoliticians } from '@/lib/airtable';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PoliticiansPage() {
   try {
-    const politicians = await getPoliticians();
+    const politicians = await listPoliticians();
     
     return (
       <main className="mx-auto max-w-6xl p-6">
