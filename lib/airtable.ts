@@ -348,25 +348,30 @@ export async function allPartySlugs(): Promise<string[]> {
     .filter(Boolean);
 }
 
-// Most recent by Created — Parties
+// Most recent by Founded — Parties
 export async function listRecentParties(limit = 4): Promise<Party[]> {
-  const view = process.env.AIRTABLE_PARTIES_VIEW || 'Grid view';
-  const createdField = process.env.AIRTABLE_PARTIES_CREATED_FIELD || 'Created';
-  try {
-    const data = await atFetch(T_PAR, {
-      view,
-      pageSize: String(Math.min(Math.max(limit, 1), 100)),
-      [`sort[0][field]`]: createdField,
-      [`sort[0][direction]`]: 'desc',
-    });
-    if (data.records?.length) return data.records.slice(0, limit).map(mapParty);
-  } catch {}
-  const page = await atFetch(T_PAR, { view, pageSize: '100' });
-  return page.records
-    .slice()
-    .sort((a, b) => new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime())
-    .slice(0, limit)
-    .map(mapParty);
+  // fetch a good chunk of records
+  const records = await atFetchAll(T_PAR, { pageSize: '100' });
+  const mapped = records.map(mapParty);
+
+  // normalize seats → number
+  const ranked = mapped
+    .map((p) => {
+      const val = p.seats;
+      let n: number | null = null;
+      if (typeof val === 'number') n = val;
+      else if (typeof val === 'string') {
+        const parsed = parseInt(val.replace(/[, ]+/g, ''), 10);
+        if (!Number.isNaN(parsed)) n = parsed;
+      }
+      return { party: p, seatsNum: n };
+    })
+    .filter((x) => x.seatsNum !== null)
+    .sort((a, b) => b.seatsNum! - a.seatsNum!) // strongest → weakest
+    .slice(0, Math.max(1, limit))
+    .map((x) => x.party);
+
+  return ranked;
 }
 
 // Most recent by Created — Politicians
