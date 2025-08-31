@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import LatestParties from '@/components/LatestParties';
 import CardPolitician from '@/components/CardPolitician';
 import CardParty from '@/components/CardParty';
 import { listPoliticians, listParties } from '@/lib/airtable';
@@ -7,15 +6,20 @@ import { listPoliticians, listParties } from '@/lib/airtable';
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const [politicians, parties] = await Promise.all([
-    listPoliticians({ limit: 3 }),
-    listParties({ limit: 3 }),
+  const [polAll, parAll] = await Promise.all([
+    listPoliticians({ limit: 8 }),
+    listParties({ limit: 8 }),
   ]);
 
+  const featuredNetas = polAll.slice(0, 4);
+  const featuredParties = parAll.slice(0, 4);
+  const latestNetas = polAll.slice(4, 8);
+  const latestParties = parAll.slice(4, 8);
+
   return (
-    <div className="space-y-10">
-      {/* Hero (styled) */}
-      <section className="text-center space-y-4 relative">
+    <div className="space-y-12">
+      {/* Hero */}
+      <section className="text-center space-y-4">
         <div className="h-kicker">India • Politics • Data</div>
         <h1 className="text-4xl md:text-5xl font-semibold text-ink-700">
           Netas, parties, drama — all in one place.
@@ -60,27 +64,27 @@ export default async function HomePage() {
       </section>
 
       {/* Featured netas & parties */}
-      <section className="space-y-2 mt-8">
+      <section className="space-y-6">
         <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-saffron-500 text-transparent bg-clip-text">
           Featured netas &amp; parties
         </h2>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Left column: top politicians */}
+        <div className="space-y-8">
+          {/* Top netas: 4 across */}
           <div>
-            <h3 className="text-lg font-semibold mb-2">Top netas</h3>
-            <div className="grid md:grid-cols-2 gap-8">
-              {politicians.map((p) => (
+            <h3 className="text-lg font-semibold mb-3">Top netas</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {featuredNetas.map((p) => (
                 <CardPolitician key={p.id} p={p} />
               ))}
             </div>
           </div>
 
-          {/* Right column: top parties */}
+          {/* Top parties: 4 across */}
           <div>
-            <h3 className="text-lg font-semibold mb-2">Top parties</h3>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {parties.map((party) => (
+            <h3 className="text-lg font-semibold mb-3">Top parties</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {featuredParties.map((party) => (
                 <CardParty key={party.id} party={party} />
               ))}
             </div>
@@ -88,11 +92,35 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Latest parties (dynamic) */}
-      <LatestParties />
+      {/* Latest netas & parties (two columns, each 2x2) */}
+      <section className="space-y-6">
+        <h2 className="text-2xl md:text-3xl font-extrabold">Latest netas &amp; parties</h2>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Latest netas: 2x2 */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Latest netas</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {latestNetas.map((p) => (
+                <CardPolitician key={p.id} p={p} />
+              ))}
+            </div>
+          </div>
+
+          {/* Latest parties: 2x2 */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Latest parties</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {latestParties.map((party) => (
+                <CardParty key={party.id} party={party} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Sources */}
-      <section className="space-y-2 mt-8">
+      <section className="space-y-2 mt-4">
         <h2 className="text-xl font-semibold">Sources</h2>
         <p className="text-sm text-ink-600/80 space-x-2">
           <Link href="https://eci.gov.in" className="underline">ECI</Link> •
