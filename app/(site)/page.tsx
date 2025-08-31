@@ -10,16 +10,6 @@ export const dynamic = 'force-dynamic'; // keep fresh; or set REVALIDATE_SECONDS
 
 export default function HomePage() {
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
-      {/* ...other sections... */}
-      <LatestParties />
-    </main>
-  );
-}
-
-
-export default function HomePage() {
-  return (
     <div className="space-y-10">
       {/* Hero (styled) */}
      <section className="text-center space-y-4 relative">
