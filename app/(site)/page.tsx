@@ -22,7 +22,11 @@ export default async function HomePage() {
   return (
     <div className="space-y-12">
       {/* Hero */}
-      <section className="relative isolate text-center space-y-4 overflow-hidden">
+      <section
+  className="relative isolate text-center space-y-4 
+  h-[60vh] md:h-[70vh] lg:h-[80vh] 
+  flex flex-col items-center justify-center overflow-hidden"
+>
   {/* Background image */}
   <Image
     src="/hero/hero-2560w.webp"
@@ -33,8 +37,11 @@ export default async function HomePage() {
     sizes="100vw"
   />
 
-  {/* Content — untouched, original size + centered */}
-  <div className="mx-auto max-w-4xl px-4 py-16 md:py-20 lg:py-24">
+  {/* Bottom gradient fade */}
+  <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
+
+  {/* Content — original size, centered */}
+  <div className="max-w-4xl px-4">
     <div className="h-kicker">India • Politics • Data</div>
 
     <h1 className="text-4xl md:text-5xl font-semibold text-ink-700">
@@ -51,14 +58,18 @@ export default async function HomePage() {
     </div>
 
     <div className="text-sm text-ink-600/80 mt-2">
-      Popular: <Link href="/politicians?query=modi" className="underline">Modi</Link> •{' '}
-      <Link href="/parties?query=inc" className="underline">INC</Link>
+      Popular:{" "}
+      <Link href="/politicians?query=modi" className="underline">
+        Modi
+      </Link>{" "}
+      •{" "}
+      <Link href="/parties?query=inc" className="underline">
+        INC
+      </Link>
     </div>
   </div>
 </section>
-
-
-
+      
       {/* Explore cards */}
       <section className="grid md:grid-cols-3 gap-4 mt-8">
         <div className="card p-5">
