@@ -4,7 +4,9 @@ import Image from 'next/image';
 import type { Party } from '@/lib/airtable';
 
 export default function CardParty({ party }: { party: Party }) {
-  const isNational = (party.status || '').toLowerCase().includes('national');
+  const status = (party.status || '').toLowerCase();
+  const isNational = status.includes('national');
+  const statusLabel = isNational ? 'National' : 'State';
 
   return (
     <Link
@@ -14,27 +16,30 @@ export default function CardParty({ party }: { party: Party }) {
                  before:bg-gradient-to-r before:from-saffron-500 before:to-ink-600"
       aria-label={`Open ${party.name} party page`}
     >
-      {/* Header only (minimal card) */}
       <div className="flex items-start gap-3">
         <LogoBox src={party.logo ?? undefined} name={party.name} abbr={party.abbr} />
+
         <div className="min-w-0 flex-1">
-          <div className="font-medium text-ink-700 mb-1 truncate">{party.name || '—'}</div>
+          {/* Name: wrap nicely to two lines max */}
+          <div className="font-medium text-ink-700 mb-1 leading-snug line-clamp-2">
+            {party.name || '—'}
+          </div>
+
+          {/* Meta row + status badge (right) */}
           <div className="flex items-center justify-between text-xs text-ink-600/80">
-            {/* Show ticker, and for national parties also show "National" in the meta row */}
+            {/* Left: Ticker • Status */}
             <span className="truncate">
-              {[party.abbr, isNational ? 'National' : undefined]
-                .filter(Boolean)
-                .join(' • ') || '—'}
+              {[party.abbr, statusLabel].filter(Boolean).join(' • ') || '—'}
             </span>
 
-            {/* Right badge: National (blue) or literal State (purple) */}
+            {/* Right: Status badge */}
             {party.status && (
               <span
                 className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                   isNational ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
                 }`}
               >
-                {isNational ? 'National' : 'State'}
+                {statusLabel}
               </span>
             )}
           </div>
