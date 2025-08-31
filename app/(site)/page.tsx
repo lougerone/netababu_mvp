@@ -38,38 +38,37 @@ export default async function HomePage() {
 
   {/* Edge fades */}
   <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream-200/70 to-transparent" />
-  <div className="pointer-events-none absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-cream-200/60 to-transparent" />
-  <div className="pointer-events-none absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-cream-200/60 to-transparent" />
+  <div className="pointer-events-none absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-cream-200/60 to-transparent" />
+  <div className="pointer-events-none absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-cream-200/60 to-transparent" />
   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
 
-  {/* Content with blurred backdrop */}
+  {/* Radial fade behind content */}
+  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+    <div className="h-[50%] w-[80%] bg-gradient-radial from-blue-200/70 via-blue-100/30 to-transparent blur-2xl" />
+  </div>
+
+  {/* Content — untouched */}
   <div className="relative mx-auto max-w-4xl px-4 pt-8 md:pt-10 lg:pt-12">
-    <div className="relative rounded-xl bg-cream-200/40 backdrop-blur-sm px-4 py-6 md:px-6 md:py-8 shadow-md">
-      <div className="h-kicker">India • Politics • Data</div>
+    <div className="h-kicker">India • Politics • Data</div>
 
-      <h1 className="mt-2 text-4xl md:text-5xl font-semibold text-ink-700">
-        Netas, parties, drama — all in one place.
-      </h1>
+    <h1 className="mt-2 text-4xl md:text-5xl font-semibold text-ink-700">
+      Netas, parties, drama — all in one place.
+    </h1>
 
-      <div className="text-saffron-600 text-xl md:text-2xl font-semibold">
-        नेताजी, पार्टियाँ और इंफो — एक ही जगह
-      </div>
+    <div className="text-saffron-600 text-xl md:text-2xl font-semibold">
+      नेताजी, पार्टियाँ और इंफो — एक ही जगह
+    </div>
 
-      <div className="max-w-2xl mx-auto mt-3 flex gap-2">
-        <input className="input-pill flex-1" placeholder="Search politicians, parties…" />
-        <button className="btn">Search</button>
-      </div>
+    <div className="max-w-2xl mx-auto mt-3 flex gap-2">
+      <input className="input-pill flex-1" placeholder="Search politicians, parties…" />
+      <button className="btn">Search</button>
+    </div>
 
-      <div className="mt-2 text-sm text-ink-600/80">
-        Popular:{" "}
-        <Link href="/politicians?query=modi" className="underline">
-          Modi
-        </Link>{" "}
-        •{" "}
-        <Link href="/parties?query=inc" className="underline">
-          INC
-        </Link>
-      </div>
+    <div className="mt-2 text-sm text-ink-600/80">
+      Popular:{" "}
+      <Link href="/politicians?query=modi" className="underline">Modi</Link>{" "}
+      •{" "}
+      <Link href="/parties?query=inc" className="underline">INC</Link>
     </div>
   </div>
 </section>
