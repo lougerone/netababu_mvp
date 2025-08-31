@@ -32,7 +32,7 @@ export default async function HomePage() {
     alt="Watercolor collage of Indian political figures — Netababu"
     fill
     priority
-    className="absolute inset-0 -z-10 w-full h-full object-cover object-top"
+    className="absolute inset-0 -z-30 w-full h-full object-cover object-top"
     sizes="100vw"
   />
 
