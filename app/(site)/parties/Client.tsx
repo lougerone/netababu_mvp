@@ -1,5 +1,5 @@
 // app/(site)/parties/Client.tsx
-// Enhanced version that includes all database columns while keeping your existing structure
+// Enhanced version that adds more filtering while keeping your existing structure
 'use client';
 import { useState, useMemo } from 'react';
 import CardParty from '@/components/CardParty';
@@ -7,45 +7,45 @@ import SearchBar from '@/components/SearchBar';
 import type { Party } from '@/lib/airtable';
 
 export default function PartiesClient({ initialData }: { initialData: Party[] }) {
-  // Query state for the search bar
+  // Existing query state
   const [query, setQuery] = useState('');
-  // Additional filter states for all your columns
+  
+  // Additional filter states
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('name');
 
-  // Debug log to see what data we're getting
-  console.log('PartiesClient initialData:', initialData);
+  // Debug: Log the data structure to help troubleshoot
+  console.log('PartiesClient received data:', initialData);
+  console.log('First party structure:', initialData[0]);
 
-  // Enhanced filtering that includes all your Airtable columns
+  // Enhanced filtering that searches across all your Airtable columns
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
     
     let filteredParties = initialData.filter(party => {
-      // Search across all relevant fields from your Airtable
-      const searchableFields = [
-        party.name,
-        party.slug,
-        party.status,
-        party['Key Leader(s)'] || party.keyLeaders, // Handle different field naming
-        party.assignee,
-        party.details,
-        party.notes
-      ].filter(Boolean).join(' ').toLowerCase();
+      // Enhanced search across all available fields
+      const searchMatch = 
+        (party.name || '').toLowerCase().includes(q) ||
+        (party.slug || '').toLowerCase().includes(q) ||
+        (party.status || '').toLowerCase().includes(q) ||
+        (party['Key Leader(s)'] || '').toLowerCase().includes(q) ||
+        (party.assignee || '').toLowerCase().includes(q) ||
+        (party.details || '').toLowerCase().includes(q) ||
+        (party.notes || '').toLowerCase().includes(q);
 
-      const matchesSearch = searchableFields.includes(q);
-      const matchesStatus = statusFilter === 'all' || party.status === statusFilter;
+      const statusMatch = statusFilter === 'all' || party.status === statusFilter;
       
-      return matchesSearch && matchesStatus;
+      return searchMatch && statusMatch;
     });
 
     // Sort the results
     filteredParties.sort((a, b) => {
       switch (sortBy) {
         case 'name':
-          return a.name.localeCompare(b.name);
+          return (a.name || '').localeCompare(b.name || '');
         case 'seats':
-          const aSeats = a['Lok Sabha Seats (2019)'] || a.lokSabhaSeats || 0;
-          const bSeats = b['Lok Sabha Seats (2019)'] || b.lokSabhaSeats || 0;
+          const aSeats = a['Lok Sabha Seats (2019)'] || 0;
+          const bSeats = b['Lok Sabha Seats (2019)'] || 0;
           return bSeats - aSeats;
         case 'status':
           return (a.status || '').localeCompare(b.status || '');
@@ -57,7 +57,7 @@ export default function PartiesClient({ initialData }: { initialData: Party[] })
     return filteredParties;
   }, [query, initialData, statusFilter, sortBy]);
 
-  // Get unique statuses for filter
+  // Get unique statuses for the filter dropdown
   const uniqueStatuses = useMemo(() => {
     const statuses = [...new Set(initialData.map(party => party.status).filter(Boolean))];
     return statuses;
@@ -69,52 +69,59 @@ export default function PartiesClient({ initialData }: { initialData: Party[] })
         <div>
           <h1 className="text-2xl font-semibold">Parties</h1>
           <p className="text-gray-600 text-sm mt-1">
-            {initialData.length} total parties • {filtered.length} showing
+            Showing {filtered.length} of {initialData.length} parties
           </p>
         </div>
         <SearchBar value={query} onChange={setQuery} placeholder="Search parties…" />
       </header>
 
-      {/* Quick Filters */}
-      <div className="flex flex-wrap gap-3">
+      {/* Quick Filters Row */}
+      <div className="flex flex-wrap gap-3 items-center">
         {/* Status Filter */}
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="all">All Status</option>
-          {uniqueStatuses.map(status => (
-            <option key={status} value={status}>{status}</option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-700">Status:</label>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="all">All</option>
+            {uniqueStatuses.map(status => (
+              <option key={status} value={status}>
+                {status} ({initialData.filter(p => p.status === status).length})
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Sort By */}
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="name">Sort by Name</option>
-          <option value="seats">Sort by Lok Sabha Seats</option>
-          <option value="status">Sort by Status</option>
-        </select>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-700">Sort:</label>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="name">Name</option>
+            <option value="seats">Lok Sabha Seats</option>
+            <option value="status">Status</option>
+          </select>
+        </div>
 
-        {/* Additional info display toggle */}
-        <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-md text-sm">
-          <span className="text-gray-600">National:</span>
-          <span className="font-medium text-blue-600">
-            {initialData.filter(p => p.status === 'National').length}
+        {/* Quick Stats */}
+        <div className="ml-auto flex items-center gap-4 text-sm">
+          <span className="flex items-center gap-1">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            National: {initialData.filter(p => p.status === 'National').length}
           </span>
-          <span className="text-gray-400">|</span>
-          <span className="text-gray-600">State:</span>
-          <span className="font-medium text-purple-600">
-            {initialData.filter(p => p.status === 'State').length}
+          <span className="flex items-center gap-1">
+            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+            State: {initialData.filter(p => p.status === 'State').length}
           </span>
         </div>
       </div>
 
-      {/* Results Grid - using your existing CardParty component */}
+      {/* Parties Grid - using your existing CardParty component */}
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
         {filtered.map(party => (
           <CardParty key={party.id} party={party} />
@@ -124,21 +131,9 @@ export default function PartiesClient({ initialData }: { initialData: Party[] })
       {/* Empty State */}
       {filtered.length === 0 && query && (
         <div className="text-center py-12 text-gray-500">
-          <p className="text-lg mb-2">No parties found for "{query}"</p>
-          <p className="text-sm">Try a different search term or clear the filters</p>
+          <p className="text-lg mb-2">No parties found</p>
+          <p className="text-sm">Try adjusting your search or filters</p>
         </div>
-      )}
-
-      {/* Optional: Data Debug Panel (remove in production) */}
-      {process.env.NODE_ENV === 'development' && (
-        <details className="mt-8 p-4 bg-gray-100 rounded-lg">
-          <summary className="cursor-pointer text-sm font-medium text-gray-700">
-            Debug: View Raw Data Structure
-          </summary>
-          <pre className="mt-2 text-xs bg-white p-3 rounded border overflow-auto max-h-40">
-            {JSON.stringify(initialData[0], null, 2)}
-          </pre>
-        </details>
       )}
     </div>
   );
