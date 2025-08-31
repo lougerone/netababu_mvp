@@ -27,14 +27,14 @@ export default async function HomePage() {
              h-[60vh] md:h-[70vh] lg:h-[80vh]"
 >
   {/* Background image */}
-  <Image
-    src="/hero/hero-2560w.webp"
-    alt="Watercolor collage of Indian political figures — Netababu"
-    fill
-    priority
-    className="absolute inset-0 -z-30 w-full h-full object-cover object-top"
-    sizes="100vw"
-  />
+ <Image
+  src="/hero/hero-2560w.webp"
+  alt="Watercolor collage of Indian political figures — Netababu"
+  fill
+  priority
+  className="absolute inset-0 -z-10 h-full w-full object-contain object-bottom opacity-60"
+  sizes="100vw"
+/>
 
   {/* Edge fades */}
   <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream-200 to-transparent" />
@@ -61,9 +61,10 @@ export default async function HomePage() {
   <div className="relative mx-auto max-w-4xl px-4 pt-8 md:pt-10 lg:pt-12">
     <div className="h-kicker">India • Politics • Data</div>
 
-    <h1 className="mt-2 text-4xl md:text-5xl font-semibold text-ink-700">
-      Netas, parties, drama — all in one place.
-    </h1>
+    <h1 className="whitespace-nowrap font-semibold text-ink-700 leading-tight tracking-tight text-[clamp(28px,6vw,56px)]">
+  Netas, parties, drama — all in one place.
+</h1>
+
 
     <div className="text-saffron-600 text-xl md:text-2xl font-semibold">
       नेताजी, पार्टियाँ और इंफो — एक ही जगह
