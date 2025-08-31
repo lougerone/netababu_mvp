@@ -4,6 +4,16 @@ import { notFound } from 'next/navigation';
 import type { Politician } from '@/lib/airtable';
 import { getPolitician } from '@/lib/airtable';
 
+function parseList(value: any): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    // Handle comma-separated values or newline-separated values
+    return value.split(/[,\n]/).map(item => item.trim()).filter(Boolean);
+  }
+  return [];
+}
+
 // Render at request time so we don't fail builds if Airtable is down.
 export const dynamic = 'force-dynamic';
 
