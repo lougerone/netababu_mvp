@@ -57,7 +57,6 @@ export default async function HomePage() {
   />
 </div>
 
-  {/* Content — untouched */}
   <div className="relative mx-auto max-w-4xl px-4 pt-8 md:pt-10 lg:pt-12">
     <div className="h-kicker">India • Politics • Data</div>
 
