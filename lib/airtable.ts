@@ -198,9 +198,11 @@ function mapParty(r: AirtableRecord): Party {
   ]);
 
   const status = firstNonEmpty(f, ['Status', 'Recognition', 'Type']) || null;
-  const founded = firstNonEmpty(f, [
-    'Date of Establishment', 'Founded', 'Year Founded', 'Established', 'Formed', 'Year',
-  ]) || null;
+
+  const founded =
+    firstNonEmpty(f, [
+      'Date of Establishment', 'Founded', 'Year Founded', 'Established', 'Formed', 'Year', 'D.'
+    ]) || null;
 
   const logo =
     getFirstAttachmentUrl(f['Symbol']) ||
@@ -211,16 +213,10 @@ function mapParty(r: AirtableRecord): Party {
 
   const symbolText = firstNonEmpty(f, ['Attachment Summary', 'Symbol Name']) || null;
 
-// Prefer explicit text/lookup; then fall back.
-// If it's a linked record (recXXXXXXXXXXXXX), ignore those IDs.
-let state =
-  firstNonEmpty(f, ['State Name', 'State', 'state', 'Home State', 'Region']) || null;
-
-if (state && /^rec[a-zA-Z0-9]{14,}/.test(state)) {
-  // looks like a linked-record ID, not a readable state name
-  state = null;
-}
-
+  // Prefer explicit text/lookup; then fall back. Ignore linked-record IDs.
+  let state =
+    firstNonEmpty(f, ['State Name', 'State', 'state', 'Home State', 'Region']) || null;
+  if (state && /^rec[a-zA-Z0-9]{14,}/.test(state)) state = null;
 
   const leaders: string[] = (() => {
     const raw = f['Key Leader(s)'] ?? f['Leaders'] ?? f['Leader'];
@@ -238,13 +234,17 @@ if (state && /^rec[a-zA-Z0-9]{14,}/.test(state)) {
   const details = (f['Details'] as string) ?? null;
   const slug = toSlug(f['slug'] ?? f['Slug'] ?? name) || r.id;
 
+  // IMPORTANT: spread *all* Airtable fields first so we keep every column,
+  // then overwrite with our normalized/derived keys.
   return {
+    ...f,              // all original columns available on the page object
     id: r.id,
     slug,
     name,
     abbr,
-    state,     // 👈 include it in the payload
+    state,
     status,
+    founded,           // <- now included
     logo,
     leaders,
     symbolText,
