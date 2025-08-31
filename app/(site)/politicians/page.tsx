@@ -1,5 +1,4 @@
 // app/(site)/politicians/[slug]/page.tsx
-
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import type { Politician } from '@/lib/airtable';
@@ -9,15 +8,11 @@ export const dynamic = 'force-dynamic';
 
 export default async function PoliticianPage({
   params,
-}: {
-  params: { slug: string };
-}) {
+}: { params: { slug: string } }) {
   const p = await getPolitician(params.slug);
-  if (!p) {
-    notFound();
-  }
+  if (!p) return notFound();
 
-  // Use the existing Politician type
+  // p already conforms to Politician
   const politician: Politician = p;
 
   return (
@@ -39,10 +34,7 @@ export default async function PoliticianPage({
           {politician.position && (
             <p className="text-sm text-black/60">{politician.position}</p>
           )}
-          {/* party is a required string, so this will always render if non-empty */}
-          {politician.party && (
-            <p className="text-sm text-black/60">Party: {politician.party}</p>
-          )}
+          <p className="text-sm text-black/60">Party: {politician.party}</p>
           {politician.constituency && (
             <p className="text-sm text-black/60">
               Constituency: {politician.constituency}
@@ -54,7 +46,7 @@ export default async function PoliticianPage({
         </div>
       </header>
 
-      {/* … the rest of the sections (age, yearsInPolitics, attendance, assets, etc.) remain unchanged … */}
+      {/* add your other sections here as needed */}
     </main>
   );
 }
