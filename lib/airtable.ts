@@ -1,4 +1,3 @@
-
 function parseList(value: any): string[] {
   if (!value) return [];
   if (Array.isArray(value)) return value;
@@ -8,7 +7,6 @@ function parseList(value: any): string[] {
   }
   return [];
 }
-
 
 // lib/airtable.ts
 const AIRTABLE_API = "https://api.airtable.com/v0";
@@ -48,10 +46,11 @@ export type Party = {
   id: string;
   slug: string;
   name: string;
+  abbrev?: string;
   founded?: string | null;
-  status?: "Active" | "Dormant" | string | null;
+  status?: string | null;
   symbol?: Attachment | null;
-  leaders?: string[];   // names or slugs if you prefer
+  leaders?: string[];
 };
 
 async function atFetch(table: string, params: Record<string, string | undefined> = {}) {
@@ -105,6 +104,7 @@ function mapParty(r: any): Party {
     id: r.id,
     slug: f.slug || r.id,
     name: f.name || "",
+    abbrev: f.abbrev || f.abbreviation || undefined,
     founded: f.founded || null,
     status: f.status || null,
     symbol: getFirst(f.symbol),
@@ -164,8 +164,12 @@ export async function getPolitician(slugOrId: string): Promise<Politician | null
   // If the path param starts with "rec", treat it as an Airtable record ID
   if (slugOrId.startsWith("rec")) {
     const url = `${AIRTABLE_API}/${BASE_ID}/${encodeURIComponent(T_POL)}/${slugOrId}`;
-    const res = await atFetch(url);
-    return mapPolitician(res);
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${TOKEN}` }
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return mapPolitician(data);
   }
   // otherwise look up by slug
   const data = await atFetch(T_POL, {
@@ -175,9 +179,7 @@ export async function getPolitician(slugOrId: string): Promise<Politician | null
   return rec ? mapPolitician(rec) : null;
 }
 
-
 export async function allPartySlugs(): Promise<string[]> {
   const data = await atFetch(T_PAR);
   return data.records.map((r:any) => r.fields?.slug || r.id).filter(Boolean);
 }
-
