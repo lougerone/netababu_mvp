@@ -42,16 +42,85 @@ export type Politician = {
   website?: string | null;
 };
 
+// lib/airtable.ts  — add below your existing imports/env
+
 export type Party = {
   id: string;
   slug: string;
   name: string;
-  abbrev?: string;
-  founded?: string | null;
-  status?: string | null;
-  symbol?: Attachment | null;
-  leaders?: string[];
+  abbr?: string;
+  status?: string;
+  founded?: string;
+  logo?: string;
+  raw?: Record<string, any>;
 };
+
+const toSlug = (s = '') =>
+  s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+function firstNonEmpty(f: Record<string, any>, keys: string[]) {
+  for (const k of keys) {
+    const v = f[k];
+    if (typeof v === 'string' && v.trim()) return v.trim();
+  }
+  return undefined;
+}
+
+// find the first image-like URL from common attachment fields OR any field
+function findImageUrl(f: Record<string, any>) {
+  const candidates = ['Logo', 'Symbol', 'Emblem', 'Image', 'logo', 'image', 'symbol'];
+  for (const key of candidates) {
+    const v = f[key];
+    if (Array.isArray(v) && v[0]?.url) return v[0].url as string;
+    if (typeof v === 'string' && /^https?:\/\//.test(v)) return v;
+  }
+  // broad fallback scan
+  for (const v of Object.values(f)) {
+    if (Array.isArray(v) && v[0]?.url) return v[0].url as string;
+    if (typeof v === 'string' && /^https?:\/\//.test(v)) return v;
+  }
+  return undefined;
+}
+
+function normalizeParty(rec: any): Party {
+  const f = rec.fields ?? rec;
+
+  const name =
+    firstNonEmpty(f, ['Party Name', 'Name', 'Party', 'party_name', 'party']) ||
+    Object.keys(f).find(k => /name|party/i.test(k))?.toString()
+      ? String(f[Object.keys(f).find(k => /name|party/i.test(k))!])
+      : '';
+
+  const abbr = firstNonEmpty(f, ['Abbreviation', 'Abbr', 'Short Name', 'Acronym']);
+  const status = firstNonEmpty(f, ['Status', 'Recognition', 'Type']);
+  const founded = firstNonEmpty(f, ['Founded', 'Formed', 'Established', 'Year Founded']);
+  const logo = findImageUrl(f);
+  const slug = toSlug(f['Slug'] ?? name);
+
+  return {
+    id: rec.id ?? slug,
+    name,
+    abbr,
+    status,
+    founded,
+    logo,
+    slug,
+    raw: f,
+  };
+}
+
+export async function listParties(): Promise<Party[]> {
+  const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${encodeURIComponent(
+    process.env.AIRTABLE_PARTIES_TABLE!
+  )}`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY!}` },
+    cache: 'no-store',
+  });
+  const json = await res.json(); // { records: [...] }
+  return (json.records ?? []).map(normalizeParty);
+}
+
 
 async function atFetch(table: string, params: Record<string, string | undefined> = {}) {
   const search = new URLSearchParams(params as Record<string, string>);
