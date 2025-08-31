@@ -1,12 +1,15 @@
 // components/CardParty.tsx
 import Link from 'next/link';
 
+// components/CardParty.tsx
+
 export type Party = {
   id: string;
   slug: string;
   name: string;
   abbrev?: string;
-  status?: 'Active' | 'Inactive';
+  // Allow any string or null instead of only "Active" | "Inactive"
+  status?: string | null;
 };
 
 export default function CardParty({ party }: { party: Party }) {
@@ -20,7 +23,9 @@ export default function CardParty({ party }: { party: Party }) {
     >
       <div className="font-medium text-ink-700">{party.name}</div>
       <div className="text-xs text-ink-600/80">
-        {party.abbrev ? `${party.abbrev} • ` : ''}{party.status ?? '—'}
+        {/* Render the abbreviation if provided, and show the status or a placeholder if not */}
+        {party.abbrev ? `${party.abbrev} • ` : ''}
+        {party.status ?? '—'}
       </div>
     </Link>
   );
