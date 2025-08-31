@@ -3,6 +3,7 @@ import CardPolitician from '@/components/CardPolitician';
 import CardParty from '@/components/CardParty';
 import { listPoliticians, listParties } from '@/lib/airtable';
 import Hero from '@/components/Hero';
+import Image from 'next/image';   
 
 export const dynamic = 'force-dynamic';
 
