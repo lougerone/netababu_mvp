@@ -11,30 +11,29 @@ export default function CardParty({ party }: { party: Party }) {
   return (
     <Link
       href={`/parties/${party.slug}`}
-      className="card p-4 block relative group hover:shadow-lg transition-shadow
+      aria-label={`Open ${party.name} party page`}
+      className="card block relative p-4 hover:shadow-lg transition-shadow
                  before:content-[''] before:block before:h-1.5 before:rounded-t-xl
                  before:bg-gradient-to-r before:from-saffron-500 before:to-ink-600
-                 h-[92px]"           /* 👈 fixed height for consistent cards */
-      aria-label={`Open ${party.name} party page`}
+                 h-[96px]" /* fixed height for consistent cards */
     >
-      <div className="flex items-start gap-3 h-full">
+      <div className="flex h-full items-start gap-3">
         <LogoBox src={party.logo ?? undefined} name={party.name} abbr={party.abbr} />
 
         <div className="min-w-0 flex-1">
-          {/* Name: exactly up to two lines, reserved space so height won’t shrink */}
-          <div className="font-medium text-ink-700 mb-1 leading-snug line-clamp-2 min-h-[2.4em]">
+          {/* Name: clamp to 2 lines; reserve space so cards align */}
+          <div className="mb-1 font-medium text-ink-700 leading-snug line-clamp-2 min-h-[2.4em]">
             {party.name || '—'}
           </div>
 
-          {/* Meta row + status badge */}
+          {/* Meta row + compact badge on the right */}
           <div className="flex items-center justify-between text-xs text-ink-600/80">
             <span className="truncate">
               {[party.abbr, statusLabel].filter(Boolean).join(' • ') || '—'}
             </span>
-
             {party.status && (
               <span
-                className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
                   isNational ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
                 }`}
               >
