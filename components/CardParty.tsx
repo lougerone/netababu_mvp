@@ -5,14 +5,15 @@ import type { Party } from '@/lib/airtable';
 
 export default function CardParty({ party }: { party: Party }) {
   const status = (party.status || '').toLowerCase();
-  const hasStatus = Boolean(party.status);
-  const statusLabel = hasStatus ? (status.includes('national') ? 'National' : 'State') : undefined;
+  const isNational = status.includes('national');
+  const statusLabel = party.status ? (isNational ? 'National' : 'State') : undefined;
 
   return (
     <Link
       href={`/parties/${party.slug}`}
       aria-label={`Open ${party.name} party page`}
-      className="card card-compact p-4 block hover:shadow-lg transition-shadow bg-violet-50 border-violet-200"
+      className="card card-compact p-4 block hover:shadow-lg transition-shadow 
+                 bg-indigo-50 border-indigo-100"
     >
       {/* top row: logo + name */}
       <div className="flex items-center gap-3">
@@ -29,7 +30,11 @@ export default function CardParty({ party }: { party: Party }) {
         <span className="truncate min-w-0">{party.abbr || '—'}</span>
 
         {statusLabel && (
-          <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700">
+          <span
+            className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium ${
+              isNational ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+            }`}
+          >
             {statusLabel}
           </span>
         )}
