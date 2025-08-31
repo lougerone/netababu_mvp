@@ -1,20 +1,33 @@
 import Link from 'next/link';
 import CardPolitician from '@/components/CardPolitician';
 import CardParty from '@/components/CardParty';
-import { listPoliticians, listParties } from '@/lib/airtable';
+import {
+  listPoliticians,
+  listParties,
+  listRecentPoliticians,
+  listRecentParties,
+} from '@/lib/airtable';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const [polAll, parAll] = await Promise.all([
-    listPoliticians({ limit: 8 }),
-    listParties({ limit: 8 }),
+  // Featured = curated/“top” (first 4 from list)
+  const [featNetas, featParties] = await Promise.all([
+    listPoliticians({ limit: 4 }),
+    listParties({ limit: 4 }),
   ]);
 
-  const featuredNetas = polAll.slice(0, 4);
-  const featuredParties = parAll.slice(0, 4);
-  const latestNetas = polAll.slice(4, 8);
-  const latestParties = parAll.slice(4, 8);
+  // Latest = true recency by Created (4 each)
+  const [latestNetasRaw, latestPartiesRaw] = await Promise.all([
+    listRecentPoliticians(4),
+    listRecentParties(4),
+  ]);
+
+  // De-dupe: don’t show the same item in Featured and Latest
+  const featNetaIds = new Set(featNetas.map((x) => x.id));
+  const featPartyIds = new Set(featParties.map((x) => x.id));
+  const latestNetas = latestNetasRaw.filter((x) => !featNetaIds.has(x.id)).slice(0, 4);
+  const latestParties = latestPartiesRaw.filter((x) => !featPartyIds.has(x.id)).slice(0, 4);
 
   return (
     <div className="space-y-12">
@@ -70,50 +83,38 @@ export default async function HomePage() {
         </h2>
 
         <div className="space-y-8">
-          {/* Top netas: 4 across */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Top netas</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {featuredNetas.map((p) => (
-                <CardPolitician key={p.id} p={p} />
-              ))}
+              {featNetas.map((p) => <CardPolitician key={p.id} p={p} />)}
             </div>
           </div>
 
-          {/* Top parties: 4 across */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Top parties</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {featuredParties.map((party) => (
-                <CardParty key={party.id} party={party} />
-              ))}
+              {featParties.map((party) => <CardParty key={party.id} party={party} />)}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Latest netas & parties (two columns, each 2x2) */}
+      {/* Latest netas & parties (two columns, each 2×2) */}
       <section className="space-y-6">
         <h2 className="text-2xl md:text-3xl font-extrabold">Latest netas &amp; parties</h2>
 
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Latest netas: 2x2 */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Latest netas</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {latestNetas.map((p) => (
-                <CardPolitician key={p.id} p={p} />
-              ))}
+              {latestNetas.map((p) => <CardPolitician key={p.id} p={p} />)}
             </div>
           </div>
 
-          {/* Latest parties: 2x2 */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Latest parties</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {latestParties.map((party) => (
-                <CardParty key={party.id} party={party} />
-              ))}
+              {latestParties.map((party) => <CardParty key={party.id} party={party} />)}
             </div>
           </div>
         </div>
