@@ -5,16 +5,17 @@ import type { Party } from '@/lib/airtable';
 
 export default function CardParty({ party }: { party: Party }) {
   const status = (party.status || '').toLowerCase();
-  const isNational = status.includes('national');
-  const statusLabel = party.status ? (isNational ? 'National' : 'State') : undefined;
+  const hasStatus = Boolean(party.status);
+  const statusLabel = hasStatus ? (status.includes('national') ? 'National' : 'State') : undefined;
 
   return (
     <Link
       href={`/parties/${party.slug}`}
       aria-label={`Open ${party.name} party page`}
-      className="card p-4 block hover:shadow-lg transition-shadow
-                 before:content-[''] before:block before:h-1.5 before:rounded-t-xl
-                 before:bg-gradient-to-r before:from-saffron-500 before:to-ink-600"
+      className="
+        card p-4 block hover:shadow-lg transition-shadow
+        bg-violet-50 border-violet-200
+      "
     >
       {/* top row: logo + name */}
       <div className="flex items-center gap-3">
@@ -26,16 +27,12 @@ export default function CardParty({ party }: { party: Party }) {
         </div>
       </div>
 
-      {/* bottom row: TICKER LEFT + PILL RIGHT, no wrap */}
+      {/* bottom row: ticker left + pill right */}
       <div className="mt-3 flex items-center justify-between text-xs text-ink-600/80 gap-2">
         <span className="truncate min-w-0">{party.abbr || '—'}</span>
 
         {statusLabel && (
-          <span
-            className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium ${
-              isNational ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
-            }`}
-          >
+          <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700">
             {statusLabel}
           </span>
         )}
@@ -58,8 +55,7 @@ function LogoBox({
   if (!src) {
     return (
       <div
-        className="h-12 w-12 rounded-lg bg-black/5 flex items-center justify-center
-                   text-[11px] font-semibold"
+        className="h-12 w-12 rounded-lg bg-black/5 flex items-center justify-center text-[11px] font-semibold"
         aria-hidden
       >
         {initials(name, abbr)}
