@@ -17,6 +17,7 @@ export default async function HomePage() {
   const featuredParties = parAll.slice(0, 4);
   const latestNetas = polAll.slice(4, 8);
   const latestParties = parAll.slice(4, 8);
+  const blurDataURL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
   return (
     <div className="space-y-12">
