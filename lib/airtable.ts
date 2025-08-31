@@ -282,16 +282,37 @@ export async function listPoliticians(opts: { limit?: number; query?: string } =
   return Number.isFinite(max) ? mapped.slice(0, Number(max)) : mapped;
 }
 
-export async function listParties(opts: { limit?: number; query?: string } = {}): Promise<Party[]> {
-  const max = opts.limit && opts.limit > 0 ? opts.limit : Infinity;
-  const records = await atFetchAll(T_PAR, { pageSize: '100' }, max === Infinity ? Infinity : Math.max(max, 100));
+// lib/airtable.ts
+export async function listParties(
+  opts: { limit?: number; query?: string | string[] } = {}
+): Promise<Party[]> {
+  const max =
+    opts.limit && opts.limit > 0 ? opts.limit : Infinity;
+
+  const records = await atFetchAll(
+    T_PAR,
+    { pageSize: '100' },
+    max === Infinity ? Infinity : Math.max(max, 100)
+  );
+
   let mapped = records.map(mapParty);
-  if (opts.query) {
-    const q = opts.query.toLowerCase();
+
+  // ---- SAFE query handling ----
+  const qRaw =
+    typeof opts.query === 'string'
+      ? opts.query
+      : Array.isArray(opts.query)
+      ? opts.query[0]
+      : '';
+
+  const q = qRaw?.trim().toLowerCase();
+  if (q) {
     mapped = mapped.filter((p) => makeSearchText(p).includes(q));
   }
+
   return Number.isFinite(max) ? mapped.slice(0, Number(max)) : mapped;
 }
+
 
 export async function listTopPartiesBySeats(limit = 6): Promise<Party[]> {
   const records = await atFetchAll(T_PAR, { pageSize: '100' });
