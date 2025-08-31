@@ -3,6 +3,21 @@ import { parties, politicians } from '@/lib/data';
 import CardPolitician from '@/components/CardPolitician';
 import CardParty from '@/components/CardParty';
 
+// app/(site)/page.tsx  (or wherever you want it)
+import LatestParties from './components/LatestParties';
+
+export const dynamic = 'force-dynamic'; // keep fresh; or set REVALIDATE_SECONDS low
+
+export default function HomePage() {
+  return (
+    <main className="mx-auto max-w-6xl px-4 py-8">
+      {/* ...other sections... */}
+      <LatestParties />
+    </main>
+  );
+}
+
+
 export default function HomePage() {
   return (
     <div className="space-y-10">
