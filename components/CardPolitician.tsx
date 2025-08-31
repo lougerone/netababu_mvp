@@ -16,10 +16,10 @@ export default function CardPolitician({ p }: { p: Politician }) {
   return (
     <Link
       href={`/politicians/${p.slug}`}
-      className="card p-4 block hover:shadow-lg transition-shadow"
+      className="card p-4 block hover:shadow-lg transition-shadow h-24"
       aria-label={`Open ${p.name} profile`}
     >
-      {/* Top row: avatar + name/party - matches CardParty structure */}
+      {/* Top row: avatar + name/party */}
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-lg overflow-hidden bg-cream-200 shrink-0">
           <Image
@@ -39,11 +39,9 @@ export default function CardPolitician({ p }: { p: Politician }) {
         </div>
       </div>
 
-      {/* Bottom row: position - matches CardParty's mt-3 spacing and height */}
-      <div className="mt-3 flex items-center justify-between text-xs text-ink-600/70 gap-2 min-h-[20px]">
-        <span className="truncate min-w-0">
-          {p.current_position || '—'}
-        </span>
+      {/* Bottom row: always present, matches CardParty pattern */}
+      <div className="mt-3 text-xs text-ink-600/70">
+        {p.current_position || '—'}
       </div>
     </Link>
   );
