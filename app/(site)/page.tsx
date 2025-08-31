@@ -99,52 +99,34 @@ export default async function HomePage() {
         </h2>
 
         <div className="space-y-8">
-          {/* Top netas: 4 across */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Top netas</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {featuredNetas.map((p) => (
-                <CardPolitician key={p.id} p={p} />
-              ))}
-            </div>
-          </div>
+          {/* Top netas */}
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 items-stretch">
+  {featuredNetas.map((p) => (
+    <CardPolitician key={p.id} p={p} />
+  ))}
+</div>
 
-          {/* Top parties: 4 across */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Top parties</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
-              {featuredParties.map((party) => (
-                <CardParty key={party.id} party={party} />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+{/* Top parties */}
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 items-stretch">
+  {featuredParties.map((party) => (
+    <CardParty key={party.id} party={party} />
+  ))}
+</div>
 
-      {/* Latest netas & parties (two columns, each 2x2) */}
-      <section className="space-y-6">
-        <h2 className="text-2xl md:text-3xl font-extrabold">Latest netas &amp; parties</h2>
+{/* Latest netas (2x2) */}
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8 items-stretch">
+  {latestNetas.map((p) => (
+    <CardPolitician key={p.id} p={p} />
+  ))}
+</div>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Latest netas: 2x2 */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Latest netas</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {latestNetas.map((p) => (
-                <CardPolitician key={p.id} p={p} />
-              ))}
-            </div>
-          </div>
+{/* Latest parties (2x2) */}
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8 items-stretch">
+  {latestParties.map((party) => (
+    <CardParty key={party.id} party={party} />
+  ))}
+</div>
 
-          {/* Latest parties: 2x2 */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Latest parties</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
-              {latestParties.map((party) => (
-                <CardParty key={party.id} party={party} />
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 
