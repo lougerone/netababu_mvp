@@ -30,7 +30,7 @@ export default function Nav() {
             width={797}
             height={526}
             priority
-            className="h-12 md:h-14 w-auto -translate-y-[1px]"
+            className="h-10 md:h-14 w-auto -translate-y-[1px]"
           />
           <span className="sr-only">Netababu</span>
         </Link>
