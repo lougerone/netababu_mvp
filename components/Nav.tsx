@@ -26,7 +26,7 @@ export default function Nav() {
       <div className="container max-w-6xl px-4 py-4 flex items-center gap-6">
         <Link href="/" className="flex items-center gap-2" aria-label="Netababu Home">
           <Image
-            src="/logo-wordmark.svg" // place this in /public
+            src="/logo-wordmark.png" // place this in /public
             alt="Netababu"
             width={160}
             height={32}
