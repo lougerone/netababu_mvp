@@ -361,6 +361,7 @@ export async function listParties(
   return Number.isFinite(max) ? mapped.slice(0, Number(max)) : mapped;
 }
 
+
 /* -------------------- Other existing exports (unchanged) ------------------ */
 
 export async function listTopPartiesBySeats(limit = 6): Promise<Party[]> {
