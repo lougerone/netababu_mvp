@@ -119,34 +119,40 @@ export default async function HomePage() {
 
       {/* Content container */}
       <div className="mx-auto max-w-6xl px-4 space-y-12">
+        
         {/* Featured netas & parties */}
-        <section className="space-y-6">
-          <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-saffron-500 text-transparent bg-clip-text">
-            Featured netas &amp; parties
-          </h2>
+<section className="space-y-6 -mt-6 md:-mt-8">
+  <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-saffron-500 text-transparent bg-clip-text text-center">
+    Featured netas &amp; parties
+  </h2>
 
-          <div className="space-y-8">
-            {/* Top netas */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Top netas</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 items-stretch">
-                {featuredNetas.map((p) => (
-                  <CardPolitician key={p.id} p={p} />
-                ))}
-              </div>
-            </div>
+  <div className="space-y-10">
+    {/* Top netas */}
+    <div>
+      <h3 className="text-lg font-semibold mb-3 text-center">Top netas</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4
+                      gap-x-6 gap-y-8 items-stretch justify-items-center
+                      max-w-6xl mx-auto">
+        {featuredNetas.map((p) => (
+          <CardPolitician key={p.id} p={p} />
+        ))}
+      </div>
+    </div>
 
-            {/* Top parties */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Top parties</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 items-stretch">
-                {featuredParties.map((party) => (
-                  <CardParty key={party.id} party={party} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
+    {/* Top parties */}
+    <div>
+      <h3 className="text-lg font-semibold mb-3 text-center">Top parties</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4
+                      gap-x-6 gap-y-8 items-stretch justify-items-center
+                      max-w-6xl mx-auto">
+        {featuredParties.map((party) => (
+          <CardParty key={party.id} party={party} />
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
 
         {/* Latest netas & parties */}
         <section className="space-y-6">
