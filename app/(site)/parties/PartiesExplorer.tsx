@@ -19,6 +19,34 @@ function toInt(v: unknown): number | null {
 const seatsNum = (p: Party) => toInt(p.seats) ?? 0;
 const cx = (...c: Array<string | false | null | undefined>) => c.filter(Boolean).join(' ');
 
+type Badge = 'National' | 'State' | null;
+
+function getStatusLabel(s: string | null | undefined): Badge {
+  const t = (s ?? '').toLowerCase();
+  if (!t) return null;
+  if (t.includes('national')) return 'National';
+  if (t.includes('state')) return 'State';
+  return null;
+}
+
+const pillBase =
+  'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ring-1';
+
+function pillClass(b: Badge) {
+  switch (b) {
+    case 'National':
+      // light saffron bg + saffron text + soft ring
+      return 'bg-saffron-50 text-saffron-800 ring-saffron-200';
+    case 'State':
+      // ink pill (brand navy) + white text
+      return 'bg-ink-700 text-white ring-ink-700';
+    default:
+      // neutral fallback (won’t usually show)
+      return 'bg-cream-200 text-ink-700 ring-ink-200';
+  }
+}
+
+
 // Normalize status coming from Airtable (handles spaces/casing like "National ", " state", etc.)
 // before
 // function getStatusLabel(s?: string): 'National' | 'State' | null {
@@ -229,20 +257,16 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
                   <td className={cx(tdBase, 'text-ink-700')}>{p.state || '—'}</td>
                   <td className={cx(tdBase, 'text-right tabular-nums text-ink-700')}>{p.founded || '—'}</td>
                   <td className={tdBase}>
-                    {statusLabel ? (
-                      <span
-                        className={cx(
-                          'inline-block px-2 py-0.5 rounded-md text-xs font-semibold shadow-sm ring-1',
-                          statusLabel === 'National' && 'bg-saffron-100 text-saffron-800 ring-saffron-200',
-                          statusLabel === 'State' && 'bg-ink-100 text-ink-800 ring-ink-200'
-                        )}
-                      >
-                        {statusLabel}
-                      </span>
-                    ) : (
-                      <span className="text-ink-600/60">—</span>
-                    )}
-                  </td>
+  {(() => {
+    const label = getStatusLabel(p.status);
+    return label ? (
+      <span className={`${pillBase} ${pillClass(label)}`}>{label}</span>
+    ) : (
+      <span className="text-ink-600/60">—</span>
+    );
+  })()}
+</td>
+
                   <td className={cx(tdBase, 'text-right tabular-nums font-semibold text-ink-800')}>
                     {seatsNum(p)}
                   </td>
