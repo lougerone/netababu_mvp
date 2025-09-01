@@ -27,8 +27,8 @@ export default function Nav() {
           <Image
             src="/logo-wordmark.png" // place this in /public
             alt="Netababu"
-            width={160}
-            height={32}
+            width={320}
+            height={64}
             priority
             className="h-8 w-auto"
           />
