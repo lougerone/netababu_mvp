@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export default async function PoliticiansPage() {
   try {
     const politicians = await listPoliticians();
-    
+
     return (
       <main className="mx-auto max-w-6xl p-6">
         <header className="mb-8">
@@ -19,51 +19,51 @@ export default async function PoliticiansPage() {
           </p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {politicians.map((politician) => (
-            <Link
-              key={politician.slug}
-              href={`/politicians/${politician.slug}`}
-              className="block p-4 border border-black/10 rounded-lg hover:border-black/20 transition-colors"
-            >
-              <div className="flex items-start gap-3">
-                {politician.photo ? (
-                  <Image
-                    src={politician.photo}
-                    alt={politician.name}
-                    width={60}
-                    height={60}
-                    className="rounded-lg object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <div className="w-15 h-15 rounded-lg bg-black/10 flex-shrink-0" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <h2 className="font-semibold text-lg truncate">
-                    {politician.name}
-                  </h2>
-                  {politician.position && (
-                    <p className="text-sm text-black/60 truncate">
-                      {politician.position}
-                    </p>
-                  )}
-                  <p className="text-sm text-black/60">
-                    {politician.party}
-                  </p>
-                  {politician.constituency && (
-                    <p className="text-xs text-black/50 truncate">
-                      {politician.constituency}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {politicians.length === 0 && (
+        {politicians.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-black/60">No politicians found.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {politicians.map((p) => (
+              <Link
+                key={p.slug}
+                href={`/politicians/${p.slug}`}
+                className="block p-4 border border-black/10 rounded-lg hover:border-black/20 transition-colors"
+                aria-label={`Open ${p.name} profile`}
+              >
+                <div className="flex items-start gap-3">
+                  {p.photo ? (
+                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-black/5 flex-shrink-0">
+                      <Image
+                        src={p.photo}
+                        alt={p.name}
+                        width={64}
+                        height={64}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-lg bg-black/10 flex-shrink-0" />
+                  )}
+
+                  <div className="min-w-0 flex-1">
+                    <h2 className="font-semibold text-lg truncate">{p.name}</h2>
+
+                    {/* Use the correct field name from your Airtable mapping */}
+                    {p.current_position && (
+                      <p className="text-sm text-black/60 truncate">{p.current_position}</p>
+                    )}
+
+                    <p className="text-sm text-black/60 truncate">{p.party}</p>
+
+                    {p.constituency && (
+                      <p className="text-xs text-black/50 truncate">{p.constituency}</p>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         )}
       </main>
