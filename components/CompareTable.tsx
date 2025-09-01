@@ -117,25 +117,33 @@ async function fetchSuggestions(q: string): Promise<Politician[] | null> {
   }
 }
 
-/* ---------------- Combobox (typable + async) ---------------- */
+/* ---------------- Combobox (parties-style search) ---------------- */
 type ComboProps = {
   label: string;
-  items: Politician[]; // local list fallback
+  items: Politician[];      // local list fallback
   valueId?: string;
   onChangeId: (id: string) => void;
 };
 
 function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
   const me = items.find((p) => p.id === valueId);
-  const [open, setOpen] = useState(false);
-  const [q, setQ] = useState(me ? `${me.name} — ${me.party ?? ''}`.trim() : '');
+  const [open, setOpen] = useState(false);             // dropdown is closed by default
+  const [q, setQ] = useState('');                      // start empty (placeholder visible)
   const debouncedQ = useDebounced(q, 200);
   const [remote, setRemote] = useState<Politician[] | null>(null);
   const [idx, setIdx] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
-  const SUGGESTION_LIMIT = 200;
   useOnClickOutside(ref, () => setOpen(false));
 
+  // keep input text in sync with a chosen value (when user picks)
+  useEffect(() => {
+    if (me && !open && !q) {
+      // don’t prefill; we keep placeholder until user types
+      // if you WANT the chosen name shown, set q to `${me.name} — ${me.party ?? ''}` here.
+    }
+  }, [me, open, q]);
+
+  // async suggestions (optional API)
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -164,16 +172,16 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
               (p.state ?? '').toLowerCase().includes(s)
             );
           })
-        : items);
+        : []);
     const seen = new Set<string>();
     const out: Politician[] = [];
     for (const p of base) {
-  if (!seen.has(p.id)) {
-    out.push(p);
-    seen.add(p.id);
-  }
-  if (out.length >= SUGGESTION_LIMIT) break;
-}
+      if (!seen.has(p.id)) {
+        out.push(p);
+        seen.add(p.id);
+      }
+      if (out.length >= 200) break; // generous but capped
+    }
     return out;
   }, [items, q, remote]);
 
@@ -184,50 +192,59 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
 
   const choose = (p: Politician) => {
     onChangeId(p.id);
-    setQ(`${p.name} — ${p.party ?? ''}`.trim());
     setOpen(false);
+    setQ(''); // return to placeholder after choose (matches “search” feel)
   };
-
-  useEffect(() => {
-    // keep input text in sync if external value changes
-    if (me && !open) setQ(`${me.name} — ${me.party ?? ''}`.trim());
-  }, [me, open]);
 
   return (
     <div ref={ref}>
       <label className="block text-sm mb-1">{label}</label>
       <div className="relative">
+        {/* search icon (like Parties page) */}
+        <svg
+          aria-hidden="true"
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-600/70"
+          viewBox="0 0 20 20" fill="currentColor"
+        >
+          <path fillRule="evenodd" d="M13.5 12a6 6 0 1 0-1.5 1.5l3.75 3.75a1 1 0 0 0 1.5-1.5L13.5 12Zm-5.5 1a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z" clipRule="evenodd"/>
+        </svg>
+
         <input
-  className="input-pill w-full placeholder:text-ink-600/60"
-  value={q}
-  placeholder="Choose your politician"
-  onChange={(e) => {
-    setQ(e.target.value);
-    setOpen(true);
-    setIdx(0);
-  }}
-  onFocus={() => setOpen(true)}
-  onKeyDown={(e) => {
-    if (!open && (e.key === 'ArrowDown' || e.key === 'Enter')) {
-      setOpen(true);
-      return;
-    }
-    if (!open) return;
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setIdx((i) => Math.min(i + 1, filtered.length - 1));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setIdx((i) => Math.max(i - 1, 0));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      const p = filtered[idx];
-      if (p) choose(p);
-    } else if (e.key === 'Escape') {
-      setOpen(false);
-    }
-  }}
-/>
+          className="input-pill w-full h-12 pl-9 placeholder:text-ink-600/60"
+          value={q}
+          placeholder="Search by name, party, constituency…"
+          onChange={(e) => {
+            const v = e.target.value;
+            setQ(v);
+            setIdx(0);
+            setOpen(v.trim().length > 0);   // ← ONLY open on typing
+          }}
+          // no onFocus opening; list appears only when typing
+          onKeyDown={(e) => {
+            if (!open) return;
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              setIdx((i) => Math.min(i + 1, filtered.length - 1));
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              setIdx((i) => Math.max(i - 1, 0));
+            } else if (e.key === 'Enter') {
+              e.preventDefault();
+              const p = filtered[idx];
+              if (p) choose(p);
+            } else if (e.key === 'Escape') {
+              setOpen(false);
+            }
+          }}
+        />
+
+        {/* chosen chip (shows selected value like Parties filters) */}
+        {me && (
+          <div className="mt-2 text-[12px] text-ink-600/80">
+            Selected: <span className="font-medium">{me.name}</span>
+            {me.party ? ` — ${me.party}` : ''}
+          </div>
+        )}
 
         {open && (
           <div className="absolute z-40 mt-1 w-full rounded-xl border border-black/10 bg-white shadow-card max-h-72 overflow-auto">
