@@ -199,7 +199,7 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
         <input
   className="input-pill w-full placeholder:text-ink-600/60"
   value={q}
-  placeholder="Choose your neta"
+  placeholder="Choose your politician"
   onChange={(e) => {
     setQ(e.target.value);
     setOpen(true);
@@ -227,6 +227,7 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
     }
   }}
 />
+
         {open && (
           <div className="absolute z-40 mt-1 w-full rounded-xl border border-black/10 bg-white shadow-card max-h-72 overflow-auto">
             {filtered.length === 0 ? (
