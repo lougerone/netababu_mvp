@@ -39,14 +39,16 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
   const [page, setPage] = useState(1);
   const PER = 20;
 
-// after useState lines
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  if (q) params.set('q', q); else params.delete('q');
-  window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
-}, [q]);
+  // keep q in the URL (replaceState so it doesn't spam history)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (q) params.set('q', q);
+    else params.delete('q');
+    const qs = params.toString();
+    const next = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+    window.history.replaceState(null, '', next);
+  }, [q]);
 
-  
   useEffect(() => setQ(initialQuery), [initialQuery]);
 
   const allStates = useMemo(() => {
@@ -140,46 +142,63 @@ useEffect(() => {
             className="flex-1 min-w-[240px] rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-[15px] outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
           />
 
-        <div className="flex flex-wrap gap-2">
-          <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm">
-            <option value="">All Status</option>
-            {allStatuses.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
+          <div className="flex flex-wrap gap-2">
+            <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm">
+              <option value="">All Status</option>
+              {allStatuses.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
 
-          <select value={state} onChange={(e) => setState(e.target.value)} className="rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm">
-            <option value="">All States</option>
-            {allStates.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
+            <select value={state} onChange={(e) => setState(e.target.value)} className="rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm">
+              <option value="">All States</option>
+              {allStates.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
 
-          <select value={seatTier} onChange={(e) => setSeatTier(e.target.value)} className="rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm">
-            <option value="">All Seats</option>
-            <option value="1+">1+ seats</option>
-            <option value="5+">5+ seats</option>
-            <option value="10+">10+ seats</option>
-            <option value="50+">50+ seats</option>
-          </select>
+            <select value={seatTier} onChange={(e) => setSeatTier(e.target.value)} className="rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm">
+              <option value="">All Seats</option>
+              <option value="1+">1+ seats</option>
+              <option value="5+">5+ seats</option>
+              <option value="10+">10+ seats</option>
+              <option value="50+">50+ seats</option>
+            </select>
 
-          <select
-            value={`${sortKey}:${sortDir}`}
-            onChange={(e) => {
-              const [k, d] = e.target.value.split(':') as ['name' | 'seats' | 'founded', 'asc' | 'desc'];
-              setSortKey(k);
-              setSortDir(d);
-            }}
-            className="rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm"
-          >
-            <option value="seats:desc">Sort: Seats ↓</option>
-            <option value="seats:asc">Sort: Seats ↑</option>
-            <option value="name:asc">Sort: Name A→Z</option>
-            <option value="name:desc">Sort: Name Z→A</option>
-            <option value="founded:desc">Sort: Founded ↓</option>
-            <option value="founded:asc">Sort: Founded ↑</option>
-          </select>
-        </div>
+            <select
+              value={`${sortKey}:${sortDir}`}
+              onChange={(e) => {
+                const [k, d] = e.target.value.split(':') as ['name' | 'seats' | 'founded', 'asc' | 'desc'];
+                setSortKey(k);
+                setSortDir(d);
+              }}
+              className="rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm"
+            >
+              <option value="seats:desc">Sort: Seats ↓</option>
+              <option value="seats:asc">Sort: Seats ↑</option>
+              <option value="name:asc">Sort: Name A→Z</option>
+              <option value="name:desc">Sort: Name Z→A</option>
+              <option value="founded:desc">Sort: Founded ↓</option>
+              <option value="founded:asc">Sort: Founded ↑</option>
+            </select>
+
+            {/* Clear filters */}
+            <button
+              onClick={() => {
+                setQ('');
+                setState('');
+                setStatus('');
+                setSeatTier('');
+                setSortKey('seats');
+                setSortDir('desc');
+              }}
+              className="rounded-lg border-2 border-slate-200 px-3 py-2 text-sm hover:border-blue-500 hover:bg-blue-50"
+              aria-label="Clear all filters"
+              type="button"
+            >
+              Clear filters
+            </button>
+          </div>
         </div>
 
         {/* Stats */}
