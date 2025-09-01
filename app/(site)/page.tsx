@@ -100,34 +100,42 @@ export default async function HomePage() {
       </main>
 
       {/* Explore cards */}
-      <section className="grid md:grid-cols-3 gap-4 mt-8">
-        <div className="card p-5">
-          <div className="text-2xl">🏳️</div>
-          <h3 className="font-medium mt-1">Explore by Party</h3>
-          <p className="text-sm text-ink-600/80 mb-3">Browse active & latent parties.</p>
-          <Link href="/parties" className="text-saffron-600 font-medium">
-            View all →
-          </Link>
-        </div>
+<section
+  className="
+    relative z-10
+    -translate-y-10 md:-translate-y-16 lg:-translate-y-24  /* pull upward to overlap */
+  "
+>
+  <div className="grid md:grid-cols-3 gap-4 mt-0">
+    <div className="card p-5 shadow-xl ring-1 ring-black/5">
+      <div className="text-2xl">🏳️</div>
+      <h3 className="font-medium mt-1">Explore by Party</h3>
+      <p className="text-sm text-ink-600/80 mb-3">Browse active & latent parties.</p>
+      <Link href="/parties" className="text-saffron-600 font-medium">
+        View all →
+      </Link>
+    </div>
 
-        <div className="card p-5">
-          <div className="text-2xl">📍</div>
-          <h3 className="font-medium mt-1">Explore by State</h3>
-          <p className="text-sm text-ink-600/80 mb-3">Filter politicians by state.</p>
-          <Link href="/politicians?state=MH" className="text-saffron-600 font-medium">
-            Try Maharashtra →
-          </Link>
-        </div>
+    <div className="card p-5 shadow-xl ring-1 ring-black/5">
+      <div className="text-2xl">📍</div>
+      <h3 className="font-medium mt-1">Explore by State</h3>
+      <p className="text-sm text-ink-600/80 mb-3">Filter politicians by state.</p>
+      <Link href="/politicians?state=MH" className="text-saffron-600 font-medium">
+        Try Maharashtra →
+      </Link>
+    </div>
 
-        <div className="card p-5">
-          <div className="text-2xl">⚔️</div>
-          <h3 className="font-medium mt-1">Trending netas</h3>
-          <p className="text-sm text-ink-600/80 mb-3">Compare netas → spicy facts.</p>
-          <Link href="/compare" className="text-saffron-600 font-medium">
-            Compare →
-          </Link>
-        </div>
-      </section>
+    <div className="card p-5 shadow-xl ring-1 ring-black/5">
+      <div className="text-2xl">⚔️</div>
+      <h3 className="font-medium mt-1">Trending netas</h3>
+      <p className="text-sm text-ink-600/80 mb-3">Compare netas → spicy facts.</p>
+      <Link href="/compare" className="text-saffron-600 font-medium">
+        Compare →
+      </Link>
+    </div>
+  </div>
+</section>
+
 
       {/* Featured netas & parties */}
       <section className="space-y-6">
