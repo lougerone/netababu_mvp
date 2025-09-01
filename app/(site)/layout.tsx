@@ -4,10 +4,17 @@ import '../globals.css';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
 
-export const metadata: Metadata = {
-  title: 'Netababu',
-  description: 'Indian political data — fun, simple, verified.',
+export const metadata = {
+  title: "Netababu",
+  description: "Netas, parties, drama — all in one place.",
+  manifest: "/site.webmanifest",
+  themeColor: "#fff7ed",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/apple-touch-icon.png"
+  }
 };
+
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
