@@ -39,6 +39,14 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
   const [page, setPage] = useState(1);
   const PER = 20;
 
+// after useState lines
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  if (q) params.set('q', q); else params.delete('q');
+  window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+}, [q]);
+
+  
   useEffect(() => setQ(initialQuery), [initialQuery]);
 
   const allStates = useMemo(() => {
