@@ -20,13 +20,18 @@ const seatsNum = (p: Party) => toInt(p.seats) ?? 0;
 const cx = (...c: Array<string | false | null | undefined>) => c.filter(Boolean).join(' ');
 
 // Normalize status coming from Airtable (handles spaces/casing like "National ", " state", etc.)
-function getStatusLabel(s?: string): 'National' | 'State' | null {
+// before
+// function getStatusLabel(s?: string): 'National' | 'State' | null {
+
+// after
+function getStatusLabel(s: string | null | undefined): 'National' | 'State' | null {
   const t = (s ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
   if (!t) return null;
   if (t.includes('national')) return 'National';
   if (t.includes('state')) return 'State';
   return null;
 }
+
 
 export default function PartiesExplorer({ initialParties, initialQuery = '' }: Props) {
   const rows = useMemo(() => [...initialParties].sort((a, b) => seatsNum(b) - seatsNum(a)), [initialParties]);
