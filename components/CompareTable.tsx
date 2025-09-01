@@ -199,7 +199,7 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
         <input
   className="input-pill w-full placeholder:text-ink-600/60"
   value={q}
-  placeholder="Choose your politician"
+  placeholder="Choose your neta"
   onChange={(e) => {
     setQ(e.target.value);
     setOpen(true);
