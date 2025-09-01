@@ -19,10 +19,9 @@ export default function Nav() {
     href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
 
   return (
-    <header className="sticky top-0 z-40 bg-cream-200/90 backdrop-blur border-b border-ink-600/10">
-      {/* keep header compact */}
+    <header className="sticky top-0 z-40 bg-cream-200/90 backdrop-blur
+                       shadow-[0_1px_0_0_rgba(0,0,0,0.06)]"> {/* single separator */}
       <div className="container max-w-6xl px-4 py-3 flex items-center gap-6">
-        {/* Logo (bigger) */}
         <Link href="/" className="flex items-center gap-3" aria-label="Netababu Home">
           <Image
             src="/logo-wordmark.png"
@@ -31,12 +30,11 @@ export default function Nav() {
             height={56}
             priority
             sizes="(min-width:1024px) 220px, 180px"
-            className="h-10 w-auto"  /* ↑ bigger logo, fixed header height via smaller py */
+            className="h-10 w-auto"  /* bigger logo, header stays compact */
           />
           <span className="sr-only">Netababu</span>
         </Link>
 
-        {/* Menu left, next to logo */}
         <nav className="flex items-center gap-1 text-sm">
           {items.map((it) => {
             const active = isActive(it.href);
@@ -60,9 +58,9 @@ export default function Nav() {
           })}
         </nav>
 
-        {/* spacer for any future right-side actions */}
         <div className="flex-1" />
       </div>
     </header>
   );
 }
+
