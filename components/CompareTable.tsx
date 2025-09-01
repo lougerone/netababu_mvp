@@ -133,6 +133,7 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
   const [remote, setRemote] = useState<Politician[] | null>(null);
   const [idx, setIdx] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+  const SUGGESTION_LIMIT = 200;
   useOnClickOutside(ref, () => setOpen(false));
 
   useEffect(() => {
