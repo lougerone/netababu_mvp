@@ -303,8 +303,8 @@ export async function listPoliticians(
   const max = opts.limit && opts.limit > 0 ? opts.limit : Infinity;
 
   let params: Record<string, string> = { pageSize: '100' };
-  if (opts.query) {
-    const q = opts.query.replace(/"/g, '\\"');
+  if (opts.query && opts.query.trim()) {
+    const q = opts.query.trim().replace(/"/g, '\\"');
     params.filterByFormula = `OR(
       FIND(LOWER("${q}"), LOWER({Name})),
       FIND(LOWER("${q}"), LOWER({State})),
@@ -321,8 +321,8 @@ export async function listPoliticians(
 
   let mapped = records.map(mapPolitician);
 
-  if (opts.query) {
-    const q = opts.query.toLowerCase();
+  if (opts.query && opts.query.trim()) {
+    const q = opts.query.trim().toLowerCase();
     mapped = mapped.filter((p) => makeSearchText(p).includes(q));
   }
 
@@ -335,8 +335,8 @@ export async function listParties(
   const max = opts.limit && opts.limit > 0 ? opts.limit : Infinity;
 
   let params: Record<string, string> = { pageSize: '100' };
-  if (opts.query) {
-    const q = opts.query.replace(/"/g, '\\"');
+  if (opts.query && opts.query.trim()) {
+    const q = opts.query.trim().replace(/"/g, '\\"');
     params.filterByFormula = `OR(
       FIND(LOWER("${q}"), LOWER({Name})),
       FIND(LOWER("${q}"), LOWER({Abbreviation})),
@@ -353,8 +353,8 @@ export async function listParties(
 
   let mapped = records.map(mapParty);
 
-  if (opts.query) {
-    const q = opts.query.toLowerCase();
+  if (opts.query && opts.query.trim()) {
+    const q = opts.query.trim().toLowerCase();
     mapped = mapped.filter((p) => makeSearchText(p).includes(q));
   }
 
