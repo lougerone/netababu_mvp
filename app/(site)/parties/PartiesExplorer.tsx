@@ -117,47 +117,68 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
   }, [filtered]);
 
   const texture =
-    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='20' cy='20' r='2' fill='rgba(255,255,255,0.14)'/%3E%3Ccircle cx='80' cy='30' r='1.5' fill='rgba(255,255,255,0.14)'/%3E%3Ccircle cx='40' cy='70' r='1' fill='rgba(255,255,255,0.14)'/%3E%3Ccircle cx='90' cy='80' r='2.5' fill='rgba(255,255,255,0.14)'/%3E%3Ccircle cx='10' cy='90' r='1.5' fill='rgba(255,255,255,0.14)'/%3E%3C/svg%3E\")";
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='20' cy='20' r='2' fill='rgba(255,255,255,0.10)'/%3E%3Ccircle cx='80' cy='30' r='1.5' fill='rgba(255,255,255,0.10)'/%3E%3Ccircle cx='40' cy='70' r='1' fill='rgba(255,255,255,0.10)'/%3E%3Ccircle cx='90' cy='80' r='2.5' fill='rgba(255,255,255,0.10)'/%3E%3Ccircle cx='10' cy='90' r='1.5' fill='rgba(255,255,255,0.10)'/%3E%3C/svg%3E\")";
 
   return (
     <div className="max-w-[1400px] mx-auto my-6 sm:my-8 rounded-2xl shadow-2xl overflow-hidden bg-white/95 backdrop-blur">
-      {/* Header */}
+      {/* Saffron header — shorter, title only */}
       <div
-        className="relative px-6 sm:px-8 py-8 sm:py-10 text-center text-white"
+        className="relative px-6 sm:px-8 py-5 sm:py-6 text-center text-white"
         style={{ background: 'linear-gradient(135deg, #FF6B35 0%, #F7931E 100%)' }}
       >
-        <div className="absolute inset-0" style={{ backgroundImage: texture, animation: 'floatDots 20s linear infinite' }} />
+        <div
+          className="absolute inset-0"
+          style={{ backgroundImage: texture, animation: 'floatDots 20s linear infinite' }}
+        />
         <style>{`@keyframes floatDots {0%{transform:translate(0,0)}100%{transform:translate(-100px,-100px)}}`}</style>
-        <h1 className="relative z-10 text-2xl sm:text-3xl font-extrabold tracking-tight">🏳️ Indian Political Parties</h1>
-        <p className="relative z-10 mt-1 opacity-90">Airtable-powered directory of recognized and registered parties</p>
+        <h1 className="relative z-10 text-2xl sm:text-3xl font-extrabold tracking-tight">
+          Indian Political Parties
+        </h1>
       </div>
 
-      {/* Controls */}
-      <div className="px-5 sm:px-8 py-6 bg-slate-50/80 border-b border-slate-200">
+      {/* Controls (brand: cream/ink) */}
+      <div className="px-5 sm:px-8 py-6 bg-cream-200/60 border-b border-ink-200">
         <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-4">
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search by name, abbreviation, leader, state…"
-            className="flex-1 min-w-[240px] rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-[15px] outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            className="flex-1 min-w-[240px] rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-[15px] outline-none
+                       focus:border-ink-500 focus:ring-2 focus:ring-ink-200"
           />
 
           <div className="flex flex-wrap gap-2">
-            <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm">
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
+            >
               <option value="">All Status</option>
               {allStatuses.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
             </select>
 
-            <select value={state} onChange={(e) => setState(e.target.value)} className="rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm">
+            <select
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
+            >
               <option value="">All States</option>
               {allStates.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
             </select>
 
-            <select value={seatTier} onChange={(e) => setSeatTier(e.target.value)} className="rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm">
+            <select
+              value={seatTier}
+              onChange={(e) => setSeatTier(e.target.value)}
+              className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
+            >
               <option value="">All Seats</option>
               <option value="1+">1+ seats</option>
               <option value="5+">5+ seats</option>
@@ -168,11 +189,14 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
             <select
               value={`${sortKey}:${sortDir}`}
               onChange={(e) => {
-                const [k, d] = e.target.value.split(':') as ['name' | 'seats' | 'founded', 'asc' | 'desc'];
+                const [k, d] = e.target.value.split(':') as [
+                  'name' | 'seats' | 'founded',
+                  'asc' | 'desc'
+                ];
                 setSortKey(k);
                 setSortDir(d);
               }}
-              className="rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm"
+              className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
             >
               <option value="seats:desc">Sort: Seats ↓</option>
               <option value="seats:asc">Sort: Seats ↑</option>
@@ -192,7 +216,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
                 setSortKey('seats');
                 setSortDir('desc');
               }}
-              className="rounded-lg border-2 border-slate-200 px-3 py-2 text-sm hover:border-blue-500 hover:bg-blue-50"
+              className="rounded-lg border border-ink-200 px-3 py-2 text-sm hover:border-ink-500 hover:bg-ink-900/5"
               aria-label="Clear all filters"
               type="button"
             >
@@ -201,7 +225,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
           </div>
         </div>
 
-        {/* Stats */}
+        {/* Stats (saffron chips) */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <Stat label="Total Parties" value={stats.total} />
           <Stat label="Total LS Seats" value={stats.seatSum} />
@@ -214,7 +238,10 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
       <div className="px-3 sm:px-6 pb-6 overflow-x-auto">
         <table className="w-full border-collapse bg-white rounded-xl overflow-hidden shadow-xl">
           <thead>
-            <tr className="text-left text-white text-sm sticky top-0 z-10" style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}>
+            <tr
+              className="text-left text-white text-sm sticky top-0 z-10"
+              style={{ background: 'linear-gradient(135deg, #0F3D5E 0%, #0A2A45 100%)' }} // ink
+            >
               <Th>Logo</Th>
               <Th>Name</Th>
               <Th>Abbr</Th>
@@ -228,18 +255,31 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
           </thead>
           <tbody>
             {pageData.map((p) => (
-              <tr key={p.id} className="border-b border-slate-100 hover:bg-blue-50/40 transition">
+              <tr
+                key={p.id}
+                className="border-b border-ink-600/10 hover:bg-ink-900/5 transition"
+              >
                 <td className="p-3">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {p.logo ? <img src={p.logo} alt="" className="w-10 h-10 rounded-md object-contain bg-white border border-slate-200" /> : <div className="w-10 h-10 rounded-md bg-slate-100 border border-slate-200" />}
+                  {p.logo ? (
+                    <img
+                      src={p.logo}
+                      alt=""
+                      className="w-10 h-10 rounded-md object-contain bg-white border border-ink-200"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-md bg-ink-900/5 border border-ink-200" />
+                  )}
                 </td>
                 <td className="p-3">
-                  <div className="font-semibold">{p.name}</div>
-                  {p.symbolText && <div className="text-xs text-slate-500">{p.symbolText}</div>}
+                  <div className="font-semibold text-ink-800">{p.name}</div>
+                  {p.symbolText && (
+                    <div className="text-xs text-ink-600/80">{p.symbolText}</div>
+                  )}
                 </td>
-                <td className="p-3 text-slate-700">{p.abbr || '—'}</td>
-                <td className="p-3 text-slate-700">{p.state || '—'}</td>
-                <td className="p-3 text-slate-700">{p.founded || '—'}</td>
+                <td className="p-3 text-ink-700">{p.abbr || '—'}</td>
+                <td className="p-3 text-ink-700">{p.state || '—'}</td>
+                <td className="p-3 text-ink-700">{p.founded || '—'}</td>
                 <td className="p-3">
                   {p.status ? (
                     <span
@@ -248,21 +288,28 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
                         String(p.status).toLowerCase().includes('national') && 'bg-emerald-600',
                         String(p.status).toLowerCase().includes('state') && 'bg-indigo-600',
                         !String(p.status).toLowerCase().includes('state') &&
-                          !String(p.status).toLowerCase().includes('national') && 'bg-slate-500'
+                          !String(p.status).toLowerCase().includes('national') && 'bg-ink-700'
                       )}
                     >
                       {p.status}
                     </span>
                   ) : (
-                    <span className="text-slate-400">—</span>
+                    <span className="text-ink-600/60">—</span>
                   )}
                 </td>
-                <td className="p-3 font-semibold">{seatsNum(p)}</td>
-                <td className="p-3 text-slate-700 truncate max-w-[320px]">
-                  {p.leaders?.length ? p.leaders.join(', ') : <span className="text-slate-400">—</span>}
+                <td className="p-3 font-semibold text-ink-800">{seatsNum(p)}</td>
+                <td className="p-3 text-ink-700 truncate max-w-[320px]">
+                  {p.leaders?.length ? (
+                    p.leaders.join(', ')
+                  ) : (
+                    <span className="text-ink-600/60">—</span>
+                  )}
                 </td>
                 <td className="p-3">
-                  <Link href={`/parties/${encodeURIComponent(p.slug)}`} className="text-blue-600 underline underline-offset-2">
+                  <Link
+                    href={`/parties/${encodeURIComponent(p.slug)}`}
+                    className="text-saffron-600 underline underline-offset-2"
+                  >
                     Open →
                   </Link>
                 </td>
@@ -270,7 +317,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
             ))}
             {!pageData.length && (
               <tr>
-                <td colSpan={9} className="p-6 text-center text-slate-500">
+                <td colSpan={9} className="p-6 text-center text-ink-600">
                   No parties match your filters.
                 </td>
               </tr>
@@ -278,35 +325,39 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
           </tbody>
         </table>
 
-        {/* Pagination */}
+        {/* Pagination (ink accents) */}
         <div className="flex justify-center items-center gap-2 mt-6">
           {page > 1 && (
             <button
-              className="px-3 py-2 rounded-md border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-500 hover:text-white"
+              className="px-3 py-2 rounded-md border border-ink-200 hover:border-ink-500 hover:bg-ink-700 hover:text-white"
               onClick={() => setPage(page - 1)}
             >
               ‹ Prev
             </button>
           )}
-          {Array.from({ length: totalPages }).slice(Math.max(0, page - 3), page + 2).map((_, i) => {
-            const n = Math.max(1, page - 2) + i;
-            if (n > totalPages) return null;
-            return (
-              <button
-                key={n}
-                onClick={() => setPage(n)}
-                className={cx(
-                  'px-3 py-2 rounded-md border-2',
-                  n === page ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 hover:border-blue-500'
-                )}
-              >
-                {n}
-              </button>
-            );
-          })}
+          {Array.from({ length: totalPages })
+            .slice(Math.max(0, page - 3), page + 2)
+            .map((_, i) => {
+              const n = Math.max(1, page - 2) + i;
+              if (n > totalPages) return null;
+              return (
+                <button
+                  key={n}
+                  onClick={() => setPage(n)}
+                  className={cx(
+                    'px-3 py-2 rounded-md border',
+                    n === page
+                      ? 'bg-ink-700 border-ink-700 text-white'
+                      : 'border-ink-200 hover:border-ink-500'
+                  )}
+                >
+                  {n}
+                </button>
+              );
+            })}
           {page < totalPages && (
             <button
-              className="px-3 py-2 rounded-md border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-500 hover:text-white"
+              className="px-3 py-2 rounded-md border border-ink-200 hover:border-ink-500 hover:bg-ink-700 hover:text-white"
               onClick={() => setPage(page + 1)}
             >
               Next ›
@@ -323,8 +374,12 @@ function Th({ children }: { children: React.ReactNode }) {
 }
 
 function Stat({ label, value }: { label: string; value: number | string }) {
+  // saffron chip to match brand
   return (
-    <div className="rounded-xl text-white text-center py-4" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+    <div
+      className="rounded-xl text-white text-center py-4"
+      style={{ background: 'linear-gradient(135deg, #FF6B35 0%, #F7931E 100%)' }}
+    >
       <div className="text-2xl font-extrabold">{value}</div>
       <div className="text-xs opacity-90">{label}</div>
     </div>
