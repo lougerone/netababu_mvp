@@ -46,10 +46,26 @@ body {
 
 /* --------------------- Forms --------------------- */
 
-/* Search pill */
+/* Remove any built-in or background-magnifier and reset left padding */
 .input-pill {
-  @apply w-full rounded-full bg-white border border-black/10 p-3 outline-none focus:border-ink-500;
+  background-image: none !important;
+  -webkit-appearance: none; /* Safari */
+  appearance: none;
 }
+
+/* Hide WebKit's default search UI parts (magnifier, clear, results) */
+.input-pill[type="search"]::-webkit-search-decoration,
+.input-pill[type="search"]::-webkit-search-cancel-button,
+.input-pill[type="search"]::-webkit-search-results-button,
+.input-pill[type="search"]::-webkit-search-results-decoration {
+  display: none;
+}
+
+/* When you render your own inline SVG icon, add this class for padding */
+.input-pill--with-icon {
+  @apply pl-9; /* 2.25rem to make room for the icon */
+}
+
 
 /* --------------------- Buttons --------------------- */
 
