@@ -43,48 +43,54 @@ export default async function HomePage() {
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
 
           {/* Content */}
-          <div className="relative mx-auto max-w-4xl px-4 pt-6 md:pt-8 lg:pt-10 text-center">
-            <div className="h-kicker text-shadow-cream">India • Politics • Data</div>
+<div className="relative mx-auto max-w-4xl px-4 pt-6 md:pt-8 lg:pt-10 text-center">
+  <div className="h-kicker text-shadow-cream">India • Politics • Data</div>
 
-            <h1
-              className="whitespace-nowrap font-semibold text-ink-700 leading-tight tracking-tight 
-                         text-[clamp(22px,4.5vw,42px)] text-shadow-cream"
-            >
-              Netas, parties, drama — all in one place.
-            </h1>
+  <h1
+    className="whitespace-nowrap font-semibold text-ink-700 leading-tight tracking-tight 
+               text-[clamp(22px,4.5vw,42px)] text-shadow-cream"
+  >
+    Netas, parties, drama — all in one place.
+  </h1>
 
-            <div className="text-saffron-600 text-xl md:text-2xl font-semibold mt-1 text-shadow-cream">
-              नेताजी, पार्टियाँ और इंफो — एक ही जगह
-            </div>
+  <div className="text-saffron-600 text-xl md:text-2xl font-semibold mt-1 text-shadow-cream">
+    नेताजी, पार्टियाँ और इंफो — एक ही जगह
+  </div>
 
-            <form
-  action="/search"
-  method="GET"
-  className="max-w-2xl mx-auto mt-3 flex gap-2"
->
-  <input
-    type="text"
-    name="query"
-    className="input-pill flex-1"
-    placeholder="Search politicians, parties…"
-  />
-  <button type="submit" className="btn">
-    Search
-  </button>
-</form>
+  {/* Search form */}
+  <form
+    action="/search"
+    method="GET"
+    className="max-w-2xl mx-auto mt-3 flex gap-2"
+  >
+    <input
+      type="text"
+      name="query"
+      className="input-pill flex-1"
+      placeholder="Search politicians, parties…"
+    />
+    <button type="submit" className="btn">
+      Search
+    </button>
+  </form>
 
+  {/* Popular searches */}
+  <div className="mt-2 text-sm text-ink-600/80 text-shadow-cream">
+    Popular:{' '}
+    {displaySearches.map((term, i) => (
+      <span key={term}>
+        <Link
+          href={`/search?query=${encodeURIComponent(term)}`}
+          className="underline"
+        >
+          {term}
+        </Link>
+        {i < displaySearches.length - 1 && ' • '}
+      </span>
+    ))}
+  </div>
+</div>
 
-            <div className="mt-2 text-sm text-ink-600/80 text-shadow-cream">
-              Popular:{' '}
-              <Link href="/politicians?query=modi" className="underline">
-                Modi
-              </Link>{' '}
-              •{' '}
-              <Link href="/parties?query=inc" className="underline">
-                INC
-              </Link>
-            </div>
-          </div>
         </section>
       </main>
 
