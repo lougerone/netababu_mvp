@@ -17,8 +17,8 @@ export default async function HomePage() {
   const latestNetas = polAll.slice(4, 8);
   const latestParties = parAll.slice(4, 8);
 
-  // ✅ Popular searches (replace later with real data from Airtable/analytics)
-  const popularSearches: string[] = []; // for now empty → fallback
+  // Popular searches (replace with real data later)
+  const popularSearches: string[] = [];
   const fallbackSearches = ['Modi', 'Gandhi', 'BJP', 'RSS'];
   const displaySearches =
     popularSearches.length > 0 ? popularSearches : fallbackSearches;
@@ -100,7 +100,116 @@ export default async function HomePage() {
       </main>
 
       {/* Explore cards */}
-      {/* ... keep the rest of your sections exactly the same ... */}
+      <section className="grid md:grid-cols-3 gap-4 mt-8">
+        <div className="card p-5">
+          <div className="text-2xl">🏳️</div>
+          <h3 className="font-medium mt-1">Explore by Party</h3>
+          <p className="text-sm text-ink-600/80 mb-3">Browse active & latent parties.</p>
+          <Link href="/parties" className="text-saffron-600 font-medium">
+            View all →
+          </Link>
+        </div>
+
+        <div className="card p-5">
+          <div className="text-2xl">📍</div>
+          <h3 className="font-medium mt-1">Explore by State</h3>
+          <p className="text-sm text-ink-600/80 mb-3">Filter politicians by state.</p>
+          <Link href="/politicians?state=MH" className="text-saffron-600 font-medium">
+            Try Maharashtra →
+          </Link>
+        </div>
+
+        <div className="card p-5">
+          <div className="text-2xl">⚔️</div>
+          <h3 className="font-medium mt-1">Trending netas</h3>
+          <p className="text-sm text-ink-600/80 mb-3">Compare netas → spicy facts.</p>
+          <Link href="/compare" className="text-saffron-600 font-medium">
+            Compare →
+          </Link>
+        </div>
+      </section>
+
+      {/* Featured netas & parties */}
+      <section className="space-y-6">
+        <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-saffron-500 text-transparent bg-clip-text">
+          Featured netas &amp; parties
+        </h2>
+
+        <div className="space-y-8">
+          {/* Top netas */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Top netas</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 items-stretch">
+              {featuredNetas.map((p) => (
+                <CardPolitician key={p.id} p={p} />
+              ))}
+            </div>
+          </div>
+
+          {/* Top parties */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Top parties</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 items-stretch">
+              {featuredParties.map((party) => (
+                <CardParty key={party.id} party={party} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Latest netas & parties */}
+      <section className="space-y-6">
+        <h2 className="text-2xl md:text-3xl font-extrabold">Latest netas &amp; parties</h2>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Latest netas */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Latest netas</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8 items-stretch">
+              {latestNetas.map((p) => (
+                <CardPolitician key={p.id} p={p} />
+              ))}
+            </div>
+          </div>
+
+          {/* Latest parties */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Latest parties</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8 items-stretch">
+              {latestParties.map((party) => (
+                <CardParty key={party.id} party={party} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Sources */}
+      <section className="space-y-2 mt-4">
+        <h2 className="text-xl font-semibold">Sources</h2>
+        <p className="text-sm text-ink-600/80 space-x-2">
+          <Link href="https://eci.gov.in" className="underline">
+            ECI
+          </Link>{' '}
+          •
+          <Link href="https://prsindia.org" className="underline">
+            PRS
+          </Link>{' '}
+          •
+          <Link href="https://loksabha.nic.in" className="underline">
+            Lok Sabha
+          </Link>{' '}
+          •
+          <Link href="https://censusindia.gov.in" className="underline">
+            Census
+          </Link>{' '}
+          •
+          <Link href="https://mospi.gov.in" className="underline">
+            NSS
+          </Link>
+        </p>
+      </section>
     </div>
   );
 }
