@@ -24,7 +24,7 @@ export default async function HomePage() {
       {/* Hero */}
 <section
   className="relative isolate text-center overflow-hidden
-             h-[60vh] md:h-[70vh] lg:h-[80vh]"
+             h-[55vh] md:h-[65vh] lg:h-[75vh]"  // reduced overall height
 >
   {/* Background image */}
   <Image
@@ -32,7 +32,8 @@ export default async function HomePage() {
     alt="Watercolor collage of Indian political figures — Netababu"
     fill
     priority
-    className="absolute inset-0 -z-10 h-full w-full object-contain object-bottom opacity-60"
+    className="absolute inset-0 -z-10 h-full w-full object-contain object-bottom 
+               opacity-60 scale-90"   // scale down ~10% (adjust to taste)
     sizes="100vw"
   />
 
@@ -42,7 +43,9 @@ export default async function HomePage() {
   <div className="pointer-events-none absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-cream-200 to-transparent" />
   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
 
-  <div className="relative mx-auto max-w-4xl px-4 pt-8 md:pt-10 lg:pt-12">
+  {/* Content */}
+  <div className="relative mx-auto max-w-4xl px-4 pt-4 md:pt-6 lg:pt-8"> 
+    {/* reduced padding top to push content higher */}
     <div className="h-kicker">India • Politics • Data</div>
 
     <h1
@@ -73,6 +76,7 @@ export default async function HomePage() {
     </div>
   </div>
 </section>
+
       {/* Explore cards */}
       <section className="grid md:grid-cols-3 gap-4 mt-8">
         <div className="card p-5">
