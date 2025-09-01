@@ -150,7 +150,7 @@ export default async function HomePage() {
 
         {/* Latest netas & parties */}
         <section className="space-y-6">
-          <h2 className="text-2xl md:text-3xl font-extrabold">Newly Added</h2>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-center">Newly Added</h2>
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Latest netas */}
