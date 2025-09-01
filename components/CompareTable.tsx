@@ -1,21 +1,21 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import AvatarSquare from '@/components/AvatarSquare';
 import type { Politician } from '@/lib/airtable';
 
 /* ---------------- Locked & Optional columns ---------------- */
+// Always shown + un-toggleable
 const LOCKED = [
-  { key: 'photo', label: 'Photo' },
-  { key: 'name', label: 'Name' },
-  { key: 'party', label: 'Party' },
+  { key: 'id_header', label: '' }, // special header row with avatar + name + party badge
   { key: 'constituency', label: 'Constituency' },
   { key: 'current_position', label: 'Current Position' },
 ] as const;
 
+// Toggleable (only fields we actually map from Airtable)
 const OPTIONAL: { key: keyof Politician; label: string }[] = [
   { key: 'state', label: 'State' },
-  { key: 'dob', label: 'Date of Birth' },
   { key: 'age', label: 'Age' },
   { key: 'yearsInPolitics', label: 'Years in Politics' },
   { key: 'attendance', label: 'Parliament Attendance' },
@@ -25,125 +25,476 @@ const OPTIONAL: { key: keyof Politician; label: string }[] = [
   { key: 'website', label: 'Website' },
 ];
 
-function renderCell(field: string, p?: Politician) {
-  if (!p) return '—';
+/* ---------------- Styling helpers ---------------- */
+const PARTY_COLORS: Record<string, string> = {
+  'Bharatiya Janata Party': 'bg-[#FFCC00] text-black', // saffron-ish
+  'Indian National Congress': 'bg-[#138808] text-white', // green
+  'Aam Aadmi Party': 'bg-[#1E90FF] text-white',
+  'Trinamool Congress': 'bg-[#228B22] text-white',
+};
 
-  if (field === 'photo') {
-    return <AvatarSquare src={p.photo ?? null} alt={p.name} size={48} rounded="lg" />;
-  }
-  if (field === 'name') {
-    return <span className="font-medium">{p.name || '—'}</span>;
-  }
-  if (field === 'website' && p.website) {
-    return (
-      <a href={p.website} target="_blank" rel="noopener noreferrer" className="underline text-saffron-700">
-        {p.website.replace(/^https?:\/\//, '')}
-      </a>
-    );
-  }
-
-  const val = (p as any)[field];
-  if (Array.isArray(val)) return val.join(', ') || '—';
-  return val ?? '—';
+function partyBadgeClass(party?: string | null) {
+  if (!party) return 'bg-cream-300 text-ink-700';
+  return PARTY_COLORS[party] || 'bg-cream-300 text-ink-700';
 }
 
+/* ---------------- Formatting helpers ---------------- */
+const INR = new Intl.NumberFormat('en-IN');
+function fmtVal(key: string, val: unknown): string {
+  if (val == null) return '—';
+  if (Array.isArray(val)) return val.length ? val.join(', ') : '—';
+
+  if (key === 'attendance') {
+    const n = Number(String(val).replace(/[^\d.]/g, ''));
+    return Number.isFinite(n) ? `${n}%` : String(val);
+  }
+  if (key === 'assets' || key === 'liabilities') {
+    const n = Number(String(val).replace(/[^\d.]/g, ''));
+    return Number.isFinite(n) ? `₹${INR.format(n)}` : String(val);
+  }
+  if (key === 'age' || key === 'yearsInPolitics' || key === 'criminalCases') {
+    const n = Number(String(val).replace(/[^\d.]/g, ''));
+    return Number.isFinite(n) ? INR.format(n) : String(val);
+  }
+  return String(val).trim() || '—';
+}
+
+/* ---------------- Cell renderers ---------------- */
+function renderWebsite(url?: string | null) {
+  if (!url) return '—';
+  const label = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" className="underline text-saffron-700">
+      {label}
+    </a>
+  );
+}
+
+function renderValue(field: string, p?: Politician) {
+  if (!p) return '—';
+  if (field === 'website') return renderWebsite(p.website ?? null);
+  if (field === 'current_position') return fmtVal(field, p.current_position ?? (p as any).position);
+  // generic
+  return fmtVal(field, (p as any)[field]);
+}
+
+/* ---------------- Click outside + debounce ---------------- */
+function useOnClickOutside(ref: React.RefObject<HTMLElement>, fn: () => void) {
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (!ref.current) return;
+      if (!ref.current.contains(e.target as Node)) fn();
+    };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [fn, ref]);
+}
+
+function useDebounced<T>(value: T, ms = 250) {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return v;
+}
+
+/* ---------------- Async suggestions (fallback to local) ---------------- */
+async function fetchSuggestions(q: string): Promise<Politician[] | null> {
+  if (!q.trim()) return null;
+  try {
+    // Optional API route. If you don’t have it, this will 404 and we’ll fallback to local filter.
+    const u = `/api/search-politicians?q=${encodeURIComponent(q.trim())}`;
+    const r = await fetch(u, { cache: 'no-store' });
+    if (!r.ok) return null;
+    const data = await r.json();
+    // Expect array of politicians; otherwise ignore
+    if (Array.isArray(data)) return data as Politician[];
+    if (Array.isArray(data?.items)) return data.items as Politician[];
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/* ---------------- Combobox (typable + async) ---------------- */
+type ComboProps = {
+  label: string;
+  items: Politician[]; // local list fallback
+  valueId?: string;
+  onChangeId: (id: string) => void;
+};
+
+function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
+  const me = items.find((p) => p.id === valueId);
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState(me ? `${me.name} — ${me.party ?? ''}`.trim() : '');
+  const debouncedQ = useDebounced(q, 200);
+  const [remote, setRemote] = useState<Politician[] | null>(null);
+  const [idx, setIdx] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  useOnClickOutside(ref, () => setOpen(false));
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!debouncedQ.trim()) {
+        setRemote(null);
+        return;
+      }
+      const res = await fetchSuggestions(debouncedQ);
+      if (!cancelled) setRemote(res);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedQ]);
+
+  const filtered = useMemo(() => {
+    const base =
+      remote ??
+      (q.trim()
+        ? items.filter((p) => {
+            const s = q.toLowerCase();
+            return (
+              p.name.toLowerCase().includes(s) ||
+              (p.party ?? '').toLowerCase().includes(s) ||
+              (p.constituency ?? '').toLowerCase().includes(s) ||
+              (p.state ?? '').toLowerCase().includes(s)
+            );
+          })
+        : items);
+    const seen = new Set<string>();
+    const out: Politician[] = [];
+    for (const p of base) {
+      if (!seen.has(p.id)) {
+        out.push(p);
+        seen.add(p.id);
+      }
+      if (out.length >= 20) break;
+    }
+    return out;
+  }, [items, q, remote]);
+
+  useEffect(() => {
+    if (idx >= filtered.length) setIdx(filtered.length - 1);
+    if (idx < 0) setIdx(0);
+  }, [idx, filtered.length]);
+
+  const choose = (p: Politician) => {
+    onChangeId(p.id);
+    setQ(`${p.name} — ${p.party ?? ''}`.trim());
+    setOpen(false);
+  };
+
+  useEffect(() => {
+    // keep input text in sync if external value changes
+    if (me && !open) setQ(`${me.name} — ${me.party ?? ''}`.trim());
+  }, [me, open]);
+
+  return (
+    <div ref={ref}>
+      <label className="block text-sm mb-1">{label}</label>
+      <div className="relative">
+        <input
+          className="input-pill w-full"
+          value={q}
+          placeholder="Type name, party, constituency…"
+          onChange={(e) => {
+            setQ(e.target.value);
+            setOpen(true);
+            setIdx(0);
+          }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={(e) => {
+            if (!open && (e.key === 'ArrowDown' || e.key === 'Enter')) {
+              setOpen(true);
+              return;
+            }
+            if (!open) return;
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              setIdx((i) => Math.min(i + 1, filtered.length - 1));
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              setIdx((i) => Math.max(i - 1, 0));
+            } else if (e.key === 'Enter') {
+              e.preventDefault();
+              const p = filtered[idx];
+              if (p) choose(p);
+            } else if (e.key === 'Escape') {
+              setOpen(false);
+            }
+          }}
+        />
+        {open && (
+          <div className="absolute z-40 mt-1 w-full rounded-xl border border-black/10 bg-white shadow-card max-h-72 overflow-auto">
+            {filtered.length === 0 ? (
+              <div className="px-3 py-2 text-sm text-ink-600/70">No matches</div>
+            ) : (
+              filtered.map((p, i) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => choose(p)}
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-cream-200/60 ${
+                    i === idx ? 'bg-cream-200/80' : ''
+                  }`}
+                >
+                  <div className="font-medium">{p.name}</div>
+                  <div className="text-ink-600/80 text-[12px]">
+                    {(p.party ?? '') + (p.constituency ? ` • ${p.constituency}` : '')}
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Multi-select dropdown ---------------- */
+type MultiProps = {
+  label: string;
+  options: { key: keyof Politician; label: string }[];
+  value: Set<keyof Politician>;
+  onToggle: (k: keyof Politician) => void;
+};
+
+function MultiSelect({ label, options, value, onToggle }: MultiProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useOnClickOutside(ref, () => setOpen(false));
+
+  const summary =
+    options.filter((o) => value.has(o.key)).map((o) => o.label).join(', ') || 'None';
+
+  return (
+    <div ref={ref}>
+      <label className="block text-sm mb-1">{label}</label>
+      <button
+        type="button"
+        className="input-pill w-full text-left truncate"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        title={summary}
+      >
+        {summary}
+      </button>
+      {open && (
+        <div className="relative">
+          <div className="absolute z-40 mt-1 w-full rounded-xl border border-black/10 bg-white shadow-card max-h-72 overflow-auto">
+            {options.map((o) => (
+              <label
+                key={String(o.key)}
+                className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-cream-200/60 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={value.has(o.key)}
+                  onChange={() => onToggle(o.key)}
+                />
+                {o.label}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------- URL sync helpers ---------------- */
+function toSlugOrId(p?: Politician | null) {
+  if (!p) return '';
+  return p.slug || p.id;
+}
+function uniq<T>(arr: T[]) {
+  return Array.from(new Set(arr));
+}
+
+/* ---------------- Main component ---------------- */
 export default function CompareTable({ politicians }: { politicians: Politician[] }) {
-  const sorted = useMemo(() => [...politicians].sort((a, b) => a.name.localeCompare(b.name)), [politicians]);
+  const router = useRouter();
+  const pathname = usePathname();
+  const sp = useSearchParams();
 
-  const [aId, setAId] = useState<string | undefined>(sorted[0]?.id);
-  const [bId, setBId] = useState<string | undefined>(sorted[1]?.id);
-  const [enabled, setEnabled] = useState<Set<keyof Politician>>(new Set());
+  const sorted = useMemo(
+    () => [...politicians].sort((a, b) => a.name.localeCompare(b.name)),
+    [politicians]
+  );
 
-  const A = sorted.find((p) => p.id === aId);
-  const B = sorted.find((p) => p.id === bId);
+  // Initial A/B from URL, fallback to first two
+  const initialA = sp?.get('a');
+  const initialB = sp?.get('b');
+  const initialFields = sp?.get('fields');
 
-  const toggle = (k: keyof Politician) => {
+  const findByKey = (k?: string | null) =>
+    sorted.find((p) => k && (p.slug?.toLowerCase() === k.toLowerCase() || p.id === k));
+
+  const [aId, setAId] = useState<string | undefined>(
+    (findByKey(initialA)?.id ?? sorted[0]?.id) as string | undefined
+  );
+  const [bId, setBId] = useState<string | undefined>(
+    (findByKey(initialB)?.id ?? sorted[1]?.id) as string | undefined
+  );
+
+  const [enabled, setEnabled] = useState<Set<keyof Politician>>(() => {
+    const fromUrl = (initialFields || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean) as (keyof Politician)[];
+    const valid = new Set(fromUrl.filter((k) => OPTIONAL.some((o) => o.key === k)));
+    // defaults if URL empty
+    if (valid.size === 0) {
+      valid.add('state');
+      valid.add('age');
+    }
+    return valid;
+  });
+
+  const A = useMemo(() => sorted.find((p) => p.id === aId), [sorted, aId]);
+  const B = useMemo(() => sorted.find((p) => p.id === bId), [sorted, bId]);
+
+  // URL sync whenever A/B/fields change
+  useEffect(() => {
+    const params = new URLSearchParams(sp?.toString());
+    if (A) params.set('a', toSlugOrId(A));
+    if (B) params.set('b', toSlugOrId(B));
+    const fields = OPTIONAL.filter((o) => enabled.has(o.key)).map((o) => o.key);
+    if (fields.length) params.set('fields', uniq(fields).join(','));
+    else params.delete('fields');
+
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [A, B, enabled]);
+
+  const toggle = (k: keyof Politician) =>
     setEnabled((prev) => {
       const next = new Set(prev);
       next.has(k) ? next.delete(k) : next.add(k);
       return next;
     });
-  };
 
   const activeOptional = OPTIONAL.filter((c) => enabled.has(c.key));
+
+  // Filter out rows where BOTH A and B are '—'
+  const shouldShow = (field: string) => {
+    const va = field === 'current_position'
+      ? (A?.current_position ?? (A as any)?.position)
+      : (A as any)?.[field];
+    const vb = field === 'current_position'
+      ? (B?.current_position ?? (B as any)?.position)
+      : (B as any)?.[field];
+    const sa = fmtVal(field, field === 'website' ? A?.website : va);
+    const sb = fmtVal(field, field === 'website' ? B?.website : vb);
+    return !(sa === '—' && sb === '—');
+  };
 
   return (
     <div className="space-y-6">
       {/* Controls */}
       <div className="card p-4">
-        <div className="grid md:grid-cols-3 gap-4 items-end">
-          <div>
-            <label className="block text-sm mb-1">Select A</label>
-            <select className="input-pill w-full" value={aId ?? ''} onChange={(e) => setAId(e.target.value)}>
-              {sorted.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} — {p.party}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm mb-1">Select B</label>
-            <select className="input-pill w-full" value={bId ?? ''} onChange={(e) => setBId(e.target.value)}>
-              {sorted.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} — {p.party}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <div className="text-sm mb-2">Add datapoints</div>
-            <div className="flex flex-wrap gap-2">
-              {OPTIONAL.map((c) => (
-                <label
-                  key={c.key}
-                  className={`px-2 py-1 rounded-md border cursor-pointer text-sm ${
-                    enabled.has(c.key) ? 'bg-cream-300 border-ink-700/20' : 'bg-white/40 border-black/10'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    className="mr-1"
-                    checked={enabled.has(c.key)}
-                    onChange={() => toggle(c.key)}
-                  />
-                  {c.label}
-                </label>
-              ))}
-            </div>
-          </div>
+        <div className="grid md:grid-cols-3 gap-4 items-start">
+          <ComboBox label="Select A" items={sorted} valueId={aId} onChangeId={setAId} />
+          <ComboBox label="Select B" items={sorted} valueId={bId} onChangeId={setBId} />
+          <MultiSelect
+            label="Add datapoints"
+            options={OPTIONAL}
+            value={enabled}
+            onToggle={toggle}
+          />
         </div>
       </div>
 
       {/* Comparison table */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead>
+          <thead className="sticky top-0 bg-cream-200/95 backdrop-blur z-10">
             <tr className="text-left text-ink-600/80">
-              <th className="w-[200px] py-2 pr-4">Metric</th>
+              <th className="w-[240px] py-2 pr-4">Metric</th>
               <th className="py-2 pr-4">A</th>
               <th className="py-2 pr-4">B</th>
             </tr>
           </thead>
           <tbody className="[&_tr]:border-t [&_tr]:border-black/10">
-            {LOCKED.map((c) => (
-              <tr key={c.key}>
-                <td className="py-3 pr-4 font-medium">{c.label}</td>
-                <td className="py-3 pr-4">{renderCell(c.key, A)}</td>
-                <td className="py-3 pr-4">{renderCell(c.key, B)}</td>
-              </tr>
-            ))}
-            {activeOptional.map((c) => (
-              <tr key={c.key}>
-                <td className="py-3 pr-4">{c.label}</td>
-                <td className="py-3 pr-4">{renderCell(c.key, A)}</td>
-                <td className="py-3 pr-4">{renderCell(c.key, B)}</td>
-              </tr>
-            ))}
+            {/* Header row with avatar + name + party badge */}
+            <tr>
+              <td className="py-3 pr-4 font-medium">Identity</td>
+              <td className="py-3 pr-4">
+                {A ? (
+                  <div className="flex items-center gap-2">
+                    <AvatarSquare src={A.photo ?? null} alt={A.name} size={40} rounded="lg" />
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{A.name}</div>
+                      <div
+                        className={`inline-block mt-0.5 px-2 py-0.5 rounded-md text-[11px] ${partyBadgeClass(
+                          A.party
+                        )}`}
+                        title={A.party ?? undefined}
+                      >
+                        {A.party || 'Unknown'}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  '—'
+                )}
+              </td>
+              <td className="py-3 pr-4">
+                {B ? (
+                  <div className="flex items-center gap-2">
+                    <AvatarSquare src={B.photo ?? null} alt={B.name} size={40} rounded="lg" />
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{B.name}</div>
+                      <div
+                        className={`inline-block mt-0.5 px-2 py-0.5 rounded-md text-[11px] ${partyBadgeClass(
+                          B.party
+                        )}`}
+                        title={B.party ?? undefined}
+                      >
+                        {B.party || 'Unknown'}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  '—'
+                )}
+              </td>
+            </tr>
+
+            {/* Always-on rows */}
+            {['constituency', 'current_position'].map((f) =>
+              shouldShow(f) ? (
+                <tr key={`locked-${f}`} className="odd:bg-cream-100/50">
+                  <td className="py-3 pr-4 font-medium">
+                    {f === 'constituency' ? 'Constituency' : 'Current Position'}
+                  </td>
+                  <td className="py-3 pr-4">{renderValue(f, A)}</td>
+                  <td className="py-3 pr-4">{renderValue(f, B)}</td>
+                </tr>
+              ) : null
+            )}
+
+            {/* Optional rows (only when at least one has data) */}
+            {activeOptional.map((c) =>
+              shouldShow(c.key as string) ? (
+                <tr key={`opt-${String(c.key)}`} className="odd:bg-cream-100/50">
+                  <td className="py-3 pr-4">{c.label}</td>
+                  <td className="py-3 pr-4">{renderValue(c.key as string, A)}</td>
+                  <td className="py-3 pr-4">{renderValue(c.key as string, B)}</td>
+                </tr>
+              ) : null
+            )}
           </tbody>
         </table>
       </div>
+
+      <div className="text-xs text-ink-600/70">— means not available.</div>
     </div>
   );
 }
