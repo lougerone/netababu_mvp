@@ -167,12 +167,12 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
     const seen = new Set<string>();
     const out: Politician[] = [];
     for (const p of base) {
-      if (!seen.has(p.id)) {
-        out.push(p);
-        seen.add(p.id);
-      }
-      if (out.length >= 20) break;
-    }
+  if (!seen.has(p.id)) {
+    out.push(p);
+    seen.add(p.id);
+  }
+  if (out.length >= SUGGESTION_LIMIT) break;
+}
     return out;
   }, [items, q, remote]);
 
