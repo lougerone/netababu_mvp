@@ -171,10 +171,11 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
       </div>
 
       {/* Table */}
-      <div className="px-3 sm:px-6 pb-6 overflow-x-auto">
+      <div className="pb-6 overflow-x-auto">
         <table className="w-full border-collapse">
-          <thead className="bg-cream-200 text-ink-700 border-y border-ink-200">
-            <tr className="text-left text-sm">
+          <thead className="sticky top-0 z-10">
+              <tr className="bg-cream-100/90 backdrop-blur supports-[backdrop-filter]:bg-cream-100/80
+                 text-ink-700 border-y border-ink-200 text-sm">
               <Th>Logo</Th>
               <Th>Name</Th>
               <Th>Abbr</Th>
@@ -208,12 +209,11 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
                   {p.status ? (
                     <span
                       className={cx(
-                        'inline-block px-2 py-1 rounded-md text-xs font-semibold text-white',
-                        String(p.status).toLowerCase().includes('national') && 'bg-emerald-600',
-                        String(p.status).toLowerCase().includes('state') && 'bg-indigo-600',
-                        !String(p.status).toLowerCase().includes('state') &&
-                          !String(p.status).toLowerCase().includes('national') && 'bg-ink-700'
-                      )}
+  'inline-block px-2 py-0.5 rounded-md text-xs font-semibold text-white shadow-sm',
+  /national/i.test(String(p.status)) && 'bg-saffron-100 text-saffron-800 ring-1 ring-saffron-200',
+  /state/i.test(String(p.status)) && 'bg-ink-700',
+  !/state|national/i.test(String(p.status)) && 'bg-saffron-100 text-saffron-800 ring-1 ring-saffron-200',
+)}
                     >
                       {p.status}
                     </span>
