@@ -87,34 +87,56 @@ export default async function HomePage() {
         </div>
 
         {/* Explore cards anchored to hero bottom */}
-        <div className="absolute inset-x-0 bottom-6 sm:bottom-10 md:bottom-14 z-30">
-          <div className="mx-auto max-w-6xl px-4">
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="card p-5">
-                <div className="text-2xl">🏳️</div>
-                <h3 className="font-medium mt-1">Explore by Party</h3>
-                <p className="text-sm text-ink-600/80 mb-3">Browse active & latent parties.</p>
-                <Link href="/parties" className="text-saffron-600 font-medium">View all →</Link>
-              </div>
+<div className="absolute inset-x-0 bottom-6 sm:bottom-10 md:bottom-14 z-30">
+  <div className="mx-auto max-w-6xl px-4">
+    <div className="grid md:grid-cols-3 gap-4">
+      
+      {/* Explore by Party */}
+      <div className="card p-5">
+        <h3 className="flex items-center gap-2 font-medium text-lg">
+          <span className="text-2xl">🏳️</span>
+          Explore by Party
+        </h3>
+        <p className="text-sm text-ink-600/80 mb-3 mt-1">
+          Browse active & latent parties.
+        </p>
+        <Link href="/parties" className="text-saffron-600 font-medium">
+          View all →
+        </Link>
+      </div>
 
-              <div className="card p-5">
-                <div className="text-2xl">📍</div>
-                <h3 className="font-medium mt-1">Explore by State</h3>
-                <p className="text-sm text-ink-600/80 mb-3">Filter politicians by state.</p>
-                <Link href="/politicians?state=MH" className="text-saffron-600 font-medium">
-                  Try Maharashtra →
-                </Link>
-              </div>
+      {/* Explore by State */}
+      <div className="card p-5">
+        <h3 className="flex items-center gap-2 font-medium text-lg">
+          <span className="text-2xl">📍</span>
+          Explore by State
+        </h3>
+        <p className="text-sm text-ink-600/80 mb-3 mt-1">
+          Filter politicians by state.
+        </p>
+        <Link href="/politicians" className="text-saffron-600 font-medium">
+          View all →
+        </Link>
+      </div>
 
-              <div className="card p-5">
-                <div className="text-2xl">⚔️</div>
-                <h3 className="font-medium mt-1">Trending netas</h3>
-                <p className="text-sm text-ink-600/80 mb-3">Compare netas → spicy facts.</p>
-                <Link href="/compare" className="text-saffron-600 font-medium">Compare →</Link>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Compare Netas */}
+      <div className="card p-5">
+        <h3 className="flex items-center gap-2 font-medium text-lg">
+          <span className="text-2xl">⚔️</span>
+          Compare Netas
+        </h3>
+        <p className="text-sm text-ink-600/80 mb-3 mt-1">
+          Head-to-head netas → spicy facts.
+        </p>
+        <Link href="/compare" className="text-saffron-600 font-medium">
+          Compare →
+        </Link>
+      </div>
+
+    </div>
+  </div>
+</div>
+
       </section>
 
       {/* Content container */}
