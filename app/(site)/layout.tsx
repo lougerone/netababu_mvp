@@ -4,17 +4,25 @@ import '../globals.css';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
 
-export const metadata = {
-  title: "Netababu",
-  description: "Netas, parties, drama — all in one place.",
-  manifest: "/site.webmanifest",
-  themeColor: "#fff7ed",
+export const metadata: Metadata = {
+  title: 'Netababu',
+  description: 'Netas, parties, drama — all in one place.',
+  manifest: '/site.webmanifest',
+  themeColor: '#fff7ed',
   icons: {
-    icon: "/favicon.png",
-    apple: "/apple-touch-icon.png"
-  }
+    icon: [
+      { url: '/favicon.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Netababu',
+  },
 };
-
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
