@@ -297,28 +297,37 @@ function makeSearchText(o: Record<string, any>): string {
 
 /* ------------------------- List / Get utilities -------------------------- */
 
+// ✅ Safe: only {Name} and {Party} (universally present)
+//    Local filter still searches state/constituency/leaders/etc.
 export async function listPoliticians(
   opts: { limit?: number; query?: string } = {}
 ): Promise<Politician[]> {
   const max = opts.limit && opts.limit > 0 ? opts.limit : Infinity;
 
-  let params: Record<string, string> = { pageSize: '100' };
+  const params: Record<string, string> = { pageSize: '100' };
   if (opts.query && opts.query.trim()) {
     const q = opts.query.trim().replace(/"/g, '\\"');
-    // Use only fields that definitely exist
     params.filterByFormula = `OR(
       FIND(LOWER("${q}"), LOWER({Name})),
-      FIND(LOWER("${q}"), LOWER({State})),
-      FIND(LOWER("${q}"), LOWER({Constituency})),
       FIND(LOWER("${q}"), LOWER({Party}))
     )`;
   }
 
-  const records = await atFetchAll(
-    T_POL,
-    params,
-    max === Infinity ? Infinity : Math.max(max, 100)
-  );
+  let records: AirtableRecord[];
+  try {
+    records = await atFetchAll(
+      T_POL,
+      params,
+      max === Infinity ? Infinity : Math.max(max, 100)
+    );
+  } catch (err) {
+    // Fallback if Airtable rejects formula for any reason
+    records = await atFetchAll(
+      T_POL,
+      { pageSize: '100' },
+      max === Infinity ? Infinity : Math.max(max, 100)
+    );
+  }
 
   let mapped = records.map(mapPolitician);
 
@@ -330,27 +339,21 @@ export async function listPoliticians(
   return Number.isFinite(max) ? mapped.slice(0, Number(max)) : mapped;
 }
 
+// ✅ Safe: use only {Name} (and optionally {Abbreviation} if present).
+//    We still do a rich local filter afterward.
 export async function listParties(
   opts: { limit?: number; query?: string } = {}
 ): Promise<Party[]> {
   const max = opts.limit && opts.limit > 0 ? opts.limit : Infinity;
 
-  let params: Record<string, string> = { pageSize: '100' };
-  
-  // For parties, let's try without the problematic filter first
-  // and rely on client-side filtering instead
+  const params: Record<string, string> = { pageSize: '100' };
   if (opts.query && opts.query.trim()) {
     const q = opts.query.trim().replace(/"/g, '\\"');
-    // Only use fields that are likely to exist
-    try {
-      params.filterByFormula = `OR(
-        FIND(LOWER("${q}"), LOWER({Name})),
-        FIND(LOWER("${q}"), LOWER({State}))
-      )`;
-    } catch (error) {
-      // If filter fails, fetch all and filter client-side
-      delete params.filterByFormula;
-    }
+    // Keep this minimal to avoid 422s on unknown fields.
+    params.filterByFormula = `OR(
+      FIND(LOWER("${q}"), LOWER({Name})),
+      FIND(LOWER("${q}"), LOWER({Abbreviation}))
+    )`;
   }
 
   let records: AirtableRecord[];
@@ -360,20 +363,16 @@ export async function listParties(
       params,
       max === Infinity ? Infinity : Math.max(max, 100)
     );
-  } catch (error) {
-    // If the filter formula fails, try again without it
-    console.warn('Airtable filter failed, falling back to client-side filtering:', error);
-    const fallbackParams = { pageSize: '100' };
+  } catch (err) {
     records = await atFetchAll(
       T_PAR,
-      fallbackParams,
+      { pageSize: '100' },
       max === Infinity ? Infinity : Math.max(max, 100)
     );
   }
 
   let mapped = records.map(mapParty);
 
-  // Always apply client-side filtering for more robust search
   if (opts.query && opts.query.trim()) {
     const q = opts.query.trim().toLowerCase();
     mapped = mapped.filter((p) => makeSearchText(p).includes(q));
@@ -381,6 +380,7 @@ export async function listParties(
 
   return Number.isFinite(max) ? mapped.slice(0, Number(max)) : mapped;
 }
+
 
 /* -------------------- Other existing exports (unchanged) ------------------ */
 
