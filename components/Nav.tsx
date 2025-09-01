@@ -19,9 +19,9 @@ export default function Nav() {
     href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
 
   return (
-    <header className="sticky top-0 z-40 bg-cream-200/90 backdrop-blur
-                       shadow-[0_1px_0_0_rgba(0,0,0,0.06)]"> {/* single separator */}
-      <div className="container max-w-6xl px-4 py-3 flex items-center gap-6">
+    <header className="sticky top-0 z-40 bg-cream-200/90 backdrop-blur shadow-[0_1px_0_0_rgba(0,0,0,0.06)]">
+      <div className="relative container max-w-6xl px-4 py-3 flex items-center">
+        {/* Left: Logo (bigger) */}
         <Link href="/" className="flex items-center gap-3" aria-label="Netababu Home">
           <Image
             src="/logo-wordmark.png"
@@ -30,12 +30,18 @@ export default function Nav() {
             height={56}
             priority
             sizes="(min-width:1024px) 220px, 180px"
-            className="h-10 w-auto"  /* bigger logo, header stays compact */
+            className="h-10 w-auto"
           />
           <span className="sr-only">Netababu</span>
         </Link>
 
-        <nav className="flex items-center gap-1 text-sm">
+        {/* Center: Menu */}
+        <nav
+          role="navigation"
+          aria-label="Primary"
+          className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1
+                     text-sm md:text-base max-w-[70%] overflow-x-auto"
+        >
           {items.map((it) => {
             const active = isActive(it.href);
             const disabled = !!it.disabled;
@@ -58,9 +64,9 @@ export default function Nav() {
           })}
         </nav>
 
-        <div className="flex-1" />
+        {/* Right: spacer (keeps header height & room for future actions) */}
+        <div className="ml-auto" />
       </div>
     </header>
   );
 }
-
