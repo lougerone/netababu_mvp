@@ -2,9 +2,7 @@
 import { ImageResponse } from 'next/og';
 import type { NextRequest } from 'next/server';
 
-export const runtime = 'edge';
-export const contentType = 'image/png';
-export const size = { width: 1200, height: 630 };
+export const runtime = 'edge'; // OK to keep
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -58,6 +56,6 @@ export async function GET(req: NextRequest) {
         </div>
       </div>
     ),
-    { ...size }
+    { width: 1200, height: 630 } // set size here instead of export
   );
 }
