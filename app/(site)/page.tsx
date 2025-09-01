@@ -99,8 +99,8 @@ export default async function HomePage() {
         </section>
       </main>
 
-      {/* Explore cards (keep a modest lift under the hero) */}
-<section className="relative z-20 -translate-y-10 sm:-translate-y-14 md:-translate-y-16 lg:-translate-y-20">
+      {/* Explore cards — pull way up over the hero */}
+<section className="relative z-30 -translate-y-24 sm:-translate-y-28 md:-translate-y-40 lg:-translate-y-52 xl:-translate-y-[15rem]">
   <div className="grid md:grid-cols-3 gap-4">
     <div className="card p-5">
       <div className="text-2xl">🏳️</div>
@@ -127,17 +127,17 @@ export default async function HomePage() {
   </div>
 </section>
 
-{/* Featured netas & parties (slight tuck, consistent inner spacing) */}
-<section className="section section-top">
+{/* Featured netas & parties — close the gap created by the lift */}
+<section className="space-y-6 -mt-16 sm:-mt-20 md:-mt-24">
   <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-saffron-500 text-transparent bg-clip-text">
     Featured netas &amp; parties
   </h2>
 
-  <div className="section-gap">
+  <div className="space-y-8">
     {/* Top netas */}
     <div>
       <h3 className="text-lg font-semibold mb-3">Top netas</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 row-gap">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 items-stretch">
         {featuredNetas.map((p) => (
           <CardPolitician key={p.id} p={p} />
         ))}
@@ -147,7 +147,7 @@ export default async function HomePage() {
     {/* Top parties */}
     <div>
       <h3 className="text-lg font-semibold mb-3">Top parties</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 row-gap">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 items-stretch">
         {featuredParties.map((party) => (
           <CardParty key={party.id} party={party} />
         ))}
@@ -155,6 +155,7 @@ export default async function HomePage() {
     </div>
   </div>
 </section>
+
 
 {/* Latest netas & parties (same outer rhythm; slightly larger row gap) */}
 <section className="section">
