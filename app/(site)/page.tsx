@@ -122,9 +122,9 @@ export default async function HomePage() {
         
         {/* Featured netas & parties */}
         <section className="space-y-6">
-          <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-saffron-500 text-transparent bg-clip-text text-center">
-              Featured
-          </h2>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-saffron-600 text-center">
+  Featured
+</h2>
           <div className="space-y-8">
             {/* Top netas */}
             <div>
