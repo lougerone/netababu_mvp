@@ -23,14 +23,15 @@ export default function Nav() {
       <div className="relative container max-w-6xl px-4 py-2 flex items-center">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2" aria-label="Netababu Home">
-          <Image
-            src="/logo-wordmark.png"
-            alt="Netababu"
-            width={240}
-            height={48}
-            priority
-            className="h-10 w-auto"
-          />
+         <Image
+  src="/logo-wordmark.png"
+  alt="Netababu"
+  width={420}
+  height={84}
+  priority
+  className="h-12 md:h-14 lg:h-16 w-auto"  // was h-10
+/>
+
           <span className="sr-only">Netababu</span>
         </Link>
 
