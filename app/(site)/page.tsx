@@ -21,13 +21,7 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-12">
-  import Link from 'next/link';
-import Image from 'next/image';
-
-export const dynamic = 'force-dynamic';
-
-export default function HomePage() {
-  return (
+      
     <main>
       {/* Hero */}
       <section
