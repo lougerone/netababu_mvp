@@ -2,6 +2,20 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Party } from '@/lib/airtable';
+import AvatarSquare from './AvatarSquare';
+
+export default function CardParty({ party }: { party: Party }) {
+  return (
+    <Link href={`/parties/${party.slug}`} className="card p-4 block" aria-label={`Open ${party.name} details`}>
+      <div className="flex items-center gap-3">
+        <AvatarSquare src={party.logo} alt={party.name} size={48} rounded="lg" />
+        <div className="min-w-0">
+          {/* ...rest unchanged */}
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export default function CardParty({ party }: { party: Party }) {
   const status = (party.status || '').toLowerCase();
