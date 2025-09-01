@@ -1,7 +1,7 @@
 // components/AvatarSquare.tsx
 import Image from 'next/image';
 
-const roundedMap: Record<'md'|'lg'|'xl','rounded-md'|'rounded-lg'|'rounded-xl'> = {
+const roundedMap: Record<string, string> = {
   md: 'rounded-md',
   lg: 'rounded-lg',
   xl: 'rounded-xl',
@@ -13,13 +13,20 @@ export default function AvatarSquare({
   size = 48,
   rounded = 'lg',
 }: {
-  src?: string;
+  src?: string | null;
   alt: string;
-  size?: number;        // 48, 56, etc.
-  rounded?: 'md'|'lg'|'xl';
+  size?: number; // 48, 56, etc.
+  rounded?: 'md' | 'lg' | 'xl';
 }) {
-  const round = roundedMap[rounded];
+  const round = roundedMap[rounded] || 'rounded-lg';
   const px = `${size}px`;
+
+  // Guarantee we never pass an empty/undefined src to <Image>
+  const safeSrc =
+    typeof src === 'string' && src.trim().length > 0
+      ? src
+      : '/placeholder-avatar.png';
+
   return (
     <div
       className={`relative overflow-hidden bg-cream-200 ${round} shrink-0 flex-none`}
@@ -27,10 +34,10 @@ export default function AvatarSquare({
       aria-hidden="true"
     >
       <Image
-        src={src || '/placeholder-avatar.png'}
+        src={safeSrc}
         alt={alt}
         fill
-        sizes={px}
+        sizes={`${size}px`}
         className="object-cover object-top"
         priority={false}
       />
