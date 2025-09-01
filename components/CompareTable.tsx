@@ -197,36 +197,36 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
       <label className="block text-sm mb-1">{label}</label>
       <div className="relative">
         <input
-          className="input-pill w-full"
-          value={q}
-          placeholder="Type name, party, constituency…"
-          onChange={(e) => {
-            setQ(e.target.value);
-            setOpen(true);
-            setIdx(0);
-          }}
-          onFocus={() => setOpen(true)}
-          onKeyDown={(e) => {
-            if (!open && (e.key === 'ArrowDown' || e.key === 'Enter')) {
-              setOpen(true);
-              return;
-            }
-            if (!open) return;
-            if (e.key === 'ArrowDown') {
-              e.preventDefault();
-              setIdx((i) => Math.min(i + 1, filtered.length - 1));
-            } else if (e.key === 'ArrowUp') {
-              e.preventDefault();
-              setIdx((i) => Math.max(i - 1, 0));
-            } else if (e.key === 'Enter') {
-              e.preventDefault();
-              const p = filtered[idx];
-              if (p) choose(p);
-            } else if (e.key === 'Escape') {
-              setOpen(false);
-            }
-          }}
-        />
+  className="input-pill w-full placeholder:text-ink-600/60"
+  value={q}
+  placeholder="Choose your politician"
+  onChange={(e) => {
+    setQ(e.target.value);
+    setOpen(true);
+    setIdx(0);
+  }}
+  onFocus={() => setOpen(true)}
+  onKeyDown={(e) => {
+    if (!open && (e.key === 'ArrowDown' || e.key === 'Enter')) {
+      setOpen(true);
+      return;
+    }
+    if (!open) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setIdx((i) => Math.min(i + 1, filtered.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setIdx((i) => Math.max(i - 1, 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const p = filtered[idx];
+      if (p) choose(p);
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+    }
+  }}
+/>
         {open && (
           <div className="absolute z-40 mt-1 w-full rounded-xl border border-black/10 bg-white shadow-card max-h-72 overflow-auto">
             {filtered.length === 0 ? (
@@ -317,7 +317,7 @@ function uniq<T>(arr: T[]) {
   return Array.from(new Set(arr));
 }
 
-/* ---------------- Main component ---------------- */
+// ---------------- Main component ----------------
 export default function CompareTable({ politicians }: { politicians: Politician[] }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -328,7 +328,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
     [politicians]
   );
 
-  // Initial A/B from URL, fallback to first two
+  // Initial A/B from URL, but if not present -> undefined
   const initialA = sp?.get('a');
   const initialB = sp?.get('b');
   const initialFields = sp?.get('fields');
@@ -336,12 +336,9 @@ export default function CompareTable({ politicians }: { politicians: Politician[
   const findByKey = (k?: string | null) =>
     sorted.find((p) => k && (p.slug?.toLowerCase() === k.toLowerCase() || p.id === k));
 
-  const [aId, setAId] = useState<string | undefined>(
-    (findByKey(initialA)?.id ?? sorted[0]?.id) as string | undefined
-  );
-  const [bId, setBId] = useState<string | undefined>(
-    (findByKey(initialB)?.id ?? sorted[1]?.id) as string | undefined
-  );
+  // 👇 default to undefined instead of sorted[0], sorted[1]
+  const [aId, setAId] = useState<string | undefined>(findByKey(initialA)?.id);
+  const [bId, setBId] = useState<string | undefined>(findByKey(initialB)?.id);
 
   const [enabled, setEnabled] = useState<Set<keyof Politician>>(() => {
     const fromUrl = (initialFields || '')
@@ -349,7 +346,6 @@ export default function CompareTable({ politicians }: { politicians: Politician[
       .map((s) => s.trim())
       .filter(Boolean) as (keyof Politician)[];
     const valid = new Set(fromUrl.filter((k) => OPTIONAL.some((o) => o.key === k)));
-    // defaults if URL empty
     if (valid.size === 0) {
       valid.add('state');
       valid.add('age');
