@@ -172,8 +172,8 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
 
       {/* Table */}
       <div className="px-3 sm:px-6 pb-6 overflow-x-auto">
-        <table className="w-full border-collapse bg-white rounded-xl overflow-hidden shadow-xl">
-          <thead className="bg-cream-200 text-ink-700">
+        <table className="w-full border-collapse">
+          <thead className="bg-cream-200 text-ink-700 border-y border-ink-200">
             <tr className="text-left text-sm">
               <Th>Logo</Th>
               <Th>Name</Th>
