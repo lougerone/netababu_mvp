@@ -52,3 +52,8 @@ body {
 .btn-ghost {
   @apply rounded-full px-5 py-2 border border-black/10 text-ink-600 bg-white hover:bg-cream-100;
 }
+
+/* Subtle cream shadow for text */
+.text-shadow-cream {
+  text-shadow: 0 2px 6px rgba(255, 253, 240, 0.9);
+}
