@@ -100,7 +100,7 @@ export default async function HomePage() {
       </main>
 
       {/* Explore cards */}
-<section className="relative z-10 -mt-12 md:-mt-20 lg:-mt-28">
+<section className="relative z-20 -mt-24 sm:-mt-28 md:-mt-40 lg:-mt-56 xl:-mt-64">
   <div className="grid md:grid-cols-3 gap-4">
     <div className="card p-5">
       <div className="text-2xl">🏳️</div>
