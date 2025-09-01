@@ -57,10 +57,22 @@ export default async function HomePage() {
               नेताजी, पार्टियाँ और इंफो — एक ही जगह
             </div>
 
-            <div className="max-w-2xl mx-auto mt-3 flex gap-2">
-              <input className="input-pill flex-1" placeholder="Search politicians, parties…" />
-              <button className="btn">Search</button>
-            </div>
+            <form
+  action="/search"
+  method="GET"
+  className="max-w-2xl mx-auto mt-3 flex gap-2"
+>
+  <input
+    type="text"
+    name="query"
+    className="input-pill flex-1"
+    placeholder="Search politicians, parties…"
+  />
+  <button type="submit" className="btn">
+    Search
+  </button>
+</form>
+
 
             <div className="mt-2 text-sm text-ink-600/80 text-shadow-cream">
               Popular:{' '}
