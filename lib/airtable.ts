@@ -302,12 +302,14 @@ export async function listPoliticians(
 ): Promise<Politician[]> {
   const max = opts.limit && opts.limit > 0 ? opts.limit : Infinity;
 
-  const params: Record<string, string> = { pageSize: '100' };
+  let params: Record<string, string> = { pageSize: '100' };
   if (opts.query && opts.query.trim()) {
     const q = opts.query.trim().replace(/"/g, '\\"');
-    // Only use universal fields here to avoid 422s.
+    // Use only fields that definitely exist
     params.filterByFormula = `OR(
       FIND(LOWER("${q}"), LOWER({Name})),
+      FIND(LOWER("${q}"), LOWER({State})),
+      FIND(LOWER("${q}"), LOWER({Constituency})),
       FIND(LOWER("${q}"), LOWER({Party}))
     )`;
   }
@@ -318,8 +320,8 @@ export async function listPoliticians(
     max === Infinity ? Infinity : Math.max(max, 100)
   );
 
-  // Local, richer search across many mapped properties
   let mapped = records.map(mapPolitician);
+
   if (opts.query && opts.query.trim()) {
     const q = opts.query.trim().toLowerCase();
     mapped = mapped.filter((p) => makeSearchText(p).includes(q));
@@ -333,23 +335,45 @@ export async function listParties(
 ): Promise<Party[]> {
   const max = opts.limit && opts.limit > 0 ? opts.limit : Infinity;
 
-  const params: Record<string, string> = { pageSize: '100' };
+  let params: Record<string, string> = { pageSize: '100' };
+  
+  // For parties, let's try without the problematic filter first
+  // and rely on client-side filtering instead
   if (opts.query && opts.query.trim()) {
     const q = opts.query.trim().replace(/"/g, '\\"');
-    // Keep this minimal/safe; avoid base-specific fields.
-    params.filterByFormula = `OR(
-      FIND(LOWER("${q}"), LOWER({Name})),
-      FIND(LOWER("${q}"), LOWER({Abbreviation}))
-    )`;
+    // Only use fields that are likely to exist
+    try {
+      params.filterByFormula = `OR(
+        FIND(LOWER("${q}"), LOWER({Name})),
+        FIND(LOWER("${q}"), LOWER({State}))
+      )`;
+    } catch (error) {
+      // If filter fails, fetch all and filter client-side
+      delete params.filterByFormula;
+    }
   }
 
-  const records = await atFetchAll(
-    T_PAR,
-    params,
-    max === Infinity ? Infinity : Math.max(max, 100)
-  );
+  let records: AirtableRecord[];
+  try {
+    records = await atFetchAll(
+      T_PAR,
+      params,
+      max === Infinity ? Infinity : Math.max(max, 100)
+    );
+  } catch (error) {
+    // If the filter formula fails, try again without it
+    console.warn('Airtable filter failed, falling back to client-side filtering:', error);
+    const fallbackParams = { pageSize: '100' };
+    records = await atFetchAll(
+      T_PAR,
+      fallbackParams,
+      max === Infinity ? Infinity : Math.max(max, 100)
+    );
+  }
 
   let mapped = records.map(mapParty);
+
+  // Always apply client-side filtering for more robust search
   if (opts.query && opts.query.trim()) {
     const q = opts.query.trim().toLowerCase();
     mapped = mapped.filter((p) => makeSearchText(p).includes(q));
@@ -357,7 +381,6 @@ export async function listParties(
 
   return Number.isFinite(max) ? mapped.slice(0, Number(max)) : mapped;
 }
-
 
 /* -------------------- Other existing exports (unchanged) ------------------ */
 
