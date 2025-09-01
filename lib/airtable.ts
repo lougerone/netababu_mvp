@@ -302,13 +302,12 @@ export async function listPoliticians(
 ): Promise<Politician[]> {
   const max = opts.limit && opts.limit > 0 ? opts.limit : Infinity;
 
-  let params: Record<string, string> = { pageSize: '100' };
+  const params: Record<string, string> = { pageSize: '100' };
   if (opts.query && opts.query.trim()) {
     const q = opts.query.trim().replace(/"/g, '\\"');
+    // Only use universal fields here to avoid 422s.
     params.filterByFormula = `OR(
       FIND(LOWER("${q}"), LOWER({Name})),
-      FIND(LOWER("${q}"), LOWER({State})),
-      FIND(LOWER("${q}"), LOWER({Constituency})),
       FIND(LOWER("${q}"), LOWER({Party}))
     )`;
   }
@@ -319,8 +318,8 @@ export async function listPoliticians(
     max === Infinity ? Infinity : Math.max(max, 100)
   );
 
+  // Local, richer search across many mapped properties
   let mapped = records.map(mapPolitician);
-
   if (opts.query && opts.query.trim()) {
     const q = opts.query.trim().toLowerCase();
     mapped = mapped.filter((p) => makeSearchText(p).includes(q));
@@ -334,14 +333,13 @@ export async function listParties(
 ): Promise<Party[]> {
   const max = opts.limit && opts.limit > 0 ? opts.limit : Infinity;
 
-  let params: Record<string, string> = { pageSize: '100' };
+  const params: Record<string, string> = { pageSize: '100' };
   if (opts.query && opts.query.trim()) {
     const q = opts.query.trim().replace(/"/g, '\\"');
+    // Keep this minimal/safe; avoid base-specific fields.
     params.filterByFormula = `OR(
       FIND(LOWER("${q}"), LOWER({Name})),
-      FIND(LOWER("${q}"), LOWER({Abbreviation})),
-      FIND(LOWER("${q}"), LOWER({State})),
-      FIND(LOWER("${q}"), LOWER({Leaders}))
+      FIND(LOWER("${q}"), LOWER({Abbreviation}))
     )`;
   }
 
@@ -352,7 +350,6 @@ export async function listParties(
   );
 
   let mapped = records.map(mapParty);
-
   if (opts.query && opts.query.trim()) {
     const q = opts.query.trim().toLowerCase();
     mapped = mapped.filter((p) => makeSearchText(p).includes(q));
