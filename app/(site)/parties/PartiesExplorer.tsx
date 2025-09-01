@@ -19,6 +19,15 @@ function toInt(v: unknown): number | null {
 const seatsNum = (p: Party) => toInt(p.seats) ?? 0;
 const cx = (...c: Array<string | false | null | undefined>) => c.filter(Boolean).join(' ');
 
+// Normalize status coming from Airtable (handles spaces/casing like "National ", " state", etc.)
+function getStatusLabel(s?: string): 'National' | 'State' | null {
+  const t = (s ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
+  if (!t) return null;
+  if (t.includes('national')) return 'National';
+  if (t.includes('state')) return 'State';
+  return null;
+}
+
 export default function PartiesExplorer({ initialParties, initialQuery = '' }: Props) {
   const rows = useMemo(() => [...initialParties].sort((a, b) => seatsNum(b) - seatsNum(a)), [initialParties]);
 
@@ -95,6 +104,8 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
     const stateCount = filtered.filter((p) => String(p.status || '').toLowerCase().includes('state')).length;
     return { total, seatSum, national, stateCount };
   }, [filtered]);
+
+  const tdBase = 'p-3 first:pl-6 last:pr-6 align-middle';
 
   return (
     <div className="max-w-[1400px] mx-auto my-6 sm:my-8 rounded-2xl overflow-hidden bg-white shadow-2xl">
@@ -174,71 +185,81 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
       <div className="pb-6 overflow-x-auto">
         <table className="w-full border-collapse">
           <thead className="sticky top-0 z-10">
-              <tr className="bg-cream-100/90 backdrop-blur supports-[backdrop-filter]:bg-cream-100/80
-                 text-ink-700 border-y border-ink-200 text-sm">
+            <tr className="bg-cream-100/90 backdrop-blur supports-[backdrop-filter]:bg-cream-100/80 text-ink-700 border-y border-ink-200 text-sm">
               <Th>Logo</Th>
               <Th>Name</Th>
               <Th>Abbr</Th>
               <Th>State</Th>
-              <Th>Founded</Th>
+              <Th align="right">Founded</Th>
               <Th>Status</Th>
-              <Th>LS Seats</Th>
+              <Th align="right">LS Seats</Th>
               <Th>Leaders</Th>
               <Th>Details</Th>
             </tr>
           </thead>
           <tbody>
-            {pageData.map((p) => (
-              <tr key={p.id} className="border-b border-ink-600/10 hover:bg-ink-900/5 transition">
-                <td className="p-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {p.logo ? (
-                    <img src={p.logo} alt="" className="w-10 h-10 rounded-md object-contain bg-white border border-ink-200" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-md bg-ink-900/5 border border-ink-200" />
-                  )}
-                </td>
-                <td className="p-3">
-                  <div className="font-semibold text-ink-800">{p.name}</div>
-                  {p.symbolText && <div className="text-xs text-ink-600/80">{p.symbolText}</div>}
-                </td>
-                <td className="p-3 text-ink-700">{p.abbr || '—'}</td>
-                <td className="p-3 text-ink-700">{p.state || '—'}</td>
-                <td className="p-3 text-ink-700">{p.founded || '—'}</td>
-                <td className="p-3">
-                  {p.status ? (
-                    <span
-                      className={cx(
-  'inline-block px-2 py-0.5 rounded-md text-xs font-semibold text-white shadow-sm',
-  /national/i.test(String(p.status)) && 'bg-saffron-100 text-saffron-800 ring-1 ring-saffron-200',
-  /state/i.test(String(p.status)) && 'bg-ink-700',
-  !/state|national/i.test(String(p.status)) && 'bg-saffron-100 text-saffron-800 ring-1 ring-saffron-200',
-)}
+            {pageData.map((p) => {
+              const statusLabel = getStatusLabel(p.status);
+              return (
+                <tr key={p.id} className="border-b border-ink-600/10 hover:bg-ink-900/5 transition">
+                  <td className={tdBase}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {p.logo ? (
+                      <img
+                        src={p.logo}
+                        alt=""
+                        className="w-10 h-10 rounded-md object-contain bg-white border border-ink-200"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-md grid place-items-center bg-ink-100 text-ink-700 text-xs font-semibold border border-ink-200">
+                        {(p.abbr || p.name?.slice(0, 2) || '—').toUpperCase()}
+                      </div>
+                    )}
+                  </td>
+                  <td className={tdBase}>
+                    <div className="font-semibold text-ink-800">{p.name}</div>
+                    {p.symbolText && <div className="text-xs text-ink-600/80">{p.symbolText}</div>}
+                  </td>
+                  <td className={cx(tdBase, 'text-ink-700')}>{p.abbr || '—'}</td>
+                  <td className={cx(tdBase, 'text-ink-700')}>{p.state || '—'}</td>
+                  <td className={cx(tdBase, 'text-right tabular-nums text-ink-700')}>{p.founded || '—'}</td>
+                  <td className={tdBase}>
+                    {statusLabel ? (
+                      <span
+                        className={cx(
+                          'inline-block px-2 py-0.5 rounded-md text-xs font-semibold shadow-sm ring-1',
+                          statusLabel === 'National' && 'bg-saffron-100 text-saffron-800 ring-saffron-200',
+                          statusLabel === 'State' && 'bg-ink-100 text-ink-800 ring-ink-200'
+                        )}
+                      >
+                        {statusLabel}
+                      </span>
+                    ) : (
+                      <span className="text-ink-600/60">—</span>
+                    )}
+                  </td>
+                  <td className={cx(tdBase, 'text-right tabular-nums font-semibold text-ink-800')}>
+                    {seatsNum(p)}
+                  </td>
+                  <td className={cx(tdBase, 'text-ink-700 truncate max-w-[28ch] md:max-w-[40ch]')}>
+                    {p.leaders?.length ? p.leaders.join(', ') : <span className="text-ink-600/60">—</span>}
+                  </td>
+                  <td className={cx(tdBase, 'whitespace-nowrap')}>
+                    <Link
+                      href={`/parties/${encodeURIComponent(p.slug)}`}
+                      className="text-saffron-700 hover:text-saffron-800 underline underline-offset-2"
                     >
-                      {p.status}
-                    </span>
-                  ) : (
-                    <span className="text-ink-600/60">—</span>
-                  )}
-                </td>
-                <td className="p-3 font-semibold text-ink-800">{seatsNum(p)}</td>
-                <td className="p-3 text-ink-700 truncate max-w-[320px]">
-                  {p.leaders?.length ? p.leaders.join(', ') : <span className="text-ink-600/60">—</span>}
-                </td>
-                <td className="p-3">
-                  <Link
-  href={`/parties/${encodeURIComponent(p.slug)}`}
-  className="text-saffron-700 hover:text-saffron-800 underline underline-offset-2"
->
-  View
-</Link>
-
-                </td>
-              </tr>
-            ))}
+                      View
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
             {!pageData.length && (
               <tr>
-                <td colSpan={9} className="p-6 text-center text-ink-600">No parties match your filters.</td>
+                <td colSpan={9} className="p-6 text-center text-ink-600">
+                  No parties match your filters.
+                </td>
               </tr>
             )}
           </tbody>
@@ -284,13 +305,28 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
   );
 }
 
-function Th({ children }: { children: React.ReactNode }) {
-  return <th className="px-3 py-3 font-semibold whitespace-nowrap">{children}</th>;
+function Th({
+  children,
+  align = 'left',
+}: {
+  children: React.ReactNode;
+  align?: 'left' | 'right';
+}) {
+  return (
+    <th
+      className={cx(
+        'px-3 py-3 first:pl-6 last:pr-6 font-semibold whitespace-nowrap',
+        align === 'right' ? 'text-right' : 'text-left'
+      )}
+    >
+      {children}
+    </th>
+  );
 }
 
 function Stat({ label, value }: { label: string | number; value: string | number }) {
   return (
-    <div className="rounded-xl bg-white text-center py-4 shadow-sm border border-ink-200">
+    <div className="rounded-xl bg-white text-center py-4 shadow-sm border border-ink-200 ring-1 ring-cream-300/60">
       <div className="text-2xl font-extrabold text-saffron-600">{value}</div>
       <div className="text-xs text-ink-700">{label}</div>
     </div>
