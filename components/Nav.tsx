@@ -10,7 +10,7 @@ const items: Item[] = [
   { href: '/politicians', label: 'Politicians' },
   { href: '/parties', label: 'Parties' },
   { href: '/compare', label: 'Compare' },
-  { href: '/about', label: 'About' }, // enabled now
+  { href: '/about', label: 'About' },
 ];
 
 export default function Nav() {
@@ -20,8 +20,9 @@ export default function Nav() {
 
   return (
     <header className="sticky top-0 z-40 bg-cream-200/90 backdrop-blur shadow-[0_1px_0_0_rgba(0,0,0,0.06)]">
-      <div className="container max-w-6xl px-4 py-2 flex items-center gap-5">
-        {/* Logo (bigger) */}
+      {/* relative so the centered nav can sit absolutely */}
+      <div className="relative container max-w-6xl px-4 py-2 flex items-center">
+        {/* Left: logo (bigger), header still compact */}
         <Link href="/" className="flex items-center gap-2" aria-label="Netababu Home">
           <Image
             src="/logo-wordmark.png"
@@ -34,22 +35,23 @@ export default function Nav() {
           <span className="sr-only">Netababu</span>
         </Link>
 
-        {/* Menu */}
-        <nav className="ml-auto flex items-center gap-1 text-sm leading-none">
+        {/* Center: menu (truly centered regardless of logo width) */}
+        <nav
+          className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1
+                     text-sm leading-none"
+          aria-label="Primary"
+        >
           {items.map((it) => {
             const active = isActive(it.href);
-            const disabled = !!it.disabled;
             return (
               <Link
                 key={it.href}
                 href={it.href}
-                aria-disabled={disabled}
                 aria-current={active ? 'page' : undefined}
                 className={[
                   'px-2 py-0.5 rounded-md transition-colors whitespace-nowrap',
                   'hover:bg-white/5',
                   active ? 'bg-white/10' : '',
-                  disabled ? 'opacity-40 pointer-events-none' : '',
                 ].join(' ')}
               >
                 {it.label}
@@ -57,6 +59,9 @@ export default function Nav() {
             );
           })}
         </nav>
+
+        {/* Right: spacer (keeps layout tidy; room for future actions) */}
+        <div className="ml-auto" />
       </div>
     </header>
   );
