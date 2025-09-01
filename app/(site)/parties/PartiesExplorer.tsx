@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 type Props = { initialParties: Party[]; initialQuery?: string };
 
+// ---------- helpers ----------
 function toInt(v: unknown): number | null {
   if (v == null) return null;
   if (typeof v === 'number' && Number.isFinite(v)) return v;
@@ -21,38 +22,8 @@ const cx = (...c: Array<string | false | null | undefined>) => c.filter(Boolean)
 
 type Badge = 'National' | 'State' | null;
 
+// Normalize status from Airtable (handles casing/spacing)
 function getStatusLabel(s: string | null | undefined): Badge {
-  const t = (s ?? '').toLowerCase();
-  if (!t) return null;
-  if (t.includes('national')) return 'National';
-  if (t.includes('state')) return 'State';
-  return null;
-}
-
-const pillBase =
-  'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ring-1';
-
-function pillClass(b: Badge) {
-  switch (b) {
-    case 'National':
-      // light saffron bg + saffron text + soft ring
-      return 'bg-saffron-50 text-saffron-800 ring-saffron-200';
-    case 'State':
-      // ink pill (brand navy) + white text
-      return 'bg-ink-700 text-white ring-ink-700';
-    default:
-      // neutral fallback (won’t usually show)
-      return 'bg-cream-200 text-ink-700 ring-ink-200';
-  }
-}
-
-
-// Normalize status coming from Airtable (handles spaces/casing like "National ", " state", etc.)
-// before
-// function getStatusLabel(s?: string): 'National' | 'State' | null {
-
-// after
-function getStatusLabel(s: string | null | undefined): 'National' | 'State' | null {
   const t = (s ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
   if (!t) return null;
   if (t.includes('national')) return 'National';
@@ -60,10 +31,24 @@ function getStatusLabel(s: string | null | undefined): 'National' | 'State' | nu
   return null;
 }
 
+const pillBase = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ring-1';
+function pillClass(b: Exclude<Badge, null>) {
+  switch (b) {
+    case 'National':
+      // light saffron bg + saffron text + soft ring
+      return 'bg-saffron-100 text-saffron-800 ring-saffron-200';
+    case 'State':
+      // ink pill (brand navy) + ink ring
+      return 'bg-ink-100 text-ink-800 ring-ink-200';
+  }
+}
 
+// ---------- component ----------
 export default function PartiesExplorer({ initialParties, initialQuery = '' }: Props) {
+  // base rows sorted by seats desc initially
   const rows = useMemo(() => [...initialParties].sort((a, b) => seatsNum(b) - seatsNum(a)), [initialParties]);
 
+  // filters / sort / pagination
   const [q, setQ] = useState(initialQuery);
   const [state, setState] = useState('');
   const [status, setStatus] = useState('');
@@ -73,9 +58,11 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
   const [page, setPage] = useState(1);
   const PER = 20;
 
+  // keep q in the URL (replaceState so it doesn't spam history)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (q) params.set('q', q); else params.delete('q');
+    if (q) params.set('q', q);
+    else params.delete('q');
     const qs = params.toString();
     window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
   }, [q]);
@@ -119,7 +106,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
         const by = (b.founded && parseInt(String(b.founded).slice(0, 4), 10)) || 0;
         return dir * (ay - by);
       }
-      return dir * (seatsNum(a) - seatsNum(b));
+      return dir * (seatsNum(a) - seatsNum(b)); // seats
     });
 
     return out;
@@ -142,7 +129,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
 
   return (
     <div className="max-w-[1400px] mx-auto my-6 sm:my-8 rounded-2xl overflow-hidden bg-white shadow-2xl">
-      {/* Cream header (no gradient) */}
+      {/* Header (cream, no gradient) */}
       <div className="px-6 sm:px-8 py-5 sm:py-6 text-center bg-cream-200 border-b border-ink-200">
         <h1 className="text-ink-800 text-2xl sm:text-3xl font-extrabold tracking-tight">
           Indian Political Parties
@@ -161,17 +148,37 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
           />
 
           <div className="flex flex-wrap gap-2">
-            <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm">
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
+            >
               <option value="">All Status</option>
-              {allStatuses.map((s) => <option key={s} value={s}>{s}</option>)}
+              {allStatuses.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
             </select>
 
-            <select value={state} onChange={(e) => setState(e.target.value)} className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm">
+            <select
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
+            >
               <option value="">All States</option>
-              {allStates.map((s) => <option key={s} value={s}>{s}</option>)}
+              {allStates.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
             </select>
 
-            <select value={seatTier} onChange={(e) => setSeatTier(e.target.value)} className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm">
+            <select
+              value={seatTier}
+              onChange={(e) => setSeatTier(e.target.value)}
+              className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
+            >
               <option value="">All Seats</option>
               <option value="1+">1+ seats</option>
               <option value="5+">5+ seats</option>
@@ -183,7 +190,8 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
               value={`${sortKey}:${sortDir}`}
               onChange={(e) => {
                 const [k, d] = e.target.value.split(':') as ['name' | 'seats' | 'founded', 'asc' | 'desc'];
-                setSortKey(k); setSortDir(d);
+                setSortKey(k);
+                setSortDir(d);
               }}
               className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
             >
@@ -196,7 +204,14 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
             </select>
 
             <button
-              onClick={() => { setQ(''); setState(''); setStatus(''); setSeatTier(''); setSortKey('seats'); setSortDir('desc'); }}
+              onClick={() => {
+                setQ('');
+                setState('');
+                setStatus('');
+                setSeatTier('');
+                setSortKey('seats');
+                setSortDir('desc');
+              }}
               className="rounded-lg border border-ink-200 px-3 py-2 text-sm hover:border-ink-500 hover:bg-ink-900/5"
               type="button"
             >
@@ -205,7 +220,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
           </div>
         </div>
 
-        {/* Soft cards for stats */}
+        {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <Stat label="Total Parties" value={stats.total} />
           <Stat label="Total LS Seats" value={stats.seatSum} />
@@ -232,7 +247,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
           </thead>
           <tbody>
             {pageData.map((p) => {
-              const statusLabel = getStatusLabel(p.status);
+              const label = getStatusLabel(p.status);
               return (
                 <tr key={p.id} className="border-b border-ink-600/10 hover:bg-ink-900/5 transition">
                   <td className={tdBase}>
@@ -257,16 +272,12 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
                   <td className={cx(tdBase, 'text-ink-700')}>{p.state || '—'}</td>
                   <td className={cx(tdBase, 'text-right tabular-nums text-ink-700')}>{p.founded || '—'}</td>
                   <td className={tdBase}>
-  {(() => {
-    const label = getStatusLabel(p.status);
-    return label ? (
-      <span className={`${pillBase} ${pillClass(label)}`}>{label}</span>
-    ) : (
-      <span className="text-ink-600/60">—</span>
-    );
-  })()}
-</td>
-
+                    {label ? (
+                      <span className={`${pillBase} ${pillClass(label)}`}>{label}</span>
+                    ) : (
+                      <span className="text-ink-600/60">—</span>
+                    )}
+                  </td>
                   <td className={cx(tdBase, 'text-right tabular-nums font-semibold text-ink-800')}>
                     {seatsNum(p)}
                   </td>
@@ -304,22 +315,24 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
               ‹ Prev
             </button>
           )}
-          {Array.from({ length: totalPages }).slice(Math.max(0, page - 3), page + 2).map((_, i) => {
-            const n = Math.max(1, page - 2) + i;
-            if (n > totalPages) return null;
-            return (
-              <button
-                key={n}
-                onClick={() => setPage(n)}
-                className={cx(
-                  'px-3 py-2 rounded-md border',
-                  n === page ? 'bg-ink-700 border-ink-700 text-white' : 'border-ink-200 hover:border-ink-500'
-                )}
-              >
-                {n}
-              </button>
-            );
-          })}
+          {Array.from({ length: totalPages })
+            .slice(Math.max(0, page - 3), page + 2)
+            .map((_, i) => {
+              const n = Math.max(1, page - 2) + i;
+              if (n > totalPages) return null;
+              return (
+                <button
+                  key={n}
+                  onClick={() => setPage(n)}
+                  className={cx(
+                    'px-3 py-2 rounded-md border',
+                    n === page ? 'bg-ink-700 border-ink-700 text-white' : 'border-ink-200 hover:border-ink-500'
+                  )}
+                >
+                  {n}
+                </button>
+              );
+            })}
           {page < totalPages && (
             <button
               className="px-3 py-2 rounded-md border border-ink-200 hover:border-ink-500 hover:bg-ink-700 hover:text-white"
