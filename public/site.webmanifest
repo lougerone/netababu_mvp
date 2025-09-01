@@ -1,11 +1,19 @@
 {
   "name": "Netababu",
   "short_name": "Netababu",
-  "icons": [
-    { "src": "/favicon.png", "sizes": "32x32", "type": "image/png" },
-    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
-  ],
-  "theme_color": "#fff7ed",
+  "description": "Netas, parties, drama — all in one place.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
   "background_color": "#fff7ed",
-  "display": "standalone"
+  "theme_color": "#fff7ed",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+
+    // maskable (for Android adaptive icons)
+    { "src": "/icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable any" }
+  ]
 }
