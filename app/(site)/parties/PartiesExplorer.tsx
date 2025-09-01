@@ -227,11 +227,12 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
                 </td>
                 <td className="p-3">
                   <Link
-                    href={`/parties/${encodeURIComponent(p.slug)}`}
-                    className="text-saffron-600 underline underline-offset-2 whitespace-nowrap"
-                  >
-                    View
-                  </Link>
+  href={`/parties/${encodeURIComponent(p.slug)}`}
+  className="text-saffron-700 hover:text-saffron-800 underline underline-offset-2"
+>
+  View
+</Link>
+
                 </td>
               </tr>
             ))}
