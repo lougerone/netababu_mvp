@@ -73,7 +73,7 @@ export default async function HomePage() {
           </form>
 
           {/* Popular searches */}
-          <div className="mt-2 text-sm text-ink-600/80 text-shadow-cream">
+          <div className="mt-2 text-sm font-medium text-ink-700 text-shadow-cream">
             Popular:{' '}
             {displaySearches.map((term, i) => (
               <span key={term}>
