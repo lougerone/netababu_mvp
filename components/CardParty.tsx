@@ -1,21 +1,7 @@
 // components/CardParty.tsx
 import Link from 'next/link';
-import Image from 'next/image';
 import type { Party } from '@/lib/airtable';
 import AvatarSquare from './AvatarSquare';
-
-export default function CardParty({ party }: { party: Party }) {
-  return (
-    <Link href={`/parties/${party.slug}`} className="card p-4 block" aria-label={`Open ${party.name} details`}>
-      <div className="flex items-center gap-3">
-        <AvatarSquare src={party.logo} alt={party.name} size={48} rounded="lg" />
-        <div className="min-w-0">
-          {/* ...rest unchanged */}
-        </div>
-      </div>
-    </Link>
-  );
-}
 
 export default function CardParty({ party }: { party: Party }) {
   const status = (party.status || '').toLowerCase();
@@ -26,12 +12,13 @@ export default function CardParty({ party }: { party: Party }) {
     <Link
       href={`/parties/${party.slug}`}
       aria-label={`Open ${party.name} party page`}
-      className="card card-compact p-4 block hover:shadow-lg transition-shadow 
+      className="card card-compact p-4 block hover:shadow-lg transition-shadow
                  bg-indigo-50 border-indigo-100"
     >
       {/* top row: logo + name */}
       <div className="flex items-center gap-3">
-        <LogoBox src={party.logo ?? undefined} name={party.name} abbr={party.abbr} />
+        {/* Square image, top-anchored crop (extra height trims from bottom) */}
+        <AvatarSquare src={party.logo ?? undefined} alt={party.name ?? 'Party'} size={48} rounded="lg" />
 
         <div className="min-w-0">
           <div className="font-medium text-ink-700 truncate">{party.name || '—'}</div>
@@ -55,45 +42,4 @@ export default function CardParty({ party }: { party: Party }) {
       </div>
     </Link>
   );
-}
-
-/* ------------------------------ atoms ----------------------------------- */
-
-function LogoBox({
-  src,
-  name,
-  abbr,
-}: {
-  src?: string;
-  name?: string;
-  abbr?: string;
-}) {
-  if (!src) {
-    return (
-      <div
-        className="h-12 w-12 rounded-lg bg-black/5 flex items-center justify-center text-[11px] font-semibold"
-        aria-hidden
-      >
-        {initials(name, abbr)}
-      </div>
-    );
-  }
-  return (
-    <div className="h-12 w-12 overflow-hidden rounded-lg bg-white">
-      <Image
-        src={src}
-        alt={`${name ?? ''} logo`}
-        width={48}
-        height={48}
-        className="h-full w-full object-contain"
-      />
-    </div>
-  );
-}
-
-function initials(name?: string, abbr?: string) {
-  const s = (abbr || name || '').trim();
-  if (!s) return '—';
-  const parts = s.split(/\s+/).slice(0, 2);
-  return parts.map((p) => p[0]).join('').toUpperCase();
 }
