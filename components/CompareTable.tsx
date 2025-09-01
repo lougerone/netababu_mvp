@@ -1,19 +1,38 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useId } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import AvatarSquare from '@/components/AvatarSquare';
 import type { Politician } from '@/lib/airtable';
 
+/* ---------------- Utilities ---------------- */
+
+const norm = (s: string) =>
+  s
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+
+const INR = new Intl.NumberFormat('en-IN');
+
+function uniq<T>(arr: T[]) {
+  return Array.from(new Set(arr));
+}
+
+function toSlugOrId(p?: Politician | null) {
+  if (!p) return '';
+  return p.slug || p.id;
+}
+
 /* ---------------- Locked & Optional columns ---------------- */
-// Always shown + un-toggleable
+
 const LOCKED = [
   { key: 'id_header', label: '' }, // special header row with avatar + name + party badge
   { key: 'constituency', label: 'Constituency' },
   { key: 'current_position', label: 'Current Position' },
 ] as const;
 
-// Toggleable (only fields we actually map from Airtable)
 const OPTIONAL: { key: keyof Politician; label: string }[] = [
   { key: 'state', label: 'State' },
   { key: 'age', label: 'Age' },
@@ -25,10 +44,11 @@ const OPTIONAL: { key: keyof Politician; label: string }[] = [
   { key: 'website', label: 'Website' },
 ];
 
-/* ---------------- Styling helpers ---------------- */
+/* ---------------- Party badge helpers ---------------- */
+
 const PARTY_COLORS: Record<string, string> = {
   'Bharatiya Janata Party': 'bg-[#FFCC00] text-black', // saffron-ish
-  'Indian National Congress': 'bg-[#138808] text-white', // green
+  'Indian National Congress': 'bg-[#138808] text-white',
   'Aam Aadmi Party': 'bg-[#1E90FF] text-white',
   'Trinamool Congress': 'bg-[#228B22] text-white',
 };
@@ -38,8 +58,8 @@ function partyBadgeClass(party?: string | null) {
   return PARTY_COLORS[party] || 'bg-cream-300 text-ink-700';
 }
 
-/* ---------------- Formatting helpers ---------------- */
-const INR = new Intl.NumberFormat('en-IN');
+/* ---------------- Value formatting ---------------- */
+
 function fmtVal(key: string, val: unknown): string {
   if (val == null) return '—';
   if (Array.isArray(val)) return val.length ? val.join(', ') : '—';
@@ -59,7 +79,6 @@ function fmtVal(key: string, val: unknown): string {
   return String(val).trim() || '—';
 }
 
-/* ---------------- Cell renderers ---------------- */
 function renderWebsite(url?: string | null) {
   if (!url) return '—';
   const label = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
@@ -74,11 +93,11 @@ function renderValue(field: string, p?: Politician) {
   if (!p) return '—';
   if (field === 'website') return renderWebsite(p.website ?? null);
   if (field === 'current_position') return fmtVal(field, p.current_position ?? (p as any).position);
-  // generic
   return fmtVal(field, (p as any)[field]);
 }
 
-/* ---------------- Click outside + debounce ---------------- */
+/* ---------------- Hooks ---------------- */
+
 function useOnClickOutside(ref: React.RefObject<HTMLElement>, fn: () => void) {
   useEffect(() => {
     const h = (e: MouseEvent) => {
@@ -99,16 +118,15 @@ function useDebounced<T>(value: T, ms = 250) {
   return v;
 }
 
-/* ---------------- Async suggestions (fallback to local) ---------------- */
+/* ---------------- Async suggestions (optional API) ---------------- */
+
 async function fetchSuggestions(q: string): Promise<Politician[] | null> {
   if (!q.trim()) return null;
   try {
-    // Optional API route. If you don’t have it, this will 404 and we’ll fallback to local filter.
     const u = `/api/search-politicians?q=${encodeURIComponent(q.trim())}`;
     const r = await fetch(u, { cache: 'no-store' });
     if (!r.ok) return null;
     const data = await r.json();
-    // Expect array of politicians; otherwise ignore
     if (Array.isArray(data)) return data as Politician[];
     if (Array.isArray(data?.items)) return data.items as Politician[];
     return null;
@@ -117,33 +135,29 @@ async function fetchSuggestions(q: string): Promise<Politician[] | null> {
   }
 }
 
-/* ---------------- Combobox (parties-style search) ---------------- */
+/* ---------------- Combobox (type-to-open) ---------------- */
+
 type ComboProps = {
+  idPrefix: string;
   label: string;
-  items: Politician[];      // local list fallback
+  items: Politician[];
   valueId?: string;
   onChangeId: (id: string) => void;
 };
 
-function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
+function ComboBox({ idPrefix, label, items, valueId, onChangeId }: ComboProps) {
   const me = items.find((p) => p.id === valueId);
-  const [open, setOpen] = useState(false);             // dropdown is closed by default
-  const [q, setQ] = useState('');                      // start empty (placeholder visible)
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState('');
   const debouncedQ = useDebounced(q, 200);
   const [remote, setRemote] = useState<Politician[] | null>(null);
   const [idx, setIdx] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+  const listId = `${idPrefix}-listbox`;
+  const inputId = `${idPrefix}-input`;
   useOnClickOutside(ref, () => setOpen(false));
 
-  // keep input text in sync with a chosen value (when user picks)
-  useEffect(() => {
-    if (me && !open && !q) {
-      // don’t prefill; we keep placeholder until user types
-      // if you WANT the chosen name shown, set q to `${me.name} — ${me.party ?? ''}` here.
-    }
-  }, [me, open, q]);
-
-  // async suggestions (optional API)
+  // fetch remote suggestions (if available) else fallback to local filter
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -160,19 +174,19 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
   }, [debouncedQ]);
 
   const filtered = useMemo(() => {
-    const base =
-      remote ??
-      (q.trim()
-        ? items.filter((p) => {
-            const s = q.toLowerCase();
-            return (
-              p.name.toLowerCase().includes(s) ||
-              (p.party ?? '').toLowerCase().includes(s) ||
-              (p.constituency ?? '').toLowerCase().includes(s) ||
-              (p.state ?? '').toLowerCase().includes(s)
-            );
-          })
-        : []);
+    // local fuzzy-ish fallback (token contains)
+    const local = items.filter((p) => {
+      if (!q.trim()) return false;
+      const hay = norm(
+        [p.name, p.party, p.constituency, p.state].filter(Boolean).join(' ')
+      );
+      return norm(q)
+        .split(/\s+/)
+        .filter(Boolean)
+        .every((t) => hay.includes(t));
+    });
+
+    const base = remote ?? local;
     const seen = new Set<string>();
     const out: Politician[] = [];
     for (const p of base) {
@@ -180,7 +194,7 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
         out.push(p);
         seen.add(p.id);
       }
-      if (out.length >= 200) break; // generous but capped
+      if (out.length >= 200) break;
     }
     return out;
   }, [items, q, remote]);
@@ -193,33 +207,49 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
   const choose = (p: Politician) => {
     onChangeId(p.id);
     setOpen(false);
-    setQ(''); // return to placeholder after choose (matches “search” feel)
+    setQ(''); // keep as true search field (placeholder returns)
   };
 
   return (
     <div ref={ref}>
-      <label className="block text-sm mb-1">{label}</label>
+      <label htmlFor={inputId} className="block text-sm mb-1">
+        {label}
+      </label>
       <div className="relative">
-        {/* search icon (like Parties page) */}
+        {/* search icon */}
         <svg
           aria-hidden="true"
           className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-600/70"
-          viewBox="0 0 20 20" fill="currentColor"
+          viewBox="0 0 20 20"
+          fill="currentColor"
         >
-          <path fillRule="evenodd" d="M13.5 12a6 6 0 1 0-1.5 1.5l3.75 3.75a1 1 0 0 0 1.5-1.5L13.5 12Zm-5.5 1a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z" clipRule="evenodd"/>
+          <path
+            fillRule="evenodd"
+            d="M13.5 12a6 6 0 1 0-1.5 1.5l3.75 3.75a1 1 0 0 0 1.5-1.5L13.5 12Zm-5.5 1a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"
+            clipRule="evenodd"
+          />
         </svg>
 
         <input
+          id={inputId}
+          type="search"
           className="input-pill w-full h-12 pl-9 placeholder:text-ink-600/60"
           value={q}
           placeholder="Search by name, party, constituency…"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
+          spellCheck={false}
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={open}
+          aria-controls={listId}
           onChange={(e) => {
             const v = e.target.value;
             setQ(v);
             setIdx(0);
-            setOpen(v.trim().length > 0);   // ← ONLY open on typing
+            setOpen(v.trim().length > 0); // open only while typing
           }}
-          // no onFocus opening; list appears only when typing
           onKeyDown={(e) => {
             if (!open) return;
             if (e.key === 'ArrowDown') {
@@ -238,7 +268,7 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
           }}
         />
 
-        {/* chosen chip (shows selected value like Parties filters) */}
+        {/* tiny selected chip (like filter feedback) */}
         {me && (
           <div className="mt-2 text-[12px] text-ink-600/80">
             Selected: <span className="font-medium">{me.name}</span>
@@ -247,7 +277,11 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
         )}
 
         {open && (
-          <div className="absolute z-40 mt-1 w-full rounded-xl border border-black/10 bg-white shadow-card max-h-72 overflow-auto">
+          <div
+            id={listId}
+            role="listbox"
+            className="absolute z-40 mt-1 w-full rounded-xl border border-black/10 bg-white shadow-card max-h-72 overflow-auto"
+          >
             {filtered.length === 0 ? (
               <div className="px-3 py-2 text-sm text-ink-600/70">No matches</div>
             ) : (
@@ -255,6 +289,8 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
                 <button
                   key={p.id}
                   type="button"
+                  role="option"
+                  aria-selected={i === idx}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => choose(p)}
                   className={`w-full text-left px-3 py-2 text-sm hover:bg-cream-200/60 ${
@@ -275,7 +311,8 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
   );
 }
 
-/* ---------------- Multi-select dropdown ---------------- */
+/* ---------------- Multi-select (optional fields) ---------------- */
+
 type MultiProps = {
   label: string;
   options: { key: keyof Politician; label: string }[];
@@ -327,16 +364,8 @@ function MultiSelect({ label, options, value, onToggle }: MultiProps) {
   );
 }
 
-/* ---------------- URL sync helpers ---------------- */
-function toSlugOrId(p?: Politician | null) {
-  if (!p) return '';
-  return p.slug || p.id;
-}
-function uniq<T>(arr: T[]) {
-  return Array.from(new Set(arr));
-}
+/* ---------------- Main component ---------------- */
 
-// ---------------- Main component ----------------
 export default function CompareTable({ politicians }: { politicians: Politician[] }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -347,18 +376,18 @@ export default function CompareTable({ politicians }: { politicians: Politician[
     [politicians]
   );
 
-  // Initial A/B from URL, but if not present -> undefined
+  // Initial A/B from URL (slug or id)
   const initialA = sp?.get('a');
   const initialB = sp?.get('b');
   const initialFields = sp?.get('fields');
-
   const findByKey = (k?: string | null) =>
     sorted.find((p) => k && (p.slug?.toLowerCase() === k.toLowerCase() || p.id === k));
 
-  // 👇 default to undefined instead of sorted[0], sorted[1]
+  // Don't auto-pick first two; start empty unless URL provides selections
   const [aId, setAId] = useState<string | undefined>(findByKey(initialA)?.id);
   const [bId, setBId] = useState<string | undefined>(findByKey(initialB)?.id);
 
+  // Enabled optional fields
   const [enabled, setEnabled] = useState<Set<keyof Politician>>(() => {
     const fromUrl = (initialFields || '')
       .split(',')
@@ -379,7 +408,10 @@ export default function CompareTable({ politicians }: { politicians: Politician[
   useEffect(() => {
     const params = new URLSearchParams(sp?.toString());
     if (A) params.set('a', toSlugOrId(A));
+    else params.delete('a');
     if (B) params.set('b', toSlugOrId(B));
+    else params.delete('b');
+
     const fields = OPTIONAL.filter((o) => enabled.has(o.key)).map((o) => o.key);
     if (fields.length) params.set('fields', uniq(fields).join(','));
     else params.delete('fields');
@@ -397,32 +429,33 @@ export default function CompareTable({ politicians }: { politicians: Politician[
 
   const activeOptional = OPTIONAL.filter((c) => enabled.has(c.key));
 
-  // Filter out rows where BOTH A and B are '—'
+  // Only render rows that have data for at least one side
   const shouldShow = (field: string) => {
-    const va = field === 'current_position'
-      ? (A?.current_position ?? (A as any)?.position)
-      : (A as any)?.[field];
-    const vb = field === 'current_position'
-      ? (B?.current_position ?? (B as any)?.position)
-      : (B as any)?.[field];
+    const va =
+      field === 'current_position'
+        ? (A?.current_position ?? (A as any)?.position)
+        : (A as any)?.[field];
+    const vb =
+      field === 'current_position'
+        ? (B?.current_position ?? (B as any)?.position)
+        : (B as any)?.[field];
     const sa = fmtVal(field, field === 'website' ? A?.website : va);
     const sb = fmtVal(field, field === 'website' ? B?.website : vb);
     return !(sa === '—' && sb === '—');
   };
+
+  // IDs for combobox a11y
+  const comboAId = useId().replace(/:/g, '');
+  const comboBId = useId().replace(/:/g, '');
 
   return (
     <div className="space-y-6">
       {/* Controls */}
       <div className="card p-4">
         <div className="grid md:grid-cols-3 gap-4 items-start">
-          <ComboBox label="Select A" items={sorted} valueId={aId} onChangeId={setAId} />
-          <ComboBox label="Select B" items={sorted} valueId={bId} onChangeId={setBId} />
-          <MultiSelect
-            label="Add datapoints"
-            options={OPTIONAL}
-            value={enabled}
-            onToggle={toggle}
-          />
+          <ComboBox idPrefix={`${comboAId}-a`} label="Select A" items={sorted} valueId={aId} onChangeId={setAId} />
+          <ComboBox idPrefix={`${comboBId}-b`} label="Select B" items={sorted} valueId={bId} onChangeId={setBId} />
+          <MultiSelect label="Add datapoints" options={OPTIONAL} value={enabled} onToggle={toggle} />
         </div>
       </div>
 
@@ -437,7 +470,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
             </tr>
           </thead>
           <tbody className="[&_tr]:border-t [&_tr]:border-black/10">
-            {/* Header row with avatar + name + party badge */}
+            {/* Identity row */}
             <tr>
               <td className="py-3 pr-4 font-medium">Identity</td>
               <td className="py-3 pr-4">
@@ -495,7 +528,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
               ) : null
             )}
 
-            {/* Optional rows (only when at least one has data) */}
+            {/* Optional rows */}
             {activeOptional.map((c) =>
               shouldShow(c.key as string) ? (
                 <tr key={`opt-${String(c.key)}`} className="odd:bg-cream-100/50">
