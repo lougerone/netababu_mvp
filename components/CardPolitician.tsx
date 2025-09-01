@@ -7,9 +7,9 @@ export type Politician = {
   slug: string;
   name: string;
   party: string;
-  state?: string;
-  photo?: string;
-  current_position?: string;
+  state?: string | null;
+  photo?: string | null;
+  current_position?: string | null;
 };
 
 export default function CardPolitician({ p }: { p: Politician }) {
@@ -20,10 +20,10 @@ export default function CardPolitician({ p }: { p: Politician }) {
       aria-label={`Open ${p.name} profile`}
     >
       <div className="flex items-center gap-3">
-        {/* Square image; AvatarSquare should use object-cover object-top internally */}
-        <AvatarSquare src={p.photo} alt={p.name} size={48} rounded="lg" />
+        {/* Safe avatar with fallback */}
+        <AvatarSquare src={p.photo ?? null} alt={p.name} size={48} rounded="lg" />
 
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="font-medium text-ink-700 truncate">{p.name}</div>
           <div className="text-xs text-ink-600/80 truncate">
             {p.party}
@@ -33,7 +33,9 @@ export default function CardPolitician({ p }: { p: Politician }) {
       </div>
 
       {p.current_position && (
-        <div className="text-xs text-ink-600/70 mt-2">{p.current_position}</div>
+        <div className="text-xs text-ink-600/70 mt-2 truncate">
+          {p.current_position}
+        </div>
       )}
     </Link>
   );
