@@ -1,21 +1,21 @@
 // app/(site)/layout.tsx
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import '../globals.css';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
+
+export const viewport: Viewport = {
+  themeColor: '#fff7ed',
+  colorScheme: 'light',
+};
 
 export const metadata: Metadata = {
   title: 'Netababu',
   description: 'Netas, parties, drama — all in one place.',
   manifest: '/site.webmanifest',
-  themeColor: '#fff7ed',
   icons: {
-    icon: [
-      { url: '/favicon.png', sizes: '32x32', type: 'image/png' },
-    ],
-    apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
-    ],
+    icon: [{ url: '/favicon.png', sizes: '32x32', type: 'image/png' }],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   appleWebApp: {
     capable: true,
