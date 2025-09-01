@@ -84,7 +84,7 @@ export default async function PartyPage({ params }: { params: { slug: string } }
     "id","createdTime","Created","slug","Slug",
     // already surfaced/normalized
     "name","Name","Party","Party Name","party_name",
-    "Logo","Symbol","Emblem","Image","Attachments",
+    "Logo","logo", "Symbol","Emblem","Image","Attachments",
     "abbr","Abbreviation","Short Name","Acronym","ticker","Ticker",
     "status","Recognition","Type",
     "state","State","State Name","Home State","Region",
