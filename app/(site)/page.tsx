@@ -33,7 +33,7 @@ export default async function HomePage() {
     fill
     priority
     className="absolute inset-0 -z-10 h-full w-full object-contain object-bottom 
-               opacity-60 scale-80"   // scale down ~10% (adjust to taste)
+               opacity-60 scale-50"   // scale down ~10% (adjust to taste)
     sizes="100vw"
   />
 
