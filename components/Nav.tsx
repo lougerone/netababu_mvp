@@ -19,38 +19,38 @@ export default function Nav() {
     href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
 
   return (
-    // No border/shadow here so the hero's line is the only divider
+    // no border/shadow so the hero’s divider is the only line
     <header className="sticky top-0 z-40 bg-cream-200/90 backdrop-blur">
-      <div className="container max-w-6xl px-4 py-2 flex items-center gap-5">
-        {/* Logo */}
+      <div className="relative container max-w-6xl px-4 py-2 flex items-center">
+        {/* Left: logo (new wide PNG, bigger but compact header) */}
         <Link href="/" className="flex items-center" aria-label="Netababu Home">
           <Image
-            src="/logo-wordmark.png"        // place the PNG in /public
+            src="/logo-wordmark.png"
             alt="Netababu"
-            width={797}                      // intrinsic size of the new asset
+            width={797}
             height={526}
             priority
-            className="h-12 md:h-14 w-auto -translate-y-[1px]" // adjust height to taste
+            className="h-12 md:h-14 w-auto -translate-y-[1px]"
           />
           <span className="sr-only">Netababu</span>
         </Link>
 
-        {/* Menu (right-aligned) */}
-        <nav className="ml-auto flex items-center gap-1 text-sm leading-none" aria-label="Primary">
+        {/* Center: menu */}
+        <nav
+          aria-label="Primary"
+          className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 text-sm leading-none"
+        >
           {items.map((it) => {
             const active = isActive(it.href);
-            const disabled = !!it.disabled;
             return (
               <Link
                 key={it.href}
                 href={it.href}
-                aria-disabled={disabled}
                 aria-current={active ? 'page' : undefined}
                 className={[
                   'px-2 py-0.5 rounded-md transition-colors whitespace-nowrap',
                   'hover:bg-white/5',
                   active ? 'bg-white/10' : '',
-                  disabled ? 'opacity-40 pointer-events-none' : '',
                 ].join(' ')}
               >
                 {it.label}
@@ -58,6 +58,9 @@ export default function Nav() {
             );
           })}
         </nav>
+
+        {/* Right: spacer (keeps layout stable) */}
+        <div className="ml-auto" />
       </div>
     </header>
   );
