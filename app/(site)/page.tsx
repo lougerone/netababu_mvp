@@ -103,7 +103,7 @@ export default async function HomePage() {
 <section
   className="
     relative z-10
-    -translate-y-20 md:-translate-y-26 lg:-translate-y-34  /* pull upward to overlap */
+    -translate-y-10 md:-translate-y-16 lg:-translate-y-24  /* pull upward to overlap */
   "
 >
   <div className="grid md:grid-cols-3 gap-4 mt-0">
