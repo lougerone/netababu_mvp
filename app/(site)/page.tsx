@@ -21,60 +21,71 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-12">
+  import Link from 'next/link';
+import Image from 'next/image';
+
+export const dynamic = 'force-dynamic';
+
+export default function HomePage() {
+  return (
+    <main>
       {/* Hero */}
-<section
-  className="relative isolate overflow-hidden
-             h-[55vh] md:h-[65vh] lg:h-[75vh] flex items-start justify-center"
->
-  {/* Background image */}
-  <Image
-    src="/hero/hero-2560w.webp"
-    alt="Watercolor collage of Indian political figures — Netababu"
-    fill
-    priority
-    className="absolute inset-0 -z-10 h-full w-full object-contain object-bottom 
-               opacity-60 scale-70"   // 20% smaller
-    sizes="100vw"
-  />
+      <section
+        className="relative isolate overflow-hidden
+                   h-[55vh] md:h-[65vh] lg:h-[75vh] flex items-start justify-center"
+      >
+        {/* Background image */}
+        <Image
+          src="/hero/hero-2560w.webp"
+          alt="Watercolor collage of Indian political figures — Netababu"
+          fill
+          priority
+          className="absolute inset-0 -z-10 h-full w-full object-contain object-bottom 
+                     opacity-60 scale-70"
+          sizes="100vw"
+        />
 
-  {/* Edge fades */}
-  <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream-200 to-transparent" />
-  <div className="pointer-events-none absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-cream-200 to-transparent" />
-  <div className="pointer-events-none absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-cream-200 to-transparent" />
-  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
+        {/* Edge fades */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream-200 to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-cream-200 to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-cream-200 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
 
-  {/* Content */}
-  <div className="relative mx-auto max-w-4xl px-4 pt-6 md:pt-8 lg:pt-10 text-center">
-    <div className="h-kicker">India • Politics • Data</div>
+        {/* Content */}
+        <div className="relative mx-auto max-w-4xl px-4 pt-6 md:pt-8 lg:pt-10 text-center">
+          <div className="h-kicker text-shadow-cream">India • Politics • Data</div>
 
-    <h1
-      className="whitespace-nowrap font-semibold text-ink-700 leading-tight tracking-tight 
-                 text-[clamp(22px,4.5vw,42px)]"
-    >
-      Netas, parties, drama — all in one place.
-    </h1>
+          <h1
+            className="whitespace-nowrap font-semibold text-ink-700 leading-tight tracking-tight 
+                       text-[clamp(22px,4.5vw,42px)] text-shadow-cream"
+          >
+            Netas, parties, drama — all in one place.
+          </h1>
 
-    <div className="text-saffron-600 text-xl md:text-2xl font-semibold mt-1">
-      नेताजी, पार्टियाँ और इंफो — एक ही जगह
-    </div>
+          <div className="text-saffron-600 text-xl md:text-2xl font-semibold mt-1 text-shadow-cream">
+            नेताजी, पार्टियाँ और इंफो — एक ही जगह
+          </div>
 
-    <div className="max-w-2xl mx-auto mt-3 flex gap-2">
-      <input className="input-pill flex-1" placeholder="Search politicians, parties…" />
-      <button className="btn">Search</button>
-    </div>
+          <div className="max-w-2xl mx-auto mt-3 flex gap-2">
+            <input className="input-pill flex-1" placeholder="Search politicians, parties…" />
+            <button className="btn">Search</button>
+          </div>
 
-    <div className="mt-2 text-sm text-ink-600/80">
-      Popular:{' '}
-      <Link href="/politicians?query=modi" className="underline">
-        Modi
-      </Link>{' '}
-      •{' '}
-      <Link href="/parties?query=inc" className="underline">
-        INC
-      </Link>
-    </div>
-  </div>
-</section>
+          <div className="mt-2 text-sm text-ink-600/80 text-shadow-cream">
+            Popular:{' '}
+            <Link href="/politicians?query=modi" className="underline">
+              Modi
+            </Link>{' '}
+            •{' '}
+            <Link href="/parties?query=inc" className="underline">
+              INC
+            </Link>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
 
       {/* Explore cards */}
       <section className="grid md:grid-cols-3 gap-4 mt-8">
