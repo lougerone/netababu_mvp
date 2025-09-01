@@ -1,5 +1,23 @@
 // lib/airtable.ts
 
+// lib/airtable.ts
+import { unstable_noStore as noStore } from 'next/cache';
+
+export async function airtableFetch(path: string, qs: Record<string, any> = {}) {
+  noStore(); // hard opt-out for this server function
+  const url = new URL(`https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${path}`);
+  Object.entries(qs).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${process.env.AIRTABLE_TOKEN}` },
+    cache: 'no-store',
+    next: { revalidate: 0 }, // belt-and-suspenders
+  });
+  if (!res.ok) throw new Error('Airtable fetch failed');
+  return res.json();
+}
+
+
 // Guard: prevent use from Client Components.
 if (typeof window !== 'undefined') {
   throw new Error(
