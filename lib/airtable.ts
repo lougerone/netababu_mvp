@@ -303,37 +303,91 @@ export async function listPoliticians(
   opts: { limit?: number; query?: string } = {}
 ): Promise<Politician[]> {
   const max = opts.limit && opts.limit > 0 ? opts.limit : Infinity;
+  const qSafe = (opts.query ?? '').trim();
 
-  const params: Record<string, string> = { pageSize: '100' };
-  if (opts.query && opts.query.trim()) {
-    const q = opts.query.trim().replace(/"/g, '\\"');
-    params.filterByFormula = `OR(
-      FIND(LOWER("${q}"), LOWER({Name})),
-      FIND(LOWER("${q}"), LOWER({Party}))
-    )`;
-  }
+  // Helper to dedupe by id
+  const unionById = (a: AirtableRecord[], b: AirtableRecord[]) => {
+    const seen = new Set(a.map(r => r.id));
+    const out = a.slice();
+    for (const r of b) if (!seen.has(r.id)) out.push(r);
+    return out;
+  };
 
-  let records: AirtableRecord[];
-  try {
-    records = await atFetchAll(
-      T_POL,
-      params,
-      max === Infinity ? Infinity : Math.max(max, 100)
-    );
-  } catch (err) {
-    // Fallback if Airtable rejects formula for any reason
-    records = await atFetchAll(
+  // --- 1) Try a remote filter that includes Constituency (if present) ---
+  let remoteRecords: AirtableRecord[] = [];
+  if (qSafe) {
+    const q = qSafe.replace(/"/g, '\\"');
+
+    // Try Name + Party + Constituency
+    let params: Record<string, string> = {
+      pageSize: '100',
+      filterByFormula: `OR(
+        SEARCH("${q}", {Name}),
+        SEARCH("${q}", {Party}),
+        SEARCH("${q}", {Constituency})
+      )`,
+    };
+
+    try {
+      remoteRecords = await atFetchAll(
+        T_POL,
+        params,
+        max === Infinity ? Infinity : Math.max(max, 100)
+      );
+    } catch {
+      // Fallback: Name + Party only (schema-safe)
+      params = {
+        pageSize: '100',
+        filterByFormula: `OR(
+          SEARCH("${q}", {Name}),
+          SEARCH("${q}", {Party})
+        )`,
+      };
+      try {
+        remoteRecords = await atFetchAll(
+          T_POL,
+          params,
+          max === Infinity ? Infinity : Math.max(max, 100)
+        );
+      } catch {
+        // If Airtable still rejects, just fetch without a filter
+        remoteRecords = await atFetchAll(
+          T_POL,
+          { pageSize: '100' },
+          max === Infinity ? Infinity : Math.max(max, 100)
+        );
+      }
+    }
+  } else {
+    // No query: regular fetch (no filter)
+    remoteRecords = await atFetchAll(
       T_POL,
       { pageSize: '100' },
       max === Infinity ? Infinity : Math.max(max, 100)
     );
   }
 
-  let mapped = records.map(mapPolitician);
-
-  if (opts.query && opts.query.trim()) {
-    const q = opts.query.trim().toLowerCase();
+  // Map + local rich filter (this searches constituency/state/position/etc.)
+  let mapped = remoteRecords.map(mapPolitician);
+  if (qSafe) {
+    const q = qSafe.toLowerCase();
     mapped = mapped.filter((p) => makeSearchText(p).includes(q));
+  }
+
+  // --- 2) If results look thin, broaden by fetching a larger slice w/o formula ---
+  // (helps cases like “gandhi” -> Gandhinagar when remote filter missed it)
+  if (qSafe && mapped.length < 12) {
+    const allRecords = await atFetchAll(
+      T_POL,
+      { pageSize: '100' },
+      // fetch a bigger chunk so local filter has coverage
+      1000
+    );
+    const union = unionById(remoteRecords, allRecords);
+    let mappedUnion = union.map(mapPolitician);
+    const q = qSafe.toLowerCase();
+    mappedUnion = mappedUnion.filter((p) => makeSearchText(p).includes(q));
+    mapped = mappedUnion;
   }
 
   return Number.isFinite(max) ? mapped.slice(0, Number(max)) : mapped;
@@ -345,41 +399,95 @@ export async function listParties(
   opts: { limit?: number; query?: string } = {}
 ): Promise<Party[]> {
   const max = opts.limit && opts.limit > 0 ? opts.limit : Infinity;
+  const qSafe = (opts.query ?? '').trim();
 
-  const params: Record<string, string> = { pageSize: '100' };
-  if (opts.query && opts.query.trim()) {
-    const q = opts.query.trim().replace(/"/g, '\\"');
-    // Keep this minimal to avoid 422s on unknown fields.
-    params.filterByFormula = `OR(
-      FIND(LOWER("${q}"), LOWER({Name})),
-      FIND(LOWER("${q}"), LOWER({Abbreviation}))
-    )`;
-  }
+  // Helper: dedupe AirtableRecords by id
+  const unionById = (a: AirtableRecord[], b: AirtableRecord[]) => {
+    const seen = new Set(a.map(r => r.id));
+    const out = a.slice();
+    for (const r of b) if (!seen.has(r.id)) out.push(r);
+    return out;
+  };
 
-  let records: AirtableRecord[];
-  try {
-    records = await atFetchAll(
-      T_PAR,
-      params,
-      max === Infinity ? Infinity : Math.max(max, 100)
-    );
-  } catch (err) {
-    records = await atFetchAll(
+  // 1) Try a broader remote filter first (Name + Abbreviation + Leaders + State).
+  //    If Airtable rejects any unknown field (422), fall back to a safe formula.
+  let remoteRecords: AirtableRecord[] = [];
+  if (qSafe) {
+    const q = qSafe.replace(/"/g, '\\"');
+
+    let params: Record<string, string> = {
+      pageSize: '100',
+      filterByFormula: `OR(
+        SEARCH("${q}", {Name}),
+        SEARCH("${q}", {Abbreviation}),
+        SEARCH("${q}", {Leaders}),
+        SEARCH("${q}", {State})
+      )`,
+    };
+
+    try {
+      remoteRecords = await atFetchAll(
+        T_PAR,
+        params,
+        max === Infinity ? Infinity : Math.max(max, 100)
+      );
+    } catch {
+      // Safe fallback: only fields very likely to exist
+      params = {
+        pageSize: '100',
+        filterByFormula: `OR(
+          SEARCH("${q}", {Name}),
+          SEARCH("${q}", {Abbreviation})
+        )`,
+      };
+      try {
+        remoteRecords = await atFetchAll(
+          T_PAR,
+          params,
+          max === Infinity ? Infinity : Math.max(max, 100)
+        );
+      } catch {
+        // Last resort: no formula at all; we'll filter locally.
+        remoteRecords = await atFetchAll(
+          T_PAR,
+          { pageSize: '100' },
+          max === Infinity ? Infinity : Math.max(max, 100)
+        );
+      }
+    }
+  } else {
+    // No query → plain fetch
+    remoteRecords = await atFetchAll(
       T_PAR,
       { pageSize: '100' },
       max === Infinity ? Infinity : Math.max(max, 100)
     );
   }
 
-  let mapped = records.map(mapParty);
-
-  if (opts.query && opts.query.trim()) {
-    const q = opts.query.trim().toLowerCase();
+  // Local rich filter (covers details, leaders, state, etc.)
+  let mapped = remoteRecords.map(mapParty);
+  if (qSafe) {
+    const q = qSafe.toLowerCase();
     mapped = mapped.filter((p) => makeSearchText(p).includes(q));
+  }
+
+  // 2) If results are thin, broaden by fetching a larger slice without formula and locally filter.
+  if (qSafe && mapped.length < 12) {
+    const allRecords = await atFetchAll(
+      T_PAR,
+      { pageSize: '100' },
+      1000 // get a wider slice to ensure coverage
+    );
+    const union = unionById(remoteRecords, allRecords);
+    let mappedUnion = union.map(mapParty);
+    const q = qSafe.toLowerCase();
+    mappedUnion = mappedUnion.filter((p) => makeSearchText(p).includes(q));
+    mapped = mappedUnion;
   }
 
   return Number.isFinite(max) ? mapped.slice(0, Number(max)) : mapped;
 }
+
 
 
 /* -------------------- Other existing exports (unchanged) ------------------ */
