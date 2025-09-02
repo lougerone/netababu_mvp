@@ -374,7 +374,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
       return next;
     });
 
-  const activeOptional = OPTIONAL.filter((c) => enabled.has(c.key));
+  const activeOptional = OPTIONAL.filter((c) => value.has(c.key), { value: enabled });
 
   const shouldShow = (field: string) => {
     const va =
@@ -407,18 +407,18 @@ export default function CompareTable({ politicians }: { politicians: Politician[
       </div>
 
       {/* Comparison table */}
-      <div className="overflow-x-auto rounded-2xl border border-black/10 bg-white">
+      <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-cream-50">
+          <thead className="sticky top-0 bg-cream-200/95 backdrop-blur z-10">
             <tr className="text-left text-ink-600/80">
-              <th className="w-[240px] py-3 pr-4 border-b border-black/10">Attribute</th>
-              <th className="py-3 pr-4 border-b border-black/10">A</th>
-              <th className="py-3 pr-4 border-b border-black/10">B</th>
+              <th className="w-[240px] py-2 pr-4">Attribute</th>
+              <th className="py-2 pr-4">A</th>
+              <th className="py-2 pr-4">B</th>
             </tr>
           </thead>
           <tbody className="[&_tr]:border-t [&_tr]:border-black/10">
             {/* Identity row */}
-            <tr className="odd:bg-cream-100/50">
+            <tr>
               <td className="py-3 pr-4 font-medium">Identity</td>
               <td className="py-3 pr-4">
                 {A ? (
@@ -476,7 +476,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
             )}
 
             {/* Optional rows */}
-            {activeOptional.map((c) =>
+            {OPTIONAL.filter((c) => enabled.has(c.key)).map((c) =>
               shouldShow(c.key as string) ? (
                 <tr key={`opt-${String(c.key)}`} className="odd:bg-cream-100/50">
                   <td className="py-3 pr-4">{c.label}</td>
