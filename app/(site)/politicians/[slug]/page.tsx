@@ -16,12 +16,9 @@ export default async function PoliticianPage({
   const politician: Politician = p;
 
   /* ----------------------------- Format helpers ---------------------------- */
-
-  // Convert null/undefined to undefined (for easier checks)
   const toUndef = <T,>(v: T | null | undefined): T | undefined =>
     v == null ? undefined : v;
 
-  // Extract numeric value from possibly formatted strings like "₹2,59,54,100" or "22595410"
   const toNumber = (v: string | number | null | undefined): number | undefined => {
     const x = toUndef(v);
     if (x === undefined) return undefined;
@@ -31,7 +28,7 @@ export default async function PoliticianPage({
     return isFinite(n) ? n : undefined;
   };
 
-  // Full INR display with Indian grouping (₹2,25,95,410)
+  // Full INR with Indian grouping (₹2,25,95,410)
   const formatINR = (v: string | number | null | undefined) => {
     const n = toNumber(v);
     if (n === undefined) return toUndef(v) ? String(v) : '';
@@ -42,7 +39,7 @@ export default async function PoliticianPage({
     }).format(n);
   };
 
-  // Compact INR (crores/lakhs) when large. E.g., 22595410 -> ₹2.26 Cr
+  // Compact INR (Cr/Lakh) for tight spaces / share images
   const formatINRShort = (v: string | number | null | undefined) => {
     const n = toNumber(v);
     if (n === undefined) return toUndef(v) ? String(v) : '';
@@ -57,44 +54,35 @@ export default async function PoliticianPage({
     }).format(n);
   };
 
-  // Attendance: handle "0.83" -> "83%", "83" -> "83%"
+  // Attendance: "0.83" -> "83%", "83" -> "83%", "92%" -> "92%"
   const formatPercent = (v: string | number | null | undefined) => {
     const x = toUndef(v);
     if (x === undefined) return '';
+    if (typeof x === 'string' && x.trim().endsWith('%')) return x.trim();
     let n = typeof x === 'number' ? x : parseFloat(String(x));
     if (!isFinite(n)) return String(v);
-    if (n > 0 && n <= 1) n = n * 100; // 0–1 -> 0–100
+    if (n > 0 && n <= 1) n = n * 100;
     return `${Math.round(n)}%`;
   };
 
-  // Generic string/number pretty-print
-  const fmtStrNum = (v: string | number | null | undefined) => {
+  const fmtStr = (v: string | number | null | undefined) => {
     const x = toUndef(v);
     if (x === undefined) return '';
     const s = String(x).trim();
     return s === '' ? '' : s;
   };
 
-  /* ----------------------- Build shareable stats safely ---------------------- */
-
-  // Use compact amounts for the share images (cleaner text)
-  const attendancePct = formatPercent(politician.attendance); // "83%" or ""
+  /* ----------------------- Build shareable stats (ONLY CSV FIELDS) --------- */
+  const attendancePct = formatPercent(politician.attendance);
   const assetsShort = formatINRShort(politician.assets);
   const liabilitiesShort = formatINRShort(politician.liabilities);
   const criminalCases =
-    typeof politician.criminalCases === 'number'
-      ? String(politician.criminalCases)
-      : '';
-  const age =
-    typeof politician.age === 'number' ? String(politician.age) : '';
+    typeof politician.criminalCases === 'number' ? String(politician.criminalCases) : '';
+  const age = typeof politician.age === 'number' ? String(politician.age) : '';
   const yearsInPolitics =
     typeof (politician as any).yearsInPolitics === 'number'
       ? String((politician as any).yearsInPolitics)
-      : '';
-  const electionsWon =
-    typeof (politician as any).electionsWon === 'number'
-      ? String((politician as any).electionsWon)
-      : '';
+      : ''; // will only show if present in your mapping
 
   const stats: { key: string; value: string; suffix?: string }[] = [
     ...(attendancePct ? [{ key: 'Attendance', value: attendancePct.replace('%', ''), suffix: '%' }] : []),
@@ -103,7 +91,6 @@ export default async function PoliticianPage({
     ...(criminalCases ? [{ key: 'Criminal Cases', value: criminalCases }] : []),
     ...(age ? [{ key: 'Age', value: age, suffix: ' yrs' }] : []),
     ...(yearsInPolitics ? [{ key: 'Years in Politics', value: yearsInPolitics }] : []),
-    ...(electionsWon ? [{ key: 'Won Elections', value: electionsWon }] : []),
   ];
 
   return (
@@ -126,19 +113,20 @@ export default async function PoliticianPage({
           <h1 className="text-2xl font-semibold truncate">{politician.name}</h1>
 
           {politician.current_position && (
-            <p className="text-sm text-black/60 truncate">
-              {politician.current_position}
-            </p>
+            <p className="text-sm text-black/60 truncate">{politician.current_position}</p>
           )}
 
           <p className="text-sm text-black/60 truncate">
             Party: {politician.party}
-            {politician.state ? ` • ${politician.state}` : ''}
             {politician.constituency ? ` • ${politician.constituency}` : ''}
           </p>
 
-          {politician.dob && (
-            <p className="text-sm text-black/60">DOB: {politician.dob}</p>
+          {politician.website && (
+            <p className="text-sm">
+              <a className="underline break-all" href={politician.website} target="_blank" rel="noreferrer">
+                {politician.website}
+              </a>
+            </p>
           )}
         </div>
       </header>
@@ -151,14 +139,14 @@ export default async function PoliticianPage({
             slug={politician.slug}
             name={politician.name}
             party={politician.party}
-            state={politician.state}
             photo={politician.photo}
+            // ONLY CSV-backed stats go here
             stats={stats}
           />
         </section>
       )}
 
-      {/* Stats grid — shows everything we have */}
+      {/* Stats grid (ONLY the CSV fields) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
         {typeof politician.age === 'number' && (
           <div><span className="font-medium">Age:</span> {politician.age}</div>
@@ -188,66 +176,14 @@ export default async function PoliticianPage({
           </div>
         )}
 
-        {criminalCases && (
-          <div><span className="font-medium">Criminal cases:</span> {criminalCases}</div>
-        )}
-
-        {/* Optional fields if they exist in your mapping */}
-        {(politician as any).educational_qualification && (
-          <div><span className="font-medium">Education:</span> {fmtStrNum((politician as any).educational_qualification)}</div>
-        )}
-        {(politician as any).occupation && (
-          <div><span className="font-medium">Occupation:</span> {fmtStrNum((politician as any).occupation)}</div>
-        )}
-        {(politician as any).marital_status && (
-          <div><span className="font-medium">Marital status:</span> {fmtStrNum((politician as any).marital_status)}</div>
-        )}
-        {electionsWon && (
-          <div><span className="font-medium">Won elections:</span> {electionsWon}</div>
+        {typeof politician.criminalCases === 'number' && (
+          <div><span className="font-medium">Criminal cases:</span> {politician.criminalCases}</div>
         )}
       </section>
 
-      {politician.life_events && (
-        <section>
-          <h2 className="text-lg font-semibold mb-2">Key life events</h2>
-          <div className="prose prose-sm max-w-none whitespace-pre-line">
-            {politician.life_events}
-          </div>
-        </section>
-      )}
-
-      {politician.links && politician.links.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold mb-2">Links</h2>
-          <ul className="list-disc pl-5 space-y-1">
-            {politician.links.map((link, i) => (
-              <li key={i}>
-                <a
-                  href={link}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline break-all"
-                >
-                  {link}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {politician.website && (
-        <section>
-          <h2 className="text-lg font-semibold mb-2">Website</h2>
-          <a
-            href={politician.website}
-            target="_blank"
-            rel="noreferrer"
-            className="underline break-all"
-          >
-            {politician.website}
-          </a>
-        </section>
+      {/* Optional: last-updated if you persist it from CSV */}
+      {(politician as any).last_updated && (
+        <p className="text-xs text-black/50">Last updated: {(politician as any).last_updated}</p>
       )}
     </main>
   );
