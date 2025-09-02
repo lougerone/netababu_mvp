@@ -28,7 +28,6 @@ export default async function PoliticianPage({
     return isFinite(n) ? n : undefined;
   };
 
-  // Full INR with Indian grouping (₹2,25,95,410)
   const formatINR = (v: string | number | null | undefined) => {
     const n = toNumber(v);
     if (n === undefined) return toUndef(v) ? String(v) : '';
@@ -39,7 +38,6 @@ export default async function PoliticianPage({
     }).format(n);
   };
 
-  // Compact INR (Cr/Lakh) for tight spaces / share images
   const formatINRShort = (v: string | number | null | undefined) => {
     const n = toNumber(v);
     if (n === undefined) return toUndef(v) ? String(v) : '';
@@ -54,7 +52,6 @@ export default async function PoliticianPage({
     }).format(n);
   };
 
-  // Attendance: "0.83" -> "83%", "83" -> "83%", "92%" -> "92%"
   const formatPercent = (v: string | number | null | undefined) => {
     const x = toUndef(v);
     if (x === undefined) return '';
@@ -72,7 +69,7 @@ export default async function PoliticianPage({
     return s === '' ? '' : s;
   };
 
-  /* ----------------------- Build shareable stats (ONLY CSV FIELDS) --------- */
+  /* ----------------------- Build shareable stats --------------------------- */
   const attendancePct = formatPercent(politician.attendance);
   const assetsShort = formatINRShort(politician.assets);
   const liabilitiesShort = formatINRShort(politician.liabilities);
@@ -82,7 +79,7 @@ export default async function PoliticianPage({
   const yearsInPolitics =
     typeof (politician as any).yearsInPolitics === 'number'
       ? String((politician as any).yearsInPolitics)
-      : ''; // will only show if present in your mapping
+      : '';
 
   const stats: { key: string; value: string; suffix?: string }[] = [
     ...(attendancePct ? [{ key: 'Attendance', value: attendancePct.replace('%', ''), suffix: '%' }] : []),
@@ -131,26 +128,9 @@ export default async function PoliticianPage({
         </div>
       </header>
 
-      {/* Share box as a card */}
-      {stats.length > 0 && (
-        <section className="bg-white/70 border border-black/10 rounded-xl p-4 shadow-sm">
-          <h2 className="text-lg font-semibold mb-2">Share a stat</h2>
-          <ShareSheet
-            slug={politician.slug}
-            name={politician.name}
-            party={politician.party}
-            photo={politician.photo}
-            // ONLY CSV-backed stats go here
-            stats={stats}
-          />
-        </section>
-      )}
-
-      {/* Stats grid (ONLY the CSV fields) */}
+      {/* Stats grid */}
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-        {typeof politician.age === 'number' && (
-          <div><span className="font-medium">Age:</span> {politician.age}</div>
-        )}
+        {age && <div><span className="font-medium">Age:</span> {age}</div>}
 
         {yearsInPolitics && (
           <div><span className="font-medium">Years in politics:</span> {yearsInPolitics}</div>
@@ -176,14 +156,29 @@ export default async function PoliticianPage({
           </div>
         )}
 
-        {typeof politician.criminalCases === 'number' && (
-          <div><span className="font-medium">Criminal cases:</span> {politician.criminalCases}</div>
+        {criminalCases && (
+          <div><span className="font-medium">Criminal cases:</span> {criminalCases}</div>
         )}
       </section>
 
-      {/* Optional: last-updated if you persist it from CSV */}
+      {/* Optional: last updated */}
       {(politician as any).last_updated && (
         <p className="text-xs text-black/50">Last updated: {(politician as any).last_updated}</p>
+      )}
+
+      {/* Share streamlined, bottom */}
+      {stats.length > 0 && (
+        <section className="pt-4 border-t border-black/10">
+          <h2 className="text-base font-semibold mb-2">Share a stat</h2>
+          <ShareSheet
+            slug={politician.slug}
+            name={politician.name}
+            party={politician.party}
+            photo={politician.photo}
+            stats={stats}
+            only={['x', 'whatsapp']} // tell ShareSheet to render just X + WhatsApp
+          />
+        </section>
       )}
     </main>
   );
