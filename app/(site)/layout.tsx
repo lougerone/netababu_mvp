@@ -40,12 +40,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* page content */}
         <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
-
-        {/* footer */}
-        <footer className="mx-auto max-w-6xl px-4 py-10 text-ink-600/80">
-          <Footer />
-          <div className="mt-4">Powered by data, spiced with masala.</div>
-        </footer>
       </body>
     </html>
   );
