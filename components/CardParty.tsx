@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Party } from '@/lib/airtable';
 import AvatarSquare from './AvatarSquare';
 
+/* UI */
 function ScopePill({ label }: { label?: string }) {
   if (!label) return null;
   const s = String(label).toLowerCase();
@@ -24,10 +25,7 @@ const toList = (v: any): string[] =>
     ? []
     : Array.isArray(v)
     ? v.filter(Boolean).map((x) => String(x).trim())
-    : String(v)
-        .split(/[,\n;]/)
-        .map((s) => s.trim())
-        .filter(Boolean);
+    : String(v).split(/[,\n;]/).map((s) => s.trim()).filter(Boolean);
 
 const pickLeader = (p: any): string | undefined =>
   p.leader || p.leaders || p['party leader'] || p['Leader'] || undefined;
@@ -43,8 +41,10 @@ const pickStates = (p: any): string[] => {
 export default function CardParty({ party }: { party: Party }) {
   const scopeRaw =
     party.status || (party as any).scope || (party as any).level || (party as any).type || '';
+
   const abbr = (party as any).abbr || (party as any).short;
   const titleAbbr = abbr || party.name || '—';
+
   const leader = pickLeader(party as any);
   const states = pickStates(party as any);
   const stateDisplay = states.length > 1 ? `${states[0]} +${states.length - 1}` : states[0];
@@ -56,9 +56,9 @@ export default function CardParty({ party }: { party: Party }) {
       className="card card-compact p-4 block h-full hover:shadow-lg transition-shadow"
       title={party.name || ''} // show full party name on hover
     >
-      {/* anchor bottom row just like Politician card's position line */}
-      <div className="flex flex-col justify-between h-full min-h-[104px]">
-        {/* TOP: avatar + ABBR + scope + (leader) */}
+      {/* Use mt-auto to pin the footprint row to the bottom, like Politician.position */}
+      <div className="flex flex-col h-full min-h-[104px]">
+        {/* Top: avatar + ABBR + scope + (leader) */}
         <div className="flex items-start gap-3">
           <AvatarSquare src={party.logo ?? undefined} alt={party.name ?? 'Party'} size={48} rounded="lg" />
           <div className="min-w-0 flex-1">
@@ -74,9 +74,9 @@ export default function CardParty({ party }: { party: Party }) {
           </div>
         </div>
 
-        {/* BOTTOM: states footprint (always hugs the bottom when present) */}
+        {/* Bottom: states footprint (pinned to bottom) */}
         {states.length > 0 && (
-          <div className="mt-2 text-xs text-ink-500 truncate" title={states.join(', ')}>
+          <div className="mt-auto pt-2 text-xs text-ink-500 truncate" title={states.join(', ')}>
             Active in {stateDisplay}
           </div>
         )}
