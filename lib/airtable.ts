@@ -1,6 +1,4 @@
 // lib/airtable.ts
-
-// lib/airtable.ts
 import { unstable_noStore as noStore } from 'next/cache';
 
 export async function airtableFetch(path: string, qs: Record<string, any> = {}) {
@@ -161,7 +159,10 @@ export type Politician = {
   liabilities?: string | null;
   criminalCases?: number | string | null;
   website?: string | null;
+  twitter?: string | null;     // NEW
+  createdAt?: string | null;   // NEW
 };
+
 
 export type Party = {
   id: string;
@@ -184,32 +185,51 @@ function mapPolitician(r: AirtableRecord): Politician {
   const f = r.fields || {};
   const first = (arr?: any[]) => (Array.isArray(arr) && arr.length ? arr[0] : null);
 
+  // Photo: attachment or URL
+  const photoField = f.Photo ?? f.photo ?? f.Image;
+  const photo = (() => {
+    const att = first(photoField);
+    if (att?.url) return String(att.url);
+    if (typeof photoField === 'string' && /^https?:\/\//i.test(photoField)) return photoField;
+    return undefined;
+  })();
+
+  const constituency = f.Constituency ?? f.constituency ?? undefined;
+
   return {
     id: r.id,
     slug: f.slug || f.Slug || toSlug(f.name || f.Name || '') || r.id,
-    name: f.name || f.Name || '',
-    dob: f.dob || f.DOB || null,
-    offices: parseList(f.offices || f.Offices),
-    life_events: f.life_events || f['Life Events'] || null,
-    photo: (() => {
-      const att = first(f.photo || f.Photo || f.Image);
-      return att && att.url ? (att.url as string) : undefined;
-    })(),
-    links: parseList(f.links || f.Links),
-    party: (f.Party || f.party || '') as string,
-    state: f.Constituency || f.State || f.state,
-    current_position: f.Position || f['Current Position'] || f.position,
+    name: f.Name || f.name || '',
+    dob: f.DOB || f.dob || null,
+    offices: parseList(f.Offices || f.offices),
+    life_events: f['Life Events'] || f.life_events || null,
+    photo,
+    links: parseList(f.Links || f.links),
+    party: f.Party || f.party || '',
+    state: f.State || stateFromConstituency(constituency), // derive if not present
+    current_position: f['Current Position'] || f.Position || f.position,
     position: f.Position || f['Current Position'] || f.position,
-    constituency: f.Constituency || f.constituency,
-    age: f.Age || f.age,
-    yearsInPolitics: f['Years in politics'] || f['Years in office'] || f['Experience (Years)'],
-    attendance: f['% Parliament Attendance'] || f['Parliament Attendance'],
-    assets: f['Declared Assets'] || f.assets,
-    liabilities: f['Declared Liabilities'] || f.liabilities,
-    criminalCases: f['Criminal Cases'] || f.criminalCases,
-    website: f.Website || f.website,
+    constituency,
+    age: f.Age ?? f.age ?? null,
+    yearsInPolitics: f['Years in Politics'] ?? null,             // exact column
+    attendance: f['% Parliament Attendance'] ?? null,            // exact column
+    assets: f['Declared Assets'] ?? null,
+    liabilities: f['Declared Liabilities'] ?? null,
+    criminalCases: f['Criminal Cases'] ?? null,                  // exact column
+    website: f.Website ?? null,
+    twitter: f.Twitter ?? null,                                  // NEW
+    createdAt: f.Created ?? r.createdTime ?? null,               // NEW
   };
 }
+
+
+
+function stateFromConstituency(c?: string): string | undefined {
+  if (!c) return;
+  const m = c.match(/\(([^)]+)\)\s*$/);
+  return m?.[1];
+}
+
 
 function mapParty(r: AirtableRecord): Party {
   const f = r.fields || {};
@@ -534,13 +554,21 @@ export async function listTopPartiesBySeats(limit = 6): Promise<Party[]> {
 }
 
 export async function getPoliticianBySlug(slug: string): Promise<Politician | null> {
-  const data = await atFetch(T_POL, {
-    filterByFormula: `{slug} = "${slug}"`,
-    maxRecords: '1',
-  });
-  const rec = data.records[0];
+  const s = slug.toLowerCase().replace(/"/g, '\\"');
+  try {
+    const data = await atFetch(T_POL, {
+      filterByFormula: `OR(LOWER({slug}) = "${s}", LOWER({Slug}) = "${s}")`,
+      maxRecords: '1',
+    });
+    const rec = data.records?.[0];
+    if (rec) return mapPolitician(rec);
+  } catch {}
+  // Fallback: scan a page and match locally (rarely needed)
+  const all = await atFetchAll(T_POL, { pageSize: '100' });
+  const rec = all.find((r) => (mapPolitician(r).slug || '').toLowerCase() === s);
   return rec ? mapPolitician(rec) : null;
 }
+
 
 export async function getPartyBySlug(slug: string): Promise<Party | null> {
   const s = slug.toLowerCase().replace(/"/g, '\\"');
