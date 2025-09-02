@@ -31,8 +31,9 @@ const pickLeader = (p: any): string | undefined =>
   p.leader || p.leaders || p['party leader'] || p['Leader'] || undefined;
 
 const pickStates = (p: any): string[] => {
-  for (const cand of [p.states, p.state, p['active states'], p.region, p.regions]) {
-    const arr = toList(cand);
+  const candidates = [p.states, p.state, p['active states'], p.region, p.regions];
+  for (const c of candidates) {
+    const arr = toList(c);
     if (arr.length) return arr;
   }
   return [];
@@ -40,43 +41,71 @@ const pickStates = (p: any): string[] => {
 
 export default function CardParty({ party }: { party: Party }) {
   const scopeRaw =
-    party.status || (party as any).scope || (party as any).level || (party as any).type || '';
+    (party as any).status ||
+    (party as any).scope ||
+    (party as any).level ||
+    (party as any).type ||
+    '';
+
   const abbr = (party as any).abbr || (party as any).short;
   const titleAbbr = abbr || party.name || '—';
+
   const leader = pickLeader(party as any);
-  const states = pickStates(party as any);
-  const stateDisplay = states.length > 1 ? `${states[0]} +${states.length - 1}` : states[0];
+  const statesList = pickStates(party as any);
+
+  // Build bottom label with robust fallbacks
+  let activeLabel = '';
+  if (statesList.length > 1) activeLabel = `${statesList[0]} +${statesList.length - 1}`;
+  else if (statesList.length === 1) activeLabel = statesList[0];
+  else {
+    const scope = String(scopeRaw).toLowerCase();
+    if (scope.includes('national')) activeLabel = 'India';
+    else if (scope.includes('state')) {
+      const single =
+        (party as any).state ||
+        (party as any).region ||
+        (Array.isArray((party as any).regions) && (party as any).regions[0]) ||
+        '';
+      activeLabel = String(single || '').trim();
+    }
+  }
 
   return (
     <Link
       href={`/parties/${party.slug}`}
       aria-label={`Open ${party.name || titleAbbr} party page`}
       className="card card-compact p-4 block h-full hover:shadow-lg transition-shadow overflow-hidden"
-      title={party.name || ''} // full name on hover
+      title={party.name || ''} // show full name on hover
     >
-      {/* Column layout with bottom row pinned and increased min-height */}
-      <div className="flex flex-col min-h-[140px] min-w-0 pb-1">
-        {/* TOP */}
-        <div className="flex items-start gap-3 min-w-0 flex-shrink-0">
+      {/* Grid rows: top (auto) / middle grows / bottom pinned */}
+      <div className="grid grid-rows-[auto,1fr,auto] min-h-[116px] h-full min-w-0">
+        {/* Row 1: avatar + ABBR + scope */}
+        <div className="flex items-start gap-3 min-w-0">
           <AvatarSquare src={party.logo ?? undefined} alt={party.name ?? 'Party'} size={48} rounded="lg" />
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2 min-w-0">
               <div className="font-semibold text-ink-800 truncate leading-5">{titleAbbr}</div>
               <ScopePill label={scopeRaw || undefined} />
             </div>
-            {leader && (
-              <div className="mt-0.5 text-xs text-ink-600 truncate">{`Led by ${leader}`}</div>
-            )}
           </div>
         </div>
-        
-        {/* BOTTOM (with margin top for spacing) */}
-        {states.length > 0 && (
+
+        {/* Row 2: Leader (flexible middle) */}
+        <div className="min-w-0">
+          {leader && (
+            <div className="mt-1 text-xs text-ink-600 truncate">
+              Led by {leader}
+            </div>
+          )}
+        </div>
+
+        {/* Row 3: Bottom (always pinned when we have a label) */}
+        {activeLabel && (
           <div
-            className="text-xs text-ink-500 truncate min-w-0 mt-auto pt-3"
-            title={states.join(', ')}
+            className="pt-1 text-xs leading-4 text-ink-500 truncate min-w-0"
+            title={statesList.length ? statesList.join(', ') : activeLabel}
           >
-            {`Active in ${stateDisplay}`}
+            Active in {activeLabel}
           </div>
         )}
       </div>
