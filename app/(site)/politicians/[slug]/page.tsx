@@ -7,13 +7,6 @@ import ShareSheet from '@/components/ShareSheet';
 
 export const dynamic = 'force-dynamic';
 
-function Pill({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center rounded-full bg-purple-100 text-purple-700 px-2 py-0.5 text-[11px] font-medium">
-      {children}
-    </span>
-  );
-}
 function Chip({ children }: { children: React.ReactNode }) {
   return (
     <span className="inline-flex items-center rounded-full bg-black/10 text-ink-700 px-2 py-0.5 text-[11px]">
@@ -29,8 +22,7 @@ export default async function PoliticianPage({ params }: { params: { slug: strin
   const politician: Politician & { twitter?: string | null; createdAt?: string | null } = p;
 
   /* ----------------------------- Format helpers ---------------------------- */
-  const toUndef = <T,>(v: T | null | undefined): T | undefined =>
-    v == null ? undefined : v;
+  const toUndef = <T,>(v: T | null | undefined): T | undefined => (v == null ? undefined : v);
 
   const toNumber = (v: string | number | null | undefined): number | undefined => {
     const x = toUndef(v);
@@ -86,10 +78,10 @@ export default async function PoliticianPage({ params }: { params: { slug: strin
 
   return (
     <main className="mx-auto max-w-3xl p-6 space-y-8">
-      {/* Header */}
+      {/* Header (hero) */}
       <header className="flex items-start gap-4">
         <div className="w-24 h-24 rounded-lg overflow-hidden bg-black/10 shrink-0">
-          {politician.photo ? (
+          {politician.photo && (
             <Image
               src={politician.photo}
               alt={politician.name}
@@ -97,41 +89,35 @@ export default async function PoliticianPage({ params }: { params: { slug: strin
               height={96}
               className="object-cover w-full h-full"
             />
-          ) : null}
+          )}
         </div>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold truncate flex-1">{politician.name}</h1>
-            {/* Purple state / national pill */}
-            <Pill>{politician.state ? politician.state : 'National'}</Pill>
-          </div>
-
-          {politician.current_position && (
-            <p className="text-sm text-black/60 truncate">{politician.current_position}</p>
-          )}
-
-          <div className="mt-1 flex items-center gap-2">
-            {politician.party && <Chip>{politician.party}</Chip>}
-            {politician.constituency && (
-              <span className="text-xs text-black/60 truncate">{politician.constituency}</span>
+        {/* Force the right column to visually fit inside the 96px avatar height */}
+        <div className="min-w-0 flex-1 h-24 flex flex-col justify-between">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold truncate">{politician.name}</h1>
+            {politician.current_position && (
+              <p className="text-sm text-black/60 truncate">{politician.current_position}</p>
             )}
+            <div className="mt-1 flex items-center gap-2">
+              {politician.party && <Chip>{politician.party}</Chip>}
+              {politician.constituency && (
+                <span className="text-xs text-black/60 truncate">{politician.constituency}</span>
+              )}
+            </div>
           </div>
 
-          <div className="mt-2 space-y-1">
+          {/* Inline links row */}
+          <div className="text-sm flex flex-wrap gap-x-4 gap-y-1">
             {politician.website && (
-              <p className="text-sm">
-                <a className="underline break-all" href={politician.website} target="_blank" rel="noreferrer">
-                  {politician.website}
-                </a>
-              </p>
+              <a className="underline truncate max-w-[50%]" href={politician.website} target="_blank" rel="noreferrer">
+                {politician.website.replace(/^https?:\/\//, '')}
+              </a>
             )}
             {politician.twitter && (
-              <p className="text-sm">
-                <a className="underline break-all" href={politician.twitter} target="_blank" rel="noreferrer">
-                  {politician.twitter.replace(/^https?:\/\//, '')}
-                </a>
-              </p>
+              <a className="underline truncate max-w-[45%]" href={politician.twitter} target="_blank" rel="noreferrer">
+                {politician.twitter.replace(/^https?:\/\//, '')}
+              </a>
             )}
           </div>
         </div>
@@ -170,10 +156,10 @@ export default async function PoliticianPage({ params }: { params: { slug: strin
         <p className="text-xs text-black/50">Last updated: {(politician as any).last_updated}</p>
       )}
 
-      {/* Share streamlined, bottom */}
+      {/* Share (multi-select with photo-backed OG card) */}
       {stats.length > 0 && (
         <section className="pt-4 border-t border-black/10">
-          <h2 className="text-base font-semibold mb-2">Share a stat</h2>
+          <h2 className="text-base font-semibold mb-2">Share stats</h2>
           <ShareSheet
             slug={politician.slug}
             name={politician.name}
@@ -181,6 +167,7 @@ export default async function PoliticianPage({ params }: { params: { slug: strin
             photo={politician.photo}
             stats={stats}
             only={['x', 'whatsapp']}
+            multi
           />
         </section>
       )}
