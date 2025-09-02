@@ -29,20 +29,18 @@ export default function AvatarSquare({
       style={{ width: size, height: size, background: bg, boxShadow: `inset 0 0 0 1px ${ring}` }}
     >
       {src ? (
-        <Image
-          src={src}
-          alt={alt}
-          width={size}
-          height={size}
-          className="object-cover"
-        />
+        <Image src={src} alt={alt} width={size} height={size} className="object-cover" />
       ) : text ? (
         <span
-          className="font-semibold leading-none"
+          className="antialiased font-medium leading-none"
           style={{
             color: fg,
-            fontSize: Math.round(size * 0.46),
-            letterSpacing: 0.5,
+            // ↓ smaller monogram
+            fontSize: Math.round(size * 0.40),
+            letterSpacing: 0.25,
+            // rounded font stack (falls back gracefully)
+            fontFamily:
+              'ui-rounded, "SF Pro Rounded", "Segoe UI Rounded", "Helvetica Rounded", "Arial Rounded MT", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
           }}
           aria-hidden
         >
