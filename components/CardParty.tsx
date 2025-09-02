@@ -46,11 +46,18 @@ function pickLeader(party: any): string | undefined {
 }
 
 function pickStates(party: any): string[] {
-  return (
-    toList(party.states) ||
-    toList(party.state) ||
-    toList(party['active states'])
-  );
+  const candidates = [
+    party.states,
+    party.state,
+    party['active states'],
+    party.region,
+    party.regions,
+  ];
+  for (const c of candidates) {
+    const arr = toList(c);
+    if (arr.length) return arr;
+  }
+  return [];
 }
 
 /* --------------------------------- Card --------------------------------- */
@@ -67,7 +74,6 @@ export default function CardParty({ party }: { party: Party }) {
 
   const leader = pickLeader(party as any);
   const states = pickStates(party as any);
-
   const stateDisplay =
     states.length > 1 ? `${states[0]} +${states.length - 1}` : states[0];
 
@@ -78,8 +84,9 @@ export default function CardParty({ party }: { party: Party }) {
       className="card p-4 block hover:shadow-lg transition-shadow"
       title={party.name || ''} // hover shows full party name
     >
-      <div className="min-h-[90px]">
-        {/* Row 1: Logo | ABBR + Scope pill */}
+      {/* Slightly taller to comfortably fit 3 rows on one line each */}
+      <div className="min-h-[104px]">
+        {/* Row 1: Logo | ABBR (left) + Scope pill (right) */}
         <div className="flex items-start gap-3">
           <AvatarSquare
             src={party.logo ?? undefined}
@@ -96,19 +103,16 @@ export default function CardParty({ party }: { party: Party }) {
               <ScopePill label={scopeRaw || undefined} />
             </div>
 
-            {/* Row 2: Leader */}
+            {/* Row 2: Leader (omit if missing) */}
             {leader && (
               <div className="mt-0.5 text-xs text-ink-600 truncate">
                 Led by {leader}
               </div>
             )}
 
-            {/* Row 3: Active in states */}
+            {/* Row 3: Active in <states> (omit if missing) */}
             {states.length > 0 && (
-              <div
-                className="mt-0.5 text-xs text-ink-500 truncate"
-                title={states.join(', ')}
-              >
+              <div className="mt-0.5 text-xs text-ink-500 truncate" title={states.join(', ')}>
                 Active in {stateDisplay}
               </div>
             )}
