@@ -47,14 +47,7 @@ function renderValue(field: string, p?: Politician) {
   return fmtVal(field, (p as any)[field]);
 }
 
-/* ---------------- locked/optional rows ---------------- */
-const LOCKED = [
-  { key: 'id_header', label: '' }, // special header row with avatar + name + party badge
-  { key: 'constituency', label: 'Constituency' },
-  { key: 'current_position', label: 'Current Position' },
-] as const;
-
-// NOTE: `state` has been removed as requested
+/* ---------------- optional rows ---------------- */
 const OPTIONAL: { key: keyof Politician; label: string }[] = [
   { key: 'age', label: 'Age' },
   { key: 'yearsInPolitics', label: 'Years in Politics' },
@@ -345,7 +338,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
   const [aId, setAId] = useState<string | undefined>(findByKey(initialA)?.id);
   const [bId, setBId] = useState<string | undefined>(findByKey(initialB)?.id);
 
-  // Default selection: NO 'state' (per request)
+  // Default attributes (no 'state')
   const [enabled, setEnabled] = useState<Set<keyof Politician>>(() => {
     const fromUrl = (initialFields || '')
       .split(',')
@@ -414,18 +407,18 @@ export default function CompareTable({ politicians }: { politicians: Politician[
       </div>
 
       {/* Comparison table */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-2xl border border-black/10 bg-white">
         <table className="w-full text-sm">
-          <thead className="sticky top-0 bg-cream-200/95 backdrop-blur z-10">
+          <thead className="bg-cream-50">
             <tr className="text-left text-ink-600/80">
-              <th className="w-[240px] py-2 pr-4">Attribute</th>
-              <th className="py-2 pr-4">A</th>
-              <th className="py-2 pr-4">B</th>
+              <th className="w-[240px] py-3 pr-4 border-b border-black/10">Attribute</th>
+              <th className="py-3 pr-4 border-b border-black/10">A</th>
+              <th className="py-3 pr-4 border-b border-black/10">B</th>
             </tr>
           </thead>
           <tbody className="[&_tr]:border-t [&_tr]:border-black/10">
             {/* Identity row */}
-            <tr>
+            <tr className="odd:bg-cream-100/50">
               <td className="py-3 pr-4 font-medium">Identity</td>
               <td className="py-3 pr-4">
                 {A ? (
