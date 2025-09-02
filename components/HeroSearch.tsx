@@ -1,93 +1,79 @@
-'use client';
+// app/api/search/route.ts
+import { NextResponse } from 'next/server';
+import { listPoliticians, listParties } from '@/lib/airtable';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+export const dynamic = 'force-dynamic';
 
-type Hit = { type: 'politician' | 'party'; name: string; slug: string };
+const normalize = (s = '') =>
+  s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-export default function HeroSearch({
-  popular = ['Modi', 'Gandhi', 'BJP', 'RSS'],
-}: { popular?: string[] }) {
-  const [q, setQ] = useState('');
-  const [open, setOpen] = useState(false);
-  const [hits, setHits] = useState<Hit[]>([]);
-  const boxRef = useRef<HTMLDivElement>(null);
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const qRaw = (searchParams.get('q') || '').trim();
+  const full = searchParams.get('full') === '1'; // ?full=1 returns larger sets if you want
+  if (!qRaw) return NextResponse.json({ results: [], counts: { politicians: 0, parties: 0 } });
 
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (!boxRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    window.addEventListener('click', onClick);
-    return () => window.removeEventListener('click', onClick);
-  }, []);
+  const q = normalize(qRaw);
 
-  const debouncedQ = useMemo(() => q.trim(), [q]);
-  useEffect(() => {
-    let on = true;
-    if (!debouncedQ) { setHits([]); setOpen(false); return; }
-    const run = async () => {
-      const u = new URL('/api/search', window.location.origin);
-      u.searchParams.set('q', debouncedQ);
-      const r = await fetch(u.toString(), { cache: 'no-store' });
-      if (!on) return;
-      const data = await r.json();
-      setHits(data.results as Hit[]);
-      setOpen(true);
-    };
-    const t = setTimeout(run, 150);
-    return () => { on = false; clearTimeout(t); };
-  }, [debouncedQ]);
+  // Pull BIG lists so single letters work. If your list* helpers support pagination, use it.
+  // Otherwise set a high limit like 1000.
+  const [pol, par] = await Promise.all([
+    listPoliticians({ limit: 1000 }), // increase this if needed
+    listParties({ limit: 1000 }),
+  ]);
 
-  const submit = (term?: string) => {
-    const s = (term ?? q).trim();
-    if (!s) return;
-    window.location.href = `/search?query=${encodeURIComponent(s)}`;
-  };
+  const matchPol = pol.filter((p) => {
+    const hay = [
+      p.name,
+      p.party,
+      (p as any).constituency,
+      (p as any).aka,
+      (p as any).aliases,
+      (p as any).state,
+    ]
+      .filter(Boolean)
+      .map(String)
+      .map(normalize)
+      .join(' • ');
+    return hay.includes(q);
+  });
 
-  return (
-    <div className="relative max-w-2xl mx-auto mt-3" ref={boxRef}>
-      {/* Pill search */}
-      <div className="flex items-stretch gap-2 rounded-full bg-white border border-black/10 p-2 shadow-sm">
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          onFocus={() => q && setOpen(true)}
-          placeholder="Search politicians, parties…"
-          className="flex-1 px-4 outline-none bg-transparent text-ink-800 placeholder-black/40"
-        />
-        <button onClick={() => submit()} className="btn">Search</button>
-      </div>
+  const matchPar = par.filter((p) => {
+    const hay = [
+      p.name,
+      (p as any).abbr,
+      (p as any).aliases,
+      (p as any).bloc,
+    ]
+      .filter(Boolean)
+      .map(String)
+      .map(normalize)
+      .join(' • ');
+    return hay.includes(q);
+  });
 
-      {/* Typeahead (only when typing) */}
-      {open && hits.length > 0 && (
-        <div className="absolute z-20 mt-2 w-full rounded-xl border border-black/10 bg-white shadow-lg overflow-hidden">
-          <ul className="max-h-72 overflow-auto divide-y divide-black/5">
-            {hits.map((h, i) => (
-              <li key={i}>
-                <a
-                  href={`/${h.type === 'party' ? 'parties' : 'politicians'}/${h.slug}`}
-                  className="flex items-center gap-2 px-4 py-3 hover:bg-cream-100"
-                >
-                  <span className="text-xs rounded-full px-2 py-0.5 bg-black/5">
-                    {h.type === 'party' ? 'Party' : 'Politician'}
-                  </span>
-                  <span className="truncate">{h.name}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+  // Cap what we *return* to the typeahead for speed; use counts for “See all”
+  const capPol = full ? matchPol : matchPol.slice(0, 20);
+  const capPar = full ? matchPar : matchPar.slice(0, 20);
 
-      {/* Popular row */}
-      <div className="mt-2 text-sm font-medium text-ink-700">
-        Popular:{' '}
-        {popular.map((term, i) => (
-          <span key={term}>
-            <a href={`/search?query=${encodeURIComponent(term)}`} className="underline">{term}</a>
-            {i < popular.length - 1 && ' • '}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
+  const polHits = capPol.map((p) => ({
+    type: 'politician' as const,
+    name: p.name,
+    slug: p.slug,
+  }));
+  const parHits = capPar.map((p) => ({
+    type: 'party' as const,
+    name: p.name,
+    slug: p.slug,
+  }));
+
+  return NextResponse.json({
+    results: [...polHits, ...parHits],
+    counts: { politicians: matchPol.length, parties: matchPar.length },
+  });
 }
