@@ -58,16 +58,7 @@ export default function CardParty({ party }: { party: Party }) {
       <div className="flex h-full flex-col min-h-[140px] min-w-0">
         {/* TOP */}
         <div className="flex items-start gap-3 min-w-0">
-          <AvatarSquare
-  src={party.logo ?? undefined}
-  alt={party.name ?? 'Party'}
-  size={48}
-  rounded="lg"
-  variant="party"
-  label={(party as any).abbr || party.name}
-/>
-
-
+          <AvatarSquare src={party.logo ?? undefined} alt={party.name ?? 'Party'} size={48} rounded="lg" variant="party" label={(party as any).abbr || party.name} />
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2 min-w-0">
               <div className="font-semibold text-ink-800 truncate leading-5">{titleAbbr}</div>
