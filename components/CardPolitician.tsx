@@ -1,6 +1,6 @@
 // components/CardPolitician.tsx
 import Link from 'next/link';
-<AvatarSquare src={p.photo ?? undefined} alt={p.name} size={48} rounded="lg" variant="person" />
+import AvatarSquare from './AvatarSquare';
 
 export type Politician = {
   id: string;
