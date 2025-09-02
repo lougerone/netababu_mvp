@@ -87,7 +87,7 @@ export default function CardParty({ party }: { party: Party }) {
             src={party.logo ?? undefined}
             alt={party.name ?? 'Party'}
             size={64}                 // bump if you want larger logos
-            rounded="lg"
+            rounded="rounded-xl"
             variant="party"
             label={(party as any).abbr || party.name}
           />
