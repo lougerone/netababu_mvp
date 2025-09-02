@@ -220,7 +220,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
 
       {/* Controls */}
       <div className="px-5 sm:px-8 py-6 bg-cream-200/50 border-b border-ink-200">
-        <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-4">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-4 w-full justify-between">
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
