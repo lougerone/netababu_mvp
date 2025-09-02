@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Party } from '@/lib/airtable';
 import AvatarSquare from './AvatarSquare';
 
-/* UI */
+/* --- UI --- */
 function ScopePill({ label }: { label?: string }) {
   if (!label) return null;
   const s = String(label).toLowerCase();
@@ -19,7 +19,7 @@ function ScopePill({ label }: { label?: string }) {
   return <span className={`${base} ${color}`}>{isNational ? 'National' : isState ? 'State' : label}</span>;
 }
 
-/* helpers */
+/* --- helpers --- */
 const toList = (v: any): string[] =>
   !v
     ? []
@@ -38,6 +38,7 @@ const pickStates = (p: any): string[] => {
   return [];
 };
 
+/* --- Card --- */
 export default function CardParty({ party }: { party: Party }) {
   const scopeRaw =
     party.status || (party as any).scope || (party as any).level || (party as any).type || '';
@@ -53,32 +54,40 @@ export default function CardParty({ party }: { party: Party }) {
     <Link
       href={`/parties/${party.slug}`}
       aria-label={`Open ${party.name || titleAbbr} party page`}
-      className="card card-compact p-4 block h-full hover:shadow-lg transition-shadow"
+      className="card card-compact p-4 block h-full hover:shadow-lg transition-shadow overflow-hidden"
       title={party.name || ''} // full name on hover
     >
-      {/* Grid rows: [Row1 auto] [Row2 1fr] [Row3 auto] */}
-      <div className="grid grid-rows-[auto,1fr,auto] h-full min-h-[112px] min-w-0">
-        {/* Row 1: avatar + ABBR + scope */}
+      {/* Fixed min height so bottom line never clips; column anchors bottom row */}
+      <div className="flex h-full min-h-[116px] flex-col min-w-0">
+        {/* TOP block */}
         <div className="flex items-start gap-3 min-w-0">
-          <AvatarSquare src={party.logo ?? undefined} alt={party.name ?? 'Party'} size={48} rounded="lg" />
+          <AvatarSquare
+            src={party.logo ?? undefined}
+            alt={party.name ?? 'Party'}
+            size={48}
+            rounded="lg"
+          />
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2 min-w-0">
               <div className="font-semibold text-ink-800 truncate leading-5">{titleAbbr}</div>
               <ScopePill label={scopeRaw || undefined} />
             </div>
+
+            {/* Optional middle row: Leader */}
+            {leader && (
+              <div className="mt-0.5 text-xs text-ink-600 truncate">
+                Led by {leader}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Row 2: flexible middle — leader sits here (keeps Row 3 at bottom) */}
-        <div className="min-w-0">
-          {leader && (
-            <div className="mt-1 text-xs text-ink-600 truncate">Led by {leader}</div>
-          )}
-        </div>
-
-        {/* Row 3: ALWAYS bottom-aligned */}
+        {/* BOTTOM block — ALWAYS sits above bottom padding */}
         {states.length > 0 && (
-          <div className="pt-1 text-xs leading-4 text-ink-500 truncate min-w-0" title={states.join(', ')}>
+          <div
+            className="mt-auto pt-1 text-xs leading-4 text-ink-500 truncate min-w-0"
+            title={states.join(', ')}
+          >
             Active in {stateDisplay}
           </div>
         )}
