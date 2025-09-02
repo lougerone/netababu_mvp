@@ -4,7 +4,6 @@ import Link from 'next/link';
 export default function Footer() {
   return (
     <footer role="contentinfo" className="mt-12 md:mt-16 border-t border-black/10">
-      {/* Top grid */}
       <div className="mx-auto max-w-6xl px-4 pt-10 pb-8 grid gap-8 md:grid-cols-4">
         <div>
           <div className="font-semibold text-ink-700">Netababu</div>
