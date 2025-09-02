@@ -17,21 +17,48 @@ export default async function PoliticianPage({
   // p already conforms to Politician from airtable.ts
   const politician: Politician = p;
 
-  // Helpers
-  const fmtPct = (v?: string | number) =>
-    v === undefined || v === null || v === '' ? undefined : String(v).replace('%', '');
-  const fmtNum = (v?: string | number) =>
-    v === undefined || v === null || v === '' ? undefined : String(v);
+  /* ---------------------------- Null-safe helpers --------------------------- */
+  const toUndef = <T,>(v: T | null | undefined): T | undefined =>
+    v == null ? undefined : v;
 
-  // Build shareable stats; only include if present
-  const stats = [
-    fmtPct(politician.attendance) && { key: 'Attendance', value: fmtPct(politician.attendance)!, suffix: '%' },
-    fmtNum(politician.assets) && { key: 'Assets', value: fmtNum(politician.assets)!, suffix: '' },
-    fmtNum(politician.liabilities) && { key: 'Liabilities', value: fmtNum(politician.liabilities)!, suffix: '' },
-    typeof politician.criminalCases === 'number' && { key: 'Criminal Cases', value: String(politician.criminalCases) },
-    typeof politician.age === 'number' && { key: 'Age', value: String(politician.age), suffix: ' yrs' },
-    typeof (politician as any).electionsWon === 'number' && { key: 'Won Elections', value: String((politician as any).electionsWon) },
-  ].filter(Boolean) as { key: string; value: string; suffix?: string }[];
+  const fmtPct = (v: string | number | null | undefined) => {
+    const x = toUndef(v);
+    if (x === undefined) return undefined;
+    const s = String(x).trim();
+    return s === '' ? undefined : s.replace('%', '');
+  };
+
+  const fmtStrNum = (v: string | number | null | undefined) => {
+    const x = toUndef(v);
+    if (x === undefined) return undefined;
+    const s = String(x).trim();
+    return s === '' ? undefined : s;
+  };
+
+  /* ----------------------- Build shareable stats safely ---------------------- */
+  const attendance = fmtPct(politician.attendance);                 // string | undefined
+  const assets = fmtStrNum(politician.assets);                      // string | undefined
+  const liabilities = fmtStrNum(politician.liabilities);            // string | undefined
+  const criminalCases =
+    typeof politician.criminalCases === 'number'
+      ? String(politician.criminalCases)
+      : undefined;
+  const age =
+    typeof politician.age === 'number' ? String(politician.age) : undefined;
+  // Optional: only if this field exists in your mapping
+  const electionsWon =
+    typeof (politician as any).electionsWon === 'number'
+      ? String((politician as any).electionsWon)
+      : undefined;
+
+  const stats: { key: string; value: string; suffix?: string }[] = [
+    ...(attendance ? [{ key: 'Attendance', value: attendance, suffix: '%' }] : []),
+    ...(assets ? [{ key: 'Assets', value: assets }] : []),
+    ...(liabilities ? [{ key: 'Liabilities', value: liabilities }] : []),
+    ...(criminalCases ? [{ key: 'Criminal Cases', value: criminalCases }] : []),
+    ...(age ? [{ key: 'Age', value: age, suffix: ' yrs' }] : []),
+    ...(electionsWon ? [{ key: 'Won Elections', value: electionsWon }] : []),
+  ];
 
   return (
     <main className="mx-auto max-w-3xl p-6 space-y-8">
@@ -53,7 +80,9 @@ export default async function PoliticianPage({
 
           {/* Use the correct field name from your Airtable mapping */}
           {politician.current_position && (
-            <p className="text-sm text-black/60 truncate">{politician.current_position}</p>
+            <p className="text-sm text-black/60 truncate">
+              {politician.current_position}
+            </p>
           )}
 
           <p className="text-sm text-black/60 truncate">
@@ -75,13 +104,13 @@ export default async function PoliticianPage({
         {(politician as any).yearsInPolitics !== undefined && (
           <div><span className="font-medium">Years in politics:</span> {(politician as any).yearsInPolitics}</div>
         )}
-        {politician.attendance && (
+        {politician.attendance != null && String(politician.attendance) !== '' && (
           <div><span className="font-medium">Parliament attendance:</span> {politician.attendance}</div>
         )}
-        {politician.assets && (
+        {politician.assets != null && String(politician.assets) !== '' && (
           <div><span className="font-medium">Declared assets:</span> {politician.assets}</div>
         )}
-        {politician.liabilities && (
+        {politician.liabilities != null && String(politician.liabilities) !== '' && (
           <div><span className="font-medium">Declared liabilities:</span> {politician.liabilities}</div>
         )}
         {politician.criminalCases !== undefined && (
@@ -119,7 +148,12 @@ export default async function PoliticianPage({
           <ul className="list-disc pl-5 space-y-1">
             {politician.links.map((link, i) => (
               <li key={i}>
-                <a href={link} target="_blank" rel="noreferrer" className="underline break-all">
+                <a
+                  href={link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline break-all"
+                >
                   {link}
                 </a>
               </li>
@@ -131,7 +165,12 @@ export default async function PoliticianPage({
       {politician.website && (
         <section>
           <h2 className="text-lg font-semibold mb-2">Website</h2>
-          <a href={politician.website} target="_blank" rel="noreferrer" className="underline break-all">
+          <a
+            href={politician.website}
+            target="_blank"
+            rel="noreferrer"
+            className="underline break-all"
+          >
             {politician.website}
           </a>
         </section>
