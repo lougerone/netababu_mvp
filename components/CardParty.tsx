@@ -41,10 +41,8 @@ const pickStates = (p: any): string[] => {
 export default function CardParty({ party }: { party: Party }) {
   const scopeRaw =
     party.status || (party as any).scope || (party as any).level || (party as any).type || '';
-
   const abbr = (party as any).abbr || (party as any).short;
   const titleAbbr = abbr || party.name || '—';
-
   const leader = pickLeader(party as any);
   const states = pickStates(party as any);
   const stateDisplay = states.length > 1 ? `${states[0]} +${states.length - 1}` : states[0];
@@ -56,10 +54,10 @@ export default function CardParty({ party }: { party: Party }) {
       className="card card-compact p-4 block h-full hover:shadow-lg transition-shadow overflow-hidden"
       title={party.name || ''} // full name on hover
     >
-      {/* Column layout with bottom row pinned and width clamps for truncate */}
-      <div className="flex h-full flex-col min-h-[104px] min-w-0">
+      {/* Column layout with bottom row pinned and increased min-height */}
+      <div className="flex h-full flex-col min-h-[120px] min-w-0 justify-between">
         {/* TOP */}
-        <div className="flex items-start gap-3 min-w-0">
+        <div className="flex items-start gap-3 min-w-0 flex-shrink-0">
           <AvatarSquare src={party.logo ?? undefined} alt={party.name ?? 'Party'} size={48} rounded="lg" />
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2 min-w-0">
@@ -71,11 +69,11 @@ export default function CardParty({ party }: { party: Party }) {
             )}
           </div>
         </div>
-
-        {/* BOTTOM (pinned) */}
+        
+        {/* BOTTOM (pinned with better spacing) */}
         {states.length > 0 && (
           <div
-            className="mt-auto pt-2 text-xs text-ink-500 truncate min-w-0"
+            className="text-xs text-ink-500 truncate min-w-0 flex-shrink-0 mt-3"
             title={states.join(', ')}
           >
             {`Active in ${stateDisplay}`}
