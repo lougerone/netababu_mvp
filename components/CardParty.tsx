@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Party } from '@/lib/airtable';
 import AvatarSquare from './AvatarSquare';
 
-/* --- UI --- */
+/* UI */
 function ScopePill({ label }: { label?: string }) {
   if (!label) return null;
   const s = String(label).toLowerCase();
@@ -19,7 +19,7 @@ function ScopePill({ label }: { label?: string }) {
   return <span className={`${base} ${color}`}>{isNational ? 'National' : isState ? 'State' : label}</span>;
 }
 
-/* --- helpers --- */
+/* helpers */
 const toList = (v: any): string[] =>
   !v
     ? []
@@ -31,24 +31,37 @@ const pickLeader = (p: any): string | undefined =>
   p.leader || p.leaders || p['party leader'] || p['Leader'] || undefined;
 
 const pickStates = (p: any): string[] => {
-  for (const cand of [p.states, p.state, p['active states'], p.region, p.regions]) {
-    const arr = toList(cand);
+  const candidates = [p.states, p.state, p['active states'], p.region, p.regions];
+  for (const c of candidates) {
+    const arr = toList(c);
     if (arr.length) return arr;
   }
   return [];
 };
 
-/* --- Card --- */
 export default function CardParty({ party }: { party: Party }) {
   const scopeRaw =
-    party.status || (party as any).scope || (party as any).level || (party as any).type || '';
+    (party as any).status ||
+    (party as any).scope ||
+    (party as any).level ||
+    (party as any).type ||
+    '';
 
   const abbr = (party as any).abbr || (party as any).short;
   const titleAbbr = abbr || party.name || '—';
 
   const leader = pickLeader(party as any);
-  const states = pickStates(party as any);
-  const stateDisplay = states.length > 1 ? `${states[0]} +${states.length - 1}` : states[0];
+  const statesList = pickStates(party as any);
+
+  // Build the bottom-line label with safe fallbacks
+  let activeLabel = '';
+  if (statesList.length > 1) activeLabel = `${statesList[0]} +${statesList.length - 1}`;
+  else if (statesList.length === 1) activeLabel = statesList[0];
+  else {
+    const s = String(scopeRaw).toLowerCase();
+    if (s.includes('national')) activeLabel = 'India';
+    else if (s.includes('state') && (party as any).state) activeLabel = String((party as any).state);
+  }
 
   return (
     <Link
@@ -57,9 +70,9 @@ export default function CardParty({ party }: { party: Party }) {
       className="card card-compact p-4 block h-full hover:shadow-lg transition-shadow overflow-hidden"
       title={party.name || ''} // full name on hover
     >
-      {/* Fixed min height so bottom line never clips; column anchors bottom row */}
-      <div className="flex h-full min-h-[116px] flex-col min-w-0">
-        {/* TOP block */}
+      {/* 3-row grid: title, (leader grows), bottom line pinned */}
+      <div className="grid grid-rows-[auto,1fr,auto] min-h-[112px] h-full min-w-0">
+        {/* Row 1 */}
         <div className="flex items-start gap-3 min-w-0">
           <AvatarSquare
             src={party.logo ?? undefined}
@@ -72,23 +85,25 @@ export default function CardParty({ party }: { party: Party }) {
               <div className="font-semibold text-ink-800 truncate leading-5">{titleAbbr}</div>
               <ScopePill label={scopeRaw || undefined} />
             </div>
-
-            {/* Optional middle row: Leader */}
-            {leader && (
-              <div className="mt-0.5 text-xs text-ink-600 truncate">
-                Led by {leader}
-              </div>
-            )}
           </div>
         </div>
 
-        {/* BOTTOM block — ALWAYS sits above bottom padding */}
-        {states.length > 0 && (
+        {/* Row 2 (flexible middle) */}
+        <div className="min-w-0">
+          {leader && (
+            <div className="mt-1 text-xs text-ink-600 truncate">
+              Led by {leader}
+            </div>
+          )}
+        </div>
+
+        {/* Row 3 (bottom pinned) */}
+        {activeLabel && (
           <div
-            className="mt-auto pt-1 text-xs leading-4 text-ink-500 truncate min-w-0"
-            title={states.join(', ')}
+            className="pt-1 text-xs leading-4 text-ink-500 truncate min-w-0"
+            title={statesList.length ? statesList.join(', ') : activeLabel}
           >
-            Active in {stateDisplay}
+            Active in {activeLabel}
           </div>
         )}
       </div>
