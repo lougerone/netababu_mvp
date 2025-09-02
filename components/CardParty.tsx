@@ -1,10 +1,12 @@
+// components/CardParty.tsx
 import Link from 'next/link';
 import type { Party } from '@/lib/airtable';
 import AvatarSquare from './AvatarSquare';
 
+/* ----------------------------- Small UI bits ----------------------------- */
 function ScopePill({ label }: { label?: string }) {
   if (!label) return null;
-  const s = label.toLowerCase();
+  const s = String(label).toLowerCase();
   const isNational = s.includes('national');
   const isState = s.includes('state');
 
@@ -23,6 +25,35 @@ function ScopePill({ label }: { label?: string }) {
   );
 }
 
+/* ----------------------------- Data helpers ----------------------------- */
+function toList(value: any): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter(Boolean).map((x) => String(x).trim());
+  return String(value)
+    .split(/[,\n;]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function pickLeader(party: any): string | undefined {
+  return (
+    party.leader ||
+    party.leaders ||
+    party['party leader'] ||
+    party['Leader'] ||
+    undefined
+  );
+}
+
+function pickStates(party: any): string[] {
+  return (
+    toList(party.states) ||
+    toList(party.state) ||
+    toList(party['active states'])
+  );
+}
+
+/* --------------------------------- Card --------------------------------- */
 export default function CardParty({ party }: { party: Party }) {
   const scopeRaw =
     party.status ||
@@ -31,15 +62,24 @@ export default function CardParty({ party }: { party: Party }) {
     (party as any).type ||
     '';
 
+  const abbr = (party as any).abbr || (party as any).short;
+  const titleAbbr = abbr || party.name || '—';
+
+  const leader = pickLeader(party as any);
+  const states = pickStates(party as any);
+
+  const stateDisplay =
+    states.length > 1 ? `${states[0]} +${states.length - 1}` : states[0];
+
   return (
     <Link
       href={`/parties/${party.slug}`}
-      aria-label={`Open ${party.name} party page`}
+      aria-label={`Open ${party.name || titleAbbr} party page`}
       className="card p-4 block hover:shadow-lg transition-shadow"
+      title={party.name || ''} // hover shows full party name
     >
-      {/* Lock a consistent internal height so grids align perfectly */}
-      <div className="min-h-[76px]">
-        {/* Top row: logo + name + scope pill */}
+      <div className="min-h-[90px]">
+        {/* Row 1: Logo | ABBR + Scope pill */}
         <div className="flex items-start gap-3">
           <AvatarSquare
             src={party.logo ?? undefined}
@@ -49,24 +89,29 @@ export default function CardParty({ party }: { party: Party }) {
           />
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-start gap-2 min-w-0">
-              <div className="font-medium text-ink-700 truncate leading-5">
-                {party.name || '—'}
+            <div className="flex items-start justify-between gap-2 min-w-0">
+              <div className="font-semibold text-ink-800 truncate leading-5">
+                {titleAbbr}
               </div>
               <ScopePill label={scopeRaw || undefined} />
             </div>
 
-            {/* Subline: abbr chip + state (single line, no overflow) */}
-            <div className="mt-0.5 flex items-center gap-2 text-xs text-black/60 min-w-0">
-              {party.abbr && (
-                <span className="rounded bg-black/5 px-1.5 py-0.5 shrink-0">
-                  {party.abbr}
-                </span>
-              )}
-              {(party as any).state && (
-                <span className="truncate">{(party as any).state}</span>
-              )}
-            </div>
+            {/* Row 2: Leader */}
+            {leader && (
+              <div className="mt-0.5 text-xs text-ink-600 truncate">
+                Led by {leader}
+              </div>
+            )}
+
+            {/* Row 3: Active in states */}
+            {states.length > 0 && (
+              <div
+                className="mt-0.5 text-xs text-ink-500 truncate"
+                title={states.join(', ')}
+              >
+                Active in {stateDisplay}
+              </div>
+            )}
           </div>
         </div>
       </div>
