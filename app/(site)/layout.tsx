@@ -37,8 +37,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </nav>
         </header>
 
-        {/* page content */}
-        <main className="flex-1">
+        {/* page content (global top padding to restore hero offset) */}
+        <main className="flex-1 pt-10 md:pt-12">
           {children}
         </main>
 
