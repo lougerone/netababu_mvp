@@ -53,12 +53,12 @@ export default function CardParty({ party }: { party: Party }) {
     <Link
       href={`/parties/${party.slug}`}
       aria-label={`Open ${party.name || titleAbbr} party page`}
-      className="card card-compact p-4 block h-full hover:shadow-lg transition-shadow overflow-visible"
-      title={party.name || ''}
+      className="card card-compact p-4 block h-full hover:shadow-lg transition-shadow"
+      title={party.name || ''} // full name on hover
     >
-      {/* tiny bump so the last row never clips */}
-      <div className="flex flex-col h-full min-h-[108px] min-w-0">
-        {/* TOP */}
+      {/* Grid rows: [Row1 auto] [Row2 1fr] [Row3 auto] */}
+      <div className="grid grid-rows-[auto,1fr,auto] h-full min-h-[112px] min-w-0">
+        {/* Row 1: avatar + ABBR + scope */}
         <div className="flex items-start gap-3 min-w-0">
           <AvatarSquare src={party.logo ?? undefined} alt={party.name ?? 'Party'} size={48} rounded="lg" />
           <div className="min-w-0 flex-1">
@@ -66,19 +66,20 @@ export default function CardParty({ party }: { party: Party }) {
               <div className="font-semibold text-ink-800 truncate leading-5">{titleAbbr}</div>
               <ScopePill label={scopeRaw || undefined} />
             </div>
-            {leader && (
-              <div className="mt-0.5 text-xs text-ink-600 truncate">{`Led by ${leader}`}</div>
-            )}
           </div>
         </div>
 
-        {/* BOTTOM (pinned and unclipped) */}
+        {/* Row 2: flexible middle — leader sits here (keeps Row 3 at bottom) */}
+        <div className="min-w-0">
+          {leader && (
+            <div className="mt-1 text-xs text-ink-600 truncate">Led by {leader}</div>
+          )}
+        </div>
+
+        {/* Row 3: ALWAYS bottom-aligned */}
         {states.length > 0 && (
-          <div
-            className="mt-auto pt-1 text-xs leading-4 text-ink-500 truncate min-w-0"
-            title={states.join(', ')}
-          >
-            {`Active in ${stateDisplay}`}
+          <div className="pt-1 text-xs leading-4 text-ink-500 truncate min-w-0" title={states.join(', ')}>
+            Active in {stateDisplay}
           </div>
         )}
       </div>
