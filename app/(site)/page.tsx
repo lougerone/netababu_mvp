@@ -185,8 +185,9 @@ export default async function HomePage() {
       {/* ───────────────────────── Hero ───────────────────────── */}
       <main className="space-y-12">
         <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
-          {/* Background image */}
-         <Image
+          {/* Background image (always behind overlays) */}
+<div className="absolute inset-0 -z-10">
+  <Image
     src="/hero/hero-2560w.webp"
     alt="Watercolor collage of Indian political figures — Netababu"
     fill
@@ -194,6 +195,8 @@ export default async function HomePage() {
     sizes="100vw"
     className="h-full w-full object-contain object-bottom opacity-50 scale-90"
   />
+</div>
+
 
           {/* Edge fades */}
           <div className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-32 bg-gradient-to-b from-cream-200 to-transparent" />
