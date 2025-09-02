@@ -220,21 +220,22 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
 
      {/* Controls */}
 <div className="px-5 sm:px-8 py-6 bg-cream-200/50 border-b border-ink-200">
-  <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-4 w-full">
-    {/* left cluster: search + selects (flex-1 so it grows) */}
-    <div className="flex-1 min-w-[280px] flex flex-wrap items-center gap-3 sm:gap-4">
-      <input
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Search by name, abbreviation, leader, state…"
-        className="flex-1 min-w-[240px] rounded-full border border-ink-200 bg-white px-4 py-2.5 text-[15px] outline-none
-                   focus:border-ink-500 focus:ring-2 focus:ring-ink-200"
-      />
+  <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-4">
+    {/* Search always spans full row */}
+    <input
+      value={q}
+      onChange={(e) => setQ(e.target.value)}
+      placeholder="Search by name, abbreviation, leader, state…"
+      className="w-full rounded-full border border-ink-200 bg-white px-4 py-2.5 text-[15px] outline-none
+                 focus:border-ink-500 focus:ring-2 focus:ring-ink-200"
+    />
 
+    {/* Row 2: filters (left) + actions (right) */}
+    <div className="flex w-full flex-wrap items-center gap-3 sm:gap-4">
       <select
         value={status}
         onChange={(e) => setStatus(e.target.value)}
-        className="rounded-full border border-ink-200 bg-white px-3 py-2 text-sm"
+        className="rounded-full border border-ink-200 bg-white px-3 py-2 text-sm shrink-0"
       >
         <option value="">All Status</option>
         {allStatuses.map((s) => (
@@ -245,7 +246,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
       <select
         value={state}
         onChange={(e) => setState(e.target.value)}
-        className="rounded-full border border-ink-200 bg-white px-3 py-2 text-sm"
+        className="rounded-full border border-ink-200 bg-white px-3 py-2 text-sm shrink-0"
       >
         <option value="">All States</option>
         {allStates.map((s) => (
@@ -256,7 +257,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
       <select
         value={seatTier}
         onChange={(e) => setSeatTier(e.target.value)}
-        className="rounded-full border border-ink-200 bg-white px-3 py-2 text-sm"
+        className="rounded-full border border-ink-200 bg-white px-3 py-2 text-sm shrink-0"
       >
         <option value="">All Seats</option>
         <option value="1+">1+ seats</option>
@@ -272,7 +273,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
           setSortKey(k);
           setSortDir(d);
         }}
-        className="rounded-full border border-ink-200 bg-white px-3 py-2 text-sm"
+        className="rounded-full border border-ink-200 bg-white px-3 py-2 text-sm shrink-0"
       >
         <option value="seats:desc">Sort: Seats ↓</option>
         <option value="seats:asc">Sort: Seats ↑</option>
@@ -283,36 +284,39 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
         <option value="status:asc">Sort: Status A→Z</option>
         <option value="status:desc">Sort: Status Z→A</option>
       </select>
-    </div>
 
-    {/* right cluster: actions (sticks to right using ml-auto) */}
-    <div className="ml-auto flex gap-2">
-      <button
-        onClick={() => {
-          setQ('');
-          setState('');
-          setStatus('');
-          setSeatTier('');
-          setSortKey('seats');
-          setSortDir('desc');
-        }}
-        className="rounded-full border border-ink-200 px-4 py-2 text-sm bg-white hover:border-ink-500 hover:bg-ink-50"
-        type="button"
-      >
-        Clear filters
-      </button>
+      {/* FLEX SPACER pushes actions to the far right */}
+      <div className="flex-1" />
 
-      <button
-        onClick={exportCSV}
-        className="rounded-full border border-ink-200 px-4 py-2 text-sm bg-white hover:border-ink-500 hover:bg-ink-50"
-        type="button"
-      >
-        Export CSV
-      </button>
+      {/* Actions (right) */}
+      <div className="flex items-center gap-2 shrink-0">
+        <button
+          onClick={() => {
+            setQ('');
+            setState('');
+            setStatus('');
+            setSeatTier('');
+            setSortKey('seats');
+            setSortDir('desc');
+          }}
+          className="rounded-full border border-ink-200 px-4 py-2 text-sm bg-white hover:border-ink-500 hover:bg-ink-50"
+          type="button"
+        >
+          Clear filters
+        </button>
+
+        <button
+          onClick={exportCSV}
+          className="rounded-full border border-ink-200 px-4 py-2 text-sm bg-white hover:border-ink-500 hover:bg-ink-50"
+          type="button"
+        >
+          Export CSV
+        </button>
+      </div>
     </div>
   </div>
 
-  {/* Stats row below stays as-is */}
+  {/* Stats row below stays the same */}
   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
     <Stat label="Total Parties" value={stats.total} />
     <Stat label="Total LS Seats" value={stats.seatSum} />
