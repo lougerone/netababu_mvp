@@ -21,16 +21,7 @@ export default function CardPolitician({ p }: { p: Politician }) {
     >
       <div className="flex items-center gap-3">
         {/* Safe avatar with fallback */}
-        <AvatarSquare
-  src={p.photo ?? undefined}
-  alt={p.name}
-  size={48}
-  rounded="lg"
-  variant="person"
-  label={p.name}
-/>
-
-
+        <AvatarSquare src={p.photo ?? undefined} alt={p.name} size={48} rounded="lg" variant="person" label={p.name} />
         <div className="min-w-0 flex-1">
           <div className="font-medium text-ink-700 truncate">{p.name}</div>
           <div className="text-xs text-ink-600/80 truncate">
