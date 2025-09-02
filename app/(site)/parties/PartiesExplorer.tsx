@@ -35,10 +35,8 @@ const pillBase = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] 
 function pillClass(b: Exclude<Badge, null>) {
   switch (b) {
     case 'National':
-      // light saffron
       return 'bg-saffron-100 text-saffron-800 ring-saffron-200';
     case 'State':
-      // ink pill
       return 'bg-ink-100 text-ink-800 ring-ink-200';
   }
 }
@@ -61,7 +59,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
   const [state, setState] = useState('');
   const [status, setStatus] = useState('');
   const [seatTier, setSeatTier] = useState('');
-  const [sortKey, setSortKey] = useState<'name' | 'seats' | 'founded'>('seats');
+  const [sortKey, setSortKey] = useState<'name' | 'seats' | 'founded' | 'status'>('seats');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [page, setPage] = useState(1);
   const PER = 20;
@@ -147,6 +145,11 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
         const ay = (a.founded && parseInt(String(a.founded).slice(0, 4), 10)) || 0;
         const by = (b.founded && parseInt(String(b.founded).slice(0, 4), 10)) || 0;
         return dir * (ay - by);
+      }
+      if (sortKey === 'status') {
+        const an = (a.status || '').toLowerCase();
+        const bn = (b.status || '').toLowerCase();
+        return dir * an.localeCompare(bn);
       }
       return dir * (seatsNum(a) - seatsNum(b)); // seats
     });
@@ -268,7 +271,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
             <select
               value={`${sortKey}:${sortDir}`}
               onChange={(e) => {
-                const [k, d] = e.target.value.split(':') as ['name' | 'seats' | 'founded', 'asc' | 'desc'];
+                const [k, d] = e.target.value.split(':') as ['name' | 'seats' | 'founded' | 'status', 'asc' | 'desc'];
                 setSortKey(k);
                 setSortDir(d);
               }}
@@ -280,6 +283,8 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
               <option value="name:desc">Sort: Name Z→A</option>
               <option value="founded:desc">Sort: Founded ↓</option>
               <option value="founded:asc">Sort: Founded ↑</option>
+              <option value="status:asc">Sort: Status A→Z</option>
+              <option value="status:desc">Sort: Status Z→A</option>
             </select>
 
             <button
