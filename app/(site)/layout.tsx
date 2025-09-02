@@ -1,4 +1,3 @@
-// app/(site)/layout.tsx
 import type { Metadata, Viewport } from 'next';
 import '../globals.css';
 import Nav from '@/components/Nav';
@@ -27,7 +26,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-cream-200 text-ink-700">
+      <body className="min-h-screen bg-cream-200 text-ink-700 flex flex-col">
         {/* saffron top bar */}
         <div className="h-2 bg-saffron-500" />
 
@@ -39,7 +38,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </header>
 
         {/* page content */}
-        <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
+        <main className="flex-1">
+          {children}
+        </main>
+
+        {/* global footer */}
+        <Footer />
       </body>
     </html>
   );
