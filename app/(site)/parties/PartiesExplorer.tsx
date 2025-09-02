@@ -35,13 +35,21 @@ const pillBase = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] 
 function pillClass(b: Exclude<Badge, null>) {
   switch (b) {
     case 'National':
-      // light saffron bg + saffron text + soft ring
+      // light saffron
       return 'bg-saffron-100 text-saffron-800 ring-saffron-200';
     case 'State':
-      // ink pill (brand navy) + ink ring
+      // ink pill
       return 'bg-ink-100 text-ink-800 ring-ink-200';
   }
 }
+
+const normalize = (s = '') =>
+  s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 // ---------- component ----------
 export default function PartiesExplorer({ initialParties, initialQuery = '' }: Props) {
@@ -58,14 +66,19 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
   const [page, setPage] = useState(1);
   const PER = 20;
 
-  // keep q in the URL (replaceState so it doesn't spam history)
+  // Sync ALL filters to URL (replaceState so it doesn't spam history)
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams();
     if (q) params.set('q', q);
-    else params.delete('q');
+    if (state) params.set('state', state);
+    if (status) params.set('status', status);
+    if (seatTier) params.set('seats', seatTier);
+    if (sortKey) params.set('sort', sortKey);
+    if (sortDir) params.set('dir', sortDir);
     const qs = params.toString();
-    window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
-  }, [q]);
+    const url = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+    window.history.replaceState(null, '', url);
+  }, [q, state, status, seatTier, sortKey, sortDir]);
 
   useEffect(() => setQ(initialQuery), [initialQuery]);
 
@@ -81,23 +94,52 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
     return [...s].sort((a, b) => a.localeCompare(b));
   }, [rows]);
 
-  const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    const tierMin = seatTier === '50+' ? 50 : seatTier === '10+' ? 10 : seatTier === '5+' ? 5 : seatTier === '1+' ? 1 : 0;
-
-    const out = rows.filter((p) => {
-      const text = [p.name, p.abbr, p.state, p.status, p.symbolText, p.details, ...(p.leaders || [])]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-
-      const okQ = needle ? text.includes(needle) : true;
-      const okState = state ? (p.state || '') === state : true;
-      const okStatus = status ? (p.status || '') === status : true;
-      const okSeats = tierMin > 0 ? seatsNum(p) >= tierMin : true;
-      return okQ && okState && okStatus && okSeats;
+  // PRE-INDEX: compute normalized text + normalized status once
+  const indexed = useMemo(() => {
+    return rows.map((p) => {
+      const text = normalize(
+        [p.name, p.abbr, p.state, p.status, p.symbolText, p.details, ...(p.leaders || [])]
+          .filter(Boolean)
+          .join(' ')
+      );
+      const statusNorm = normalize(p.status || '');
+      const statusLabel = getStatusLabel(p.status);
+      return { p, text, statusNorm, statusLabel };
     });
+  }, [rows]);
 
+  // FILTER
+  const filtered = useMemo(() => {
+    const tokens = normalize(q).split(' ').filter(Boolean); // multi-token AND
+    const tierMin =
+      seatTier === '50+' ? 50 :
+      seatTier === '10+' ? 10 :
+      seatTier === '5+'  ? 5  :
+      seatTier === '1+'  ? 1  : 0;
+
+    const wantNational = status ? normalize(status).includes('national') : null;
+    const wantState    = status ? normalize(status).includes('state')    : null;
+
+    const out = indexed
+      .filter(({ p, text, statusNorm }) => {
+        // text match: every token must be contained
+        const okQ = tokens.length ? tokens.every((t) => text.includes(t)) : true;
+
+        const okState = state ? normalize(p.state || '') === normalize(state) : true;
+
+        // status match (accepts “National”/“State” variants from Airtable)
+        const okStatus = status
+          ? (wantNational ? statusNorm.includes('national') : false) ||
+            (wantState    ? statusNorm.includes('state')    : false)
+          : true;
+
+        const okSeats = tierMin > 0 ? seatsNum(p) >= tierMin : true;
+
+        return okQ && okState && okStatus && okSeats;
+      })
+      .map(({ p }) => p);
+
+    // sort
     out.sort((a, b) => {
       const dir = sortDir === 'asc' ? 1 : -1;
       if (sortKey === 'name') return dir * (a.name || '').localeCompare(b.name || '');
@@ -110,7 +152,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
     });
 
     return out;
-  }, [rows, q, state, status, seatTier, sortKey, sortDir]);
+  }, [indexed, q, state, status, seatTier, sortKey, sortDir]);
 
   useEffect(() => setPage(1), [q, state, status, seatTier, sortKey, sortDir]);
 
@@ -120,12 +162,49 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
   const stats = useMemo(() => {
     const total = filtered.length;
     const seatSum = filtered.reduce((s, p) => s + seatsNum(p), 0);
-    const national = filtered.filter((p) => String(p.status || '').toLowerCase().includes('national')).length;
-    const stateCount = filtered.filter((p) => String(p.status || '').toLowerCase().includes('state')).length;
+    const national = filtered.filter((p) => normalize(p.status || '').includes('national')).length;
+    const stateCount = filtered.filter((p) => normalize(p.status || '').includes('state')).length;
     return { total, seatSum, national, stateCount };
   }, [filtered]);
 
   const tdBase = 'p-3 first:pl-6 last:pr-6 align-middle';
+
+  // Keyboard: prevent form submits from Enter jumping pages
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && (document.activeElement as HTMLElement)?.tagName === 'INPUT') {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Export CSV of filtered view
+  const exportCSV = () => {
+    const rowsOut = filtered.map((p) => ({
+      id: p.id,
+      name: p.name,
+      abbr: p.abbr || '',
+      state: p.state || '',
+      status: p.status || '',
+      founded: p.founded || '',
+      seats: seatsNum(p),
+      leaders: (p.leaders || []).join('; '),
+    }));
+    const headers = Object.keys(rowsOut[0] || { id: '', name: '', abbr: '', state: '', status: '', founded: '', seats: '', leaders: '' });
+    const csv = [
+      headers.join(','),
+      ...rowsOut.map((r) => headers.map((h) => JSON.stringify((r as any)[h] ?? '')).join(',')),
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'parties_filtered.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="max-w-[1400px] mx-auto my-6 sm:my-8 rounded-2xl overflow-hidden bg-white shadow-2xl">
@@ -217,6 +296,14 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
             >
               Clear filters
             </button>
+
+            <button
+              onClick={exportCSV}
+              className="rounded-lg border border-ink-200 px-3 py-2 text-sm hover:border-ink-500 hover:bg-ink-900/5"
+              type="button"
+            >
+              Export CSV
+            </button>
           </div>
         </div>
 
@@ -235,12 +322,12 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
           <thead className="sticky top-0 z-10">
             <tr className="bg-cream-100/90 backdrop-blur supports-[backdrop-filter]:bg-cream-100/80 text-ink-700 border-y border-ink-200 text-sm">
               <Th>Logo</Th>
-              <Th>Name</Th>
+              <Th sort={sortKey==='name' ? (sortDir==='asc'?'ascending':'descending') : 'none'}>Name</Th>
               <Th>Abbr</Th>
               <Th>State</Th>
-              <Th align="right">Founded</Th>
-              <Th>Status</Th>
-              <Th align="right">LS Seats</Th>
+              <Th align="right" sort={sortKey==='founded' ? (sortDir==='asc'?'ascending':'descending') : 'none'}>Founded</Th>
+              <Th sort={sortKey==='status' ? (sortDir==='asc'?'ascending':'descending') : 'none'}>Status</Th>
+              <Th align="right" sort={sortKey==='seats' ? (sortDir==='asc'?'ascending':'descending') : 'none'}>LS Seats</Th>
               <Th>Leaders</Th>
               <Th>Details</Th>
             </tr>
@@ -260,7 +347,10 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-md grid place-items-center bg-ink-100 text-ink-700 text-xs font-semibold border border-ink-200">
-                        {(p.abbr || p.name?.slice(0, 2) || '—').toUpperCase()}
+                        {(p.abbr || p.name || '—')
+                          .toUpperCase()
+                          .replace(/[^A-Z]/g, '')
+                          .slice(0, 4) || '—'}
                       </div>
                     )}
                   </td>
@@ -275,7 +365,9 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
                     {label ? (
                       <span className={`${pillBase} ${pillClass(label)}`}>{label}</span>
                     ) : (
-                      <span className="text-ink-600/60">—</span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-black/5 text-ink-700/70">
+                        N/A
+                      </span>
                     )}
                   </td>
                   <td className={cx(tdBase, 'text-right tabular-nums font-semibold text-ink-800')}>
@@ -309,7 +401,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
         <div className="flex justify-center items-center gap-2 mt-6">
           {page > 1 && (
             <button
-              className="px-3 py-2 rounded-md border border-ink-200 hover:border-ink-500 hover:bg-ink-700 hover:text-white"
+              className="w-20 px-3 py-2 rounded-md border border-ink-200 hover:border-ink-500 hover:bg-ink-700 hover:text-white"
               onClick={() => setPage(page - 1)}
             >
               ‹ Prev
@@ -325,7 +417,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
                   key={n}
                   onClick={() => setPage(n)}
                   className={cx(
-                    'px-3 py-2 rounded-md border',
+                    'min-w-10 px-3 py-2 rounded-md border',
                     n === page ? 'bg-ink-700 border-ink-700 text-white' : 'border-ink-200 hover:border-ink-500'
                   )}
                 >
@@ -335,7 +427,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
             })}
           {page < totalPages && (
             <button
-              className="px-3 py-2 rounded-md border border-ink-200 hover:border-ink-500 hover:bg-ink-700 hover:text-white"
+              className="w-20 px-3 py-2 rounded-md border border-ink-200 hover:border-ink-500 hover:bg-ink-700 hover:text-white"
               onClick={() => setPage(page + 1)}
             >
               Next ›
@@ -350,12 +442,15 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
 function Th({
   children,
   align = 'left',
+  sort = 'none',
 }: {
   children: React.ReactNode;
   align?: 'left' | 'right';
+  sort?: 'ascending' | 'descending' | 'none';
 }) {
   return (
     <th
+      aria-sort={sort}
       className={cx(
         'px-3 py-3 first:pl-6 last:pr-6 font-semibold whitespace-nowrap',
         align === 'right' ? 'text-right' : 'text-left'
