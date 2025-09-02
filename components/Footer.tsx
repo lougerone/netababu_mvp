@@ -37,10 +37,6 @@ export default function Footer() {
           <div className="mb-2 font-medium">Contact</div>
           <ul className="space-y-1 text-sm">
             <li><a href="mailto:hello@netababu.com" className="hover:underline">hello@netababu.com</a></li>
-            <li><a href="mailto:privacy@netababu.com" className="hover:underline">privacy@netababu.com</a></li>
-            <li>
-              <a href="mailto:go@netababu.com" className="hover:underline">go@netababu.com</a>{' '}
-              <span className="text-ink-600/60">(Grievance Officer)</span>
             </li>
           </ul>
         </div>
