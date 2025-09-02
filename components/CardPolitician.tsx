@@ -24,51 +24,13 @@ function partyAbbr(raw: string | null | undefined): string {
   // 2) Already short alphanumeric token (<=5)
   if (/^[A-Za-z0-9]{1,5}$/.test(s)) return s.toUpperCase();
 
-// Resolve a URL from string / object / Airtable attachment array
-const pickFirstUrl = (v: unknown): string | undefined => {
-  if (!v) return;
-  if (typeof v === 'string') return v.trim() || undefined;
-
-  if (Array.isArray(v)) {
-    for (const x of v) {
-      if (!x) continue;
-      if (typeof x === 'string' && x.trim()) return x.trim();
-      if (typeof x === 'object') {
-        const o = x as Record<string, any>;
-        if (o.thumbnails?.large?.url) return o.thumbnails.large.url;
-        if (o.url) return o.url;
-      }
-    }
-    return undefined;
-  }
-
-  if (typeof v === 'object') {
-    const o = v as Record<string, any>;
-    if (o.thumbnails?.large?.url) return o.thumbnails.large.url;
-    if (o.url) return o.url;
-  }
-};
-
-const pickLogoUrl = (p: any): string | undefined => {
-  const cands = [
-    p.logo, p.Logo, p.logo_url, p['logo url'],
-    p.image, p.photo, p.symbol, p.emblem, p.flag, p.icon, p.image_url, p.images,
-    p.fields?.logo, p.fields?.Logo, p.fields?.logo_url, p.fields?.image, p.fields?.symbol,
-  ];
-  for (const c of cands) {
-    const u = pickFirstUrl(c);
-    if (u) return u;
-  }
-};
-
-  
   // 3) Build from initial letters (ignore filler words)
   const ignore = new Set(['party', 'of', 'the', 'and', 'india', 'indian']);
   const letters = s
     .split(/[\s-]+/)
     .filter(Boolean)
-    .filter(w => !ignore.has(w.toLowerCase()))
-    .map(w => w[0])
+    .filter((w) => !ignore.has(w.toLowerCase()))
+    .map((w) => w[0])
     .join('')
     .toUpperCase();
 
@@ -92,14 +54,13 @@ export default function CardPolitician({ p }: { p: Politician }) {
       <div className="flex items-start gap-3 min-w-0">
         {/* Bigger, safe avatar */}
         <AvatarSquare
-  src={pickLogoUrl(party) ?? undefined}
-  alt={party.name ?? 'Party'}
-  size={64}
-  rounded="rounded-xl"
-  variant="party"
-  label={(party as any).abbr || party.name}
-/>
-
+          src={p.photo ?? undefined}
+          alt={p.name}
+          size={64}                // ← bigger image
+          rounded="rounded-xl"
+          variant="person"
+          label={p.name}
+        />
 
         <div className="min-w-0 flex-1">
           {/* Row 1: Name */}
@@ -109,7 +70,8 @@ export default function CardPolitician({ p }: { p: Politician }) {
 
           {/* Row 2: Party ABBR • State */}
           <div className="text-xs text-ink-600/80 truncate">
-            {abbr}{state ? ` • ${state}` : ''}
+            {abbr}
+            {state ? ` • ${state}` : ''}
           </div>
 
           {/* Row 3: Current position (if any) */}
