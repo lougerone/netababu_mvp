@@ -55,7 +55,7 @@ export default function CardParty({ party }: { party: Party }) {
       title={party.name || ''} // full name on hover
     >
       {/* Column layout with bottom row pinned and increased min-height */}
-      <div className="flex h-full flex-col min-h-[120px] min-w-0 justify-between">
+      <div className="flex flex-col min-h-[140px] min-w-0 pb-1">
         {/* TOP */}
         <div className="flex items-start gap-3 min-w-0 flex-shrink-0">
           <AvatarSquare src={party.logo ?? undefined} alt={party.name ?? 'Party'} size={48} rounded="lg" />
@@ -70,10 +70,10 @@ export default function CardParty({ party }: { party: Party }) {
           </div>
         </div>
         
-        {/* BOTTOM (pinned with better spacing) */}
+        {/* BOTTOM (with margin top for spacing) */}
         {states.length > 0 && (
           <div
-            className="text-xs text-ink-500 truncate min-w-0 flex-shrink-0 mt-3"
+            className="text-xs text-ink-500 truncate min-w-0 mt-auto pt-3"
             title={states.join(', ')}
           >
             {`Active in ${stateDisplay}`}
