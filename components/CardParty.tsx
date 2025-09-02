@@ -53,13 +53,13 @@ export default function CardParty({ party }: { party: Party }) {
     <Link
       href={`/parties/${party.slug}`}
       aria-label={`Open ${party.name || titleAbbr} party page`}
-      className="card card-compact p-4 block h-full hover:shadow-lg transition-shadow"
-      title={party.name || ''} // show full party name on hover
+      className="card card-compact p-4 block h-full hover:shadow-lg transition-shadow overflow-hidden"
+      title={party.name || ''} // full name on hover
     >
-      {/* Use mt-auto to pin the footprint row to the bottom, like Politician.position */}
-      <div className="flex flex-col h-full min-h-[104px]">
-        {/* Top: avatar + ABBR + scope + (leader) */}
-        <div className="flex items-start gap-3">
+      {/* Column layout with bottom row pinned and width clamps for truncate */}
+      <div className="flex h-full flex-col min-h-[104px] min-w-0">
+        {/* TOP */}
+        <div className="flex items-start gap-3 min-w-0">
           <AvatarSquare src={party.logo ?? undefined} alt={party.name ?? 'Party'} size={48} rounded="lg" />
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2 min-w-0">
@@ -67,17 +67,18 @@ export default function CardParty({ party }: { party: Party }) {
               <ScopePill label={scopeRaw || undefined} />
             </div>
             {leader && (
-              <div className="mt-0.5 text-xs text-ink-600 truncate">
-                Led by {leader}
-              </div>
+              <div className="mt-0.5 text-xs text-ink-600 truncate">{`Led by ${leader}`}</div>
             )}
           </div>
         </div>
 
-        {/* Bottom: states footprint (pinned to bottom) */}
+        {/* BOTTOM (pinned) */}
         {states.length > 0 && (
-          <div className="mt-auto pt-2 text-xs text-ink-500 truncate" title={states.join(', ')}>
-            Active in {stateDisplay}
+          <div
+            className="mt-auto pt-2 text-xs text-ink-500 truncate min-w-0"
+            title={states.join(', ')}
+          >
+            {`Active in ${stateDisplay}`}
           </div>
         )}
       </div>
