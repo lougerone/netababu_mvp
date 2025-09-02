@@ -31,9 +31,8 @@ const pickLeader = (p: any): string | undefined =>
   p.leader || p.leaders || p['party leader'] || p['Leader'] || undefined;
 
 const pickStates = (p: any): string[] => {
-  const candidates = [p.states, p.state, p['active states'], p.region, p.regions];
-  for (const c of candidates) {
-    const arr = toList(c);
+  for (const cand of [p.states, p.state, p['active states'], p.region, p.regions]) {
+    const arr = toList(cand);
     if (arr.length) return arr;
   }
   return [];
@@ -41,27 +40,14 @@ const pickStates = (p: any): string[] => {
 
 export default function CardParty({ party }: { party: Party }) {
   const scopeRaw =
-    (party as any).status ||
-    (party as any).scope ||
-    (party as any).level ||
-    (party as any).type ||
-    '';
+    party.status || (party as any).scope || (party as any).level || (party as any).type || '';
 
   const abbr = (party as any).abbr || (party as any).short;
   const titleAbbr = abbr || party.name || '—';
 
   const leader = pickLeader(party as any);
-  const statesList = pickStates(party as any);
-
-  // Build the bottom-line label with safe fallbacks
-  let activeLabel = '';
-  if (statesList.length > 1) activeLabel = `${statesList[0]} +${statesList.length - 1}`;
-  else if (statesList.length === 1) activeLabel = statesList[0];
-  else {
-    const s = String(scopeRaw).toLowerCase();
-    if (s.includes('national')) activeLabel = 'India';
-    else if (s.includes('state') && (party as any).state) activeLabel = String((party as any).state);
-  }
+  const states = pickStates(party as any);
+  const stateDisplay = states.length > 1 ? `${states[0]} +${states.length - 1}` : states[0];
 
   return (
     <Link
@@ -70,40 +56,29 @@ export default function CardParty({ party }: { party: Party }) {
       className="card card-compact p-4 block h-full hover:shadow-lg transition-shadow overflow-hidden"
       title={party.name || ''} // full name on hover
     >
-      {/* 3-row grid: title, (leader grows), bottom line pinned */}
-      <div className="grid grid-rows-[auto,1fr,auto] min-h-[112px] h-full min-w-0">
-        {/* Row 1 */}
+      {/* Column layout with bottom row pinned and width clamps for truncate */}
+      <div className="flex h-full flex-col min-h-[104px] min-w-0">
+        {/* TOP */}
         <div className="flex items-start gap-3 min-w-0">
-          <AvatarSquare
-            src={party.logo ?? undefined}
-            alt={party.name ?? 'Party'}
-            size={48}
-            rounded="lg"
-          />
+          <AvatarSquare src={party.logo ?? undefined} alt={party.name ?? 'Party'} size={48} rounded="lg" />
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2 min-w-0">
               <div className="font-semibold text-ink-800 truncate leading-5">{titleAbbr}</div>
               <ScopePill label={scopeRaw || undefined} />
             </div>
+            {leader && (
+              <div className="mt-0.5 text-xs text-ink-600 truncate">{`Led by ${leader}`}</div>
+            )}
           </div>
         </div>
 
-        {/* Row 2 (flexible middle) */}
-        <div className="min-w-0">
-          {leader && (
-            <div className="mt-1 text-xs text-ink-600 truncate">
-              Led by {leader}
-            </div>
-          )}
-        </div>
-
-        {/* Row 3 (bottom pinned) */}
-        {activeLabel && (
+        {/* BOTTOM (pinned) */}
+        {states.length > 0 && (
           <div
-            className="pt-1 text-xs leading-4 text-ink-500 truncate min-w-0"
-            title={statesList.length ? statesList.join(', ') : activeLabel}
+            className="mt-auto pt-2 text-xs text-ink-500 truncate min-w-0"
+            title={states.join(', ')}
           >
-            Active in {activeLabel}
+            {`Active in ${stateDisplay}`}
           </div>
         )}
       </div>
