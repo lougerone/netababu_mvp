@@ -1,35 +1,36 @@
-import Link from 'next/link';
 import Image from 'next/image';
-import CardPolitician from '@/components/CardPolitician';
+import Link from 'next/link';
+
 import CardParty from '@/components/CardParty';
-import { listPoliticians, listParties } from '@/lib/airtable';
+import CardPolitician from '@/components/CardPolitician';
 import HeroSearch from '@/components/HeroSearch';
+import { listParties, listPoliticians } from '@/lib/airtable';
 
 export const dynamic = 'force-dynamic';
 
-/* ---------------- helpers ---------------- */
-type AnyRec = Record<string, any>;
+/* ──────────────────────────────────────────────────────────────────────────────
+   Helpers
+   ─────────────────────────────────────────────────────────────────────────── */
 
-const toList = (v: any): string[] =>
-  !v ? [] : Array.isArray(v) ? v.filter(Boolean).map((x) => String(x).trim())
-  : String(v).split(/[,\n;]/).map(s => s.trim()).filter(Boolean);
+type AnyRec = Record<string, any>;
 
 const firstNonEmpty = (obj: AnyRec, keys: string[]) => {
   for (const k of keys) {
     const v = obj?.[k];
     if (v != null && String(v).trim() !== '') return v;
   }
+  return undefined;
 };
 
-const toNum = (v: any): number | undefined => {
-  if (v == null || v === '') return;
+const toNum = (v: unknown): number | undefined => {
+  if (v == null || v === '') return undefined;
   const s = String(Array.isArray(v) ? v[0] : v).replace(/[^\d.-]/g, '');
   const n = Number(s);
   return Number.isFinite(n) ? n : undefined;
 };
 
-const parseYear = (v: any): number | undefined => {
-  if (!v) return;
+const parseYear = (v: unknown): number | undefined => {
+  if (!v) return undefined;
   const m = String(v).match(/\b(18|19|20)\d{2}\b/);
   return m ? Number(m[0]) : undefined;
 };
@@ -37,40 +38,73 @@ const parseYear = (v: any): number | undefined => {
 const roleText = (pol: AnyRec): string =>
   String(
     firstNonEmpty(pol, [
-      'current_position','position','role','title','office','designation','post'
-    ]) || ''
+      'current_position',
+      'position',
+      'role',
+      'title',
+      'office',
+      'designation',
+      'post',
+    ]) || '',
   );
 
-const findRole = (pols: AnyRec[], role: 'pm'|'president'|'home'|'lop') => {
-  const txt = (p: AnyRec) => roleText(p).toLowerCase();
+const findRole = (pols: AnyRec[], role: 'pm' | 'president' | 'home' | 'lop') => {
+  if (role === 'pm') return pols.find((p) => /\bprime\s*minister\b/i.test(roleText(p)));
+  if (role === 'home') return pols.find((p) => /\bhome\s+minister\b/i.test(roleText(p)));
 
-  if (role === 'pm')      return pols.find(p => /\bprime\s*minister\b/i.test(roleText(p)));
-  if (role === 'home')    return pols.find(p => /\bhome\s+minister\b/i.test(roleText(p)));
-  if (role === 'president')
-    return pols.find(p => /\bpresident\b/i.test(roleText(p)) && !/\bparty\s+president\b/i.test(roleText(p)));
+  if (role === 'president') {
+    return pols.find(
+      (p) => /\bpresident\b/i.test(roleText(p)) && !/\bparty\s+president\b/i.test(roleText(p)),
+    );
+  }
+
   // LOP: prefer Lok Sabha if present
-  const lopLS = pols.find(p => /\bleader\s+of\s+opposition\b/i.test(roleText(p)) && /\blok\s*sabha|people'?s\s+house/i.test(roleText(p)));
+  const lopLS = pols.find(
+    (p) =>
+      /\bleader\s+of\s+opposition\b/i.test(roleText(p)) &&
+      /\blok\s*sabha|people'?s\s+house/i.test(roleText(p)),
+  );
   if (lopLS) return lopLS;
-  return pols.find(p => /\bleader\s+of\s+opposition\b/i.test(roleText(p)));
+
+  return pols.find((p) => /\bleader\s+of\s+opposition\b/i.test(roleText(p)));
 };
 
 const pickJoinYear = (p: AnyRec): number | undefined =>
-  toNum(firstNonEmpty(p, ['first_elected','first election','year joined','joined','politics_since','entry_year','career_start'])) ??
-  parseYear(firstNonEmpty(p, ['first_elected','first election','joined','politics_since','entry_year','career_start']));
+  toNum(
+    firstNonEmpty(p, [
+      'first_elected',
+      'first election',
+      'year joined',
+      'joined',
+      'politics_since',
+      'entry_year',
+      'career_start',
+    ]),
+  ) ??
+  parseYear(
+    firstNonEmpty(p, [
+      'first_elected',
+      'first election',
+      'joined',
+      'politics_since',
+      'entry_year',
+      'career_start',
+    ]),
+  );
 
 const pickDOBYear = (p: AnyRec): number | undefined =>
-  parseYear(firstNonEmpty(p, ['dob','date_of_birth','birthdate','born']));
+  parseYear(firstNonEmpty(p, ['dob', 'date_of_birth', 'birthdate', 'born']));
 
 const pickFoundedYear = (party: AnyRec): number | undefined =>
-  parseYear(firstNonEmpty(party, ['founded','founded year','established','formation','founded_year']));
+  parseYear(firstNonEmpty(party, ['founded', 'founded year', 'established', 'formation', 'founded_year']));
 
 const pickSeats = (party: AnyRec): number => {
-  const ls = toNum(firstNonEmpty(party, ['lok sabha seats','ls seats','seats ls','seats_lok_sabha']));
-  const rs = toNum(firstNonEmpty(party, ['rajya sabha seats','rs seats','seats rs','seats_rajya_sabha']));
+  const ls = toNum(firstNonEmpty(party, ['lok sabha seats', 'ls seats', 'seats ls', 'seats_lok_sabha']));
+  const rs = toNum(firstNonEmpty(party, ['rajya sabha seats', 'rs seats', 'seats rs', 'seats_rajya_sabha']));
   const total = (ls ?? 0) + (rs ?? 0);
   if (total > 0) return total;
 
-  // fallback: any field containing "seats"
+  // Fallback: any field containing "seats"
   for (const k of Object.keys(party)) {
     if (/seats/i.test(k)) {
       const n = toNum(party[k]);
@@ -85,33 +119,41 @@ const uniqById = <T extends AnyRec>(arr: T[]) => {
   const out: T[] = [];
   for (const x of arr) {
     const id = String(x.id ?? x.slug ?? Math.random());
-    if (!seen.has(id)) { seen.add(id); out.push(x); }
+    if (!seen.has(id)) {
+      seen.add(id);
+      out.push(x);
+    }
   }
   return out;
 };
 
-/* ---------------- page ---------------- */
+/* ──────────────────────────────────────────────────────────────────────────────
+   Page
+   ─────────────────────────────────────────────────────────────────────────── */
+
 export default async function HomePage() {
-  // bump limits so we can actually find roles/seats/newest
+  // Fetch enough rows to compute roles/seats/newest
   const [polAll, parAll] = await Promise.all([
     listPoliticians({ limit: 500 }) as any,
     listParties({ limit: 500 }) as any,
   ]);
 
   /* Top Netas: PM, President, Home Minister, LOP */
-  const topNetas = uniqById([
-    findRole(polAll, 'pm'),
-    findRole(polAll, 'president'),
-    findRole(polAll, 'home'),
-    findRole(polAll, 'lop'),
-  ].filter(Boolean) as AnyRec[]).slice(0, 4);
+  const topNetas = uniqById(
+    [
+      findRole(polAll, 'pm'),
+      findRole(polAll, 'president'),
+      findRole(polAll, 'home'),
+      findRole(polAll, 'lop'),
+    ].filter(Boolean) as AnyRec[],
+  ).slice(0, 4);
 
   /* Top Parties by total seats */
   const topParties = [...parAll]
     .map((p: AnyRec) => ({ p, seats: pickSeats(p) }))
     .sort((a, b) => b.seats - a.seats)
     .slice(0, 4)
-    .map(x => x.p);
+    .map((x) => x.p);
 
   /* Newly Added → Netas: most recent join year, then youngest DOB */
   const latestNetas = [...polAll]
@@ -124,7 +166,7 @@ export default async function HomePage() {
       return 0;
     })
     .slice(0, 4)
-    .map(x => x.p);
+    .map((x) => x.p);
 
   /* Newly Added → Parties: newest founded year */
   const latestParties = [...parAll]
@@ -136,27 +178,21 @@ export default async function HomePage() {
       return 0;
     })
     .slice(0, 4)
-    .map(x => x.p);
-
-  // Popular searches (placeholder)
-  const displaySearches = ['Modi', 'Gandhi', 'BJP', 'RSS'];
+    .map((x) => x.p);
 
   return (
     <>
+      {/* ───────────────────────── Hero ───────────────────────── */}
       <main className="space-y-12">
-        {/* Hero */}
-        <section
-          className="relative isolate overflow-hidden
-                     h-[55vh] md:h-[65vh] lg:h-[75vh] flex items-start justify-center"
-        >
+        <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
           {/* Background image */}
           <Image
             src="/hero/hero-2560w.webp"
             alt="Watercolor collage of Indian political figures — Netababu"
             fill
             priority
-            className="absolute inset-0 -z-10 h-full w-full object-contain object-bottom opacity-50 scale-90"
             sizes="100vw"
+            className="absolute inset-0 -z-10 h-full w-full scale-90 object-contain object-bottom opacity-50"
           />
 
           {/* Edge fades */}
@@ -166,17 +202,14 @@ export default async function HomePage() {
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
 
           {/* Centered headline + search */}
-          <div className="relative mx-auto max-w-4xl px-4 pt-6 md:pt-8 lg:pt-10 text-center">
+          <div className="relative mx-auto max-w-4xl px-4 pt-6 text-center md:pt-8 lg:pt-10">
             <div className="h-kicker text-shadow-cream">India • Politics • Data</div>
 
-            <h1
-              className="whitespace-nowrap font-semibold text-ink-700 leading-tight tracking-tight 
-                         text-[clamp(22px,4.5vw,42px)] text-shadow-cream"
-            >
+            <h1 className="text-shadow-cream whitespace-nowrap text-[clamp(22px,4.5vw,42px)] font-semibold leading-tight tracking-tight text-ink-700">
               Netas, parties, drama — all in one place.
             </h1>
 
-            <div className="text-saffron-600 text-xl md:text-2xl font-semibold mt-1 text-shadow-cream">
+            <div className="text-shadow-cream mt-1 text-xl font-semibold text-saffron-600 md:text-2xl">
               नेताजी, पार्टियाँ और इंफो — एक ही जगह
             </div>
 
@@ -184,144 +217,226 @@ export default async function HomePage() {
           </div>
 
           {/* Explore cards anchored to hero bottom */}
-          <div className="absolute inset-x-0 bottom-6 sm:bottom-10 md:bottom-14 z-10"> 
+          <div className="absolute inset-x-0 bottom-6 z-10 sm:bottom-10 md:bottom-14">
             <div className="mx-auto max-w-6xl px-4">
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid gap-4 md:grid-cols-3">
                 <div className="card p-5">
-                  <h3 className="flex items-center gap-2 font-medium text-lg">
+                  <h3 className="flex items-center gap-2 text-lg font-medium">
                     <span className="text-2xl">🏳️</span> Explore by Party
                   </h3>
-                  <p className="text-sm text-ink-600/80 mb-3 mt-1">Browse active & latent parties.</p>
-                  <Link href="/parties" className="text-saffron-600 font-medium">View all →</Link>
+                  <p className="mt-1 mb-3 text-sm text-ink-600/80">Browse active &amp; latent parties.</p>
+                  <Link href="/parties" className="font-medium text-saffron-600">
+                    View all →
+                  </Link>
                 </div>
 
                 <div className="card p-5">
-                  <h3 className="flex items-center gap-2 font-medium text-lg">
+                  <h3 className="flex items-center gap-2 text-lg font-medium">
                     <span className="text-2xl">📍</span> Explore by State
                   </h3>
-                  <p className="text-sm text-ink-600/80 mb-3 mt-1">Filter politicians by state.</p>
-                  <Link href="/politicians" className="text-saffron-600 font-medium">View all →</Link>
+                  <p className="mt-1 mb-3 text-sm text-ink-600/80">Filter politicians by state.</p>
+                  <Link href="/politicians" className="font-medium text-saffron-600">
+                    View all →
+                  </Link>
                 </div>
 
                 <div className="card p-5">
-                  <h3 className="flex items-center gap-2 font-medium text-lg">
+                  <h3 className="flex items-center gap-2 text-lg font-medium">
                     <span className="text-2xl">⚔️</span> Compare Netas
                   </h3>
-                  <p className="text-sm text-ink-600/80 mb-3 mt-1">Head-to-head netas → spicy facts.</p>
-                  <Link href="/compare" className="text-saffron-600 font-medium">Compare →</Link>
+                  <p className="mt-1 mb-3 text-sm text-ink-600/80">Head-to-head netas → spicy facts.</p>
+                  <Link href="/compare" className="font-medium text-saffron-600">
+                    Compare →
+                  </Link>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Content container */}
-        <div className="mx-auto max-w-6xl px-4 space-y-12">
-          {/* Featured netas & parties */}
+        {/* ───────────────────────── Featured ───────────────────────── */}
+        <div className="mx-auto max-w-6xl space-y-12 px-4">
           <section className="space-y-6">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-saffron-600">Featured</h2>
+            <h2 className="text-2xl font-extrabold text-saffron-600 md:text-3xl">Featured</h2>
 
             <div className="space-y-8">
               {/* Top netas */}
               <div>
-                <h3 className="text-lg font-semibold mb-3">Top Netas</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 items-stretch">
-                  {topNetas.map((p: any) => <CardPolitician key={p.id} p={p} />)}
+                <h3 className="mb-3 text-lg font-semibold">Top Netas</h3>
+                <div className="grid grid-cols-1 items-stretch gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+                  {topNetas.map((p: any) => (
+                    <CardPolitician key={p.id} p={p} />
+                  ))}
                 </div>
               </div>
 
               {/* Top parties */}
               <div>
-                <h3 className="text-lg font-semibold mb-3">Top Parties</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 items-stretch">
-                  {topParties.map((party: any) => <CardParty key={party.id} party={party} />)}
+                <h3 className="mb-3 text-lg font-semibold">Top Parties</h3>
+                <div className="grid grid-cols-1 items-stretch gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+                  {topParties.map((party: any) => (
+                    <CardParty key={party.id} party={party} />
+                  ))}
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Latest netas & parties */}
+          {/* ───────────────────────── Newly Added ───────────────────────── */}
           <section className="space-y-6">
-            <h2 className="text-2xl md:text-3xl font-extrabold">Newly Added</h2>
+            <h2 className="text-2xl font-extrabold md:text-3xl">Newly Added</h2>
 
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid gap-8 md:grid-cols-2">
               {/* Latest netas */}
               <div>
-                <h3 className="text-lg font-semibold mb-3">Latest Netas</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8 items-stretch">
-                  {latestNetas.map((p: any) => <CardPolitician key={p.id} p={p} />)}
+                <h3 className="mb-3 text-lg font-semibold">Latest Netas</h3>
+                <div className="grid grid-cols-1 items-stretch gap-x-6 gap-y-8 sm:grid-cols-2">
+                  {latestNetas.map((p: any) => (
+                    <CardPolitician key={p.id} p={p} />
+                  ))}
                 </div>
               </div>
 
               {/* Latest parties */}
               <div>
-                <h3 className="text-lg font-semibold mb-3">Latest Parties</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8 items-stretch">
-                  {latestParties.map((party: any) => <CardParty key={party.id} party={party} />)}
+                <h3 className="mb-3 text-lg font-semibold">Latest Parties</h3>
+                <div className="grid grid-cols-1 items-stretch gap-x-6 gap-y-8 sm:grid-cols-2">
+                  {latestParties.map((party: any) => (
+                    <CardParty key={party.id} party={party} />
+                  ))}
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Sources */}
-          <section className="space-y-2 mt-4">
+          {/* ───────────────────────── Sources ───────────────────────── */}
+          <section className="mt-4 space-y-2">
             <h2 className="text-xl font-semibold">Sources</h2>
-            <p className="text-sm text-ink-600/80 space-x-2">
-              <a href="https://eci.gov.in" className="underline" target="_blank" rel="noopener noreferrer">ECI</a> •
-              <a href="https://prsindia.org" className="underline" target="_blank" rel="noopener noreferrer">PRS</a> •
-              <a href="https://loksabha.nic.in" className="underline" target="_blank" rel="noopener noreferrer">Lok Sabha</a> •
-              <a href="https://censusindia.gov.in" className="underline" target="_blank" rel="noopener noreferrer">Census</a> •
-              <a href="https://mospi.gov.in" className="underline" target="_blank" rel="noopener noreferrer">NSS</a>
+            <p className="space-x-2 text-sm text-ink-600/80">
+              <a href="https://eci.gov.in" className="underline" target="_blank" rel="noopener noreferrer">
+                ECI
+              </a>{' '}
+              •{' '}
+              <a href="https://prsindia.org" className="underline" target="_blank" rel="noopener noreferrer">
+                PRS
+              </a>{' '}
+              •{' '}
+              <a href="https://loksabha.nic.in" className="underline" target="_blank" rel="noopener noreferrer">
+                Lok Sabha
+              </a>{' '}
+              •{' '}
+              <a href="https://censusindia.gov.in" className="underline" target="_blank" rel="noopener noreferrer">
+                Census
+              </a>{' '}
+              •{' '}
+              <a href="https://mospi.gov.in" className="underline" target="_blank" rel="noopener noreferrer">
+                NSS
+              </a>
             </p>
           </section>
         </div>
       </main>
 
-      {/* Global Footer */}
+      {/* ───────────────────────── Global Footer ───────────────────────── */}
       <footer className="mt-12 border-t border-black/10">
-        <div className="mx-auto max-w-6xl px-4 py-8 grid gap-8 md:grid-cols-4">
+        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 md:grid-cols-4">
           <div>
             <div className="font-semibold text-ink-700">Netababu</div>
-            <p className="text-sm text-ink-600/80 mt-2">
+            <p className="mt-2 text-sm text-ink-600/80">
               Public, neutral, and source-driven political data. Not affiliated with any party, leader, or government.
             </p>
           </div>
 
           <nav>
-            <div className="font-medium mb-2">Explore</div>
+            <div className="mb-2 font-medium">Explore</div>
             <ul className="space-y-1 text-sm">
-              <li><Link href="/" className="hover:underline">Home</Link></li>
-              <li><Link href="/politicians" className="hover:underline">Politicians</Link></li>
-              <li><Link href="/parties" className="hover:underline">Parties</Link></li>
-              <li><Link href="/compare" className="hover:underline">Compare</Link></li>
+              <li>
+                <Link href="/" className="hover:underline">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link href="/politicians" className="hover:underline">
+                  Politicians
+                </Link>
+              </li>
+              <li>
+                <Link href="/parties" className="hover:underline">
+                  Parties
+                </Link>
+              </li>
+              <li>
+                <Link href="/compare" className="hover:underline">
+                  Compare
+                </Link>
+              </li>
             </ul>
           </nav>
 
           <nav>
-            <div className="font-medium mb-2">Legal</div>
+            <div className="mb-2 font-medium">Legal</div>
             <ul className="space-y-1 text-sm">
-              <li><Link href="/legal/terms" className="hover:underline">Terms of Use</Link></li>
-              <li><Link href="/legal/privacy" className="hover:underline">Privacy Policy</Link></li>
-              <li><Link href="/legal/editorial" className="hover:underline">Editorial &amp; Corrections</Link></li>
-              <li><Link href="/legal/takedown" className="hover:underline">Takedown &amp; Grievance</Link></li>
+              <li>
+                <Link href="/legal/terms" className="hover:underline">
+                  Terms of Use
+                </Link>
+              </li>
+              <li>
+                <Link href="/legal/privacy" className="hover:underline">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/legal/editorial" className="hover:underline">
+                  Editorial &amp; Corrections
+                </Link>
+              </li>
+              <li>
+                <Link href="/legal/takedown" className="hover:underline">
+                  Takedown &amp; Grievance
+                </Link>
+              </li>
             </ul>
           </nav>
 
           <div>
-            <div className="font-medium mb-2">Contact</div>
+            <div className="mb-2 font-medium">Contact</div>
             <ul className="space-y-1 text-sm">
-              <li><a href="mailto:hello@netababu.com" className="hover:underline">hello@netababu.com</a></li>
-              <li><a href="mailto:privacy@netababu.com" className="hover:underline">privacy@netababu.com</a></li>
               <li>
-                <a href="mailto:go@netababu.com" className="hover:underline">go@netababu.com</a>{' '}
+                <a href="mailto:hello@netababu.com" className="hover:underline">
+                  hello@netababu.com
+                </a>
+              </li>
+              <li>
+                <a href="mailto:privacy@netababu.com" className="hover:underline">
+                  privacy@netababu.com
+                </a>
+              </li>
+              <li>
+                <a href="mailto:go@netababu.com" className="hover:underline">
+                  go@netababu.com
+                </a>{' '}
                 <span className="text-ink-600/60">(Grievance Officer)</span>
               </li>
             </ul>
           </div>
         </div>
 
+        {/* Disclaimer */}
+        <div className="mx-auto max-w-6xl px-4 pb-4 text-xs text-ink-600/80">
+          <p>
+            <strong>Disclaimer:</strong> While we strive to ensure accuracy and completeness, Netababu provides all information on an
+            <em> “as is” </em> and <em>“as available”</em> basis for general information and public-interest purposes only. We make no
+            representations or warranties of any kind—express or implied—about the accuracy, completeness, reliability, suitability, or
+            timeliness of any content. Your use of the site and reliance on any information is at your own risk. To the fullest extent
+            permitted by law, Netababu disclaims all liability for errors, omissions, or any loss or damage arising from or in connection
+            with the use of the site or its content. Party names, symbols, and person names are used for identification only; no
+            endorsement is implied.
+          </p>
+        </div>
+
         <div className="mx-auto max-w-6xl px-4 pb-8 text-xs text-ink-600/70">
-          <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>© {new Date().getFullYear()} Netababu. Some content may be available under CC BY-SA / CC0 as noted.</div>
             <div>For identification only. No endorsement implied.</div>
           </div>
