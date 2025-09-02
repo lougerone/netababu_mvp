@@ -1,4 +1,3 @@
-// components/HeroSearch.tsx
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -13,7 +12,6 @@ export default function HeroSearch({
   const [hits, setHits] = useState<Hit[]>([]);
   const [counts, setCounts] = useState<{ politicians: number; parties: number }>({ politicians: 0, parties: 0 });
 
-  // Anchor the dropdown to the INPUT only
   const inputWrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,22 +52,30 @@ export default function HeroSearch({
   const hasMore = totalFound > totalShown;
 
   return (
-    <div className="max-w-2xl mx-auto mt-4">
-      {/* Separate pills */}
+    <div className="max-w-3xl mx-auto mt-4">
+      {/* Separate pills: input + button */}
       <div className="flex items-center justify-center gap-3">
-        {/* Input pill + dropdown anchor */}
+        {/* INPUT PILL */}
         <div className="relative flex-1" ref={inputWrapRef}>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onFocus={() => q && setOpen(true)}
             placeholder="Search politicians, parties…"
-            className="input-pill w-full"
+            className="
+              w-full h-12 rounded-full
+              bg-white/95 backdrop-blur
+              border border-black/10
+              px-4 text-ink-800 placeholder-black/40
+              shadow-[0_4px_16px_rgba(0,0,0,0.06)]
+              outline-none focus:ring-2 focus:ring-saffron-400/60 focus:border-saffron-400
+              transition
+            "
           />
 
-          {/* Typeahead dropdown (aligned to input width) */}
+          {/* DROPDOWN (same width as input) */}
           {open && hits.length > 0 && (
-            <div className="absolute z-50 left-0 right-0 mt-2 rounded-xl border border-black/10 bg-white shadow-lg overflow-hidden">
+            <div className="absolute z-50 left-0 right-0 mt-2 rounded-2xl border border-black/10 bg-white shadow-xl overflow-hidden">
               <ul className="max-h-72 overflow-auto divide-y divide-black/5">
                 {hits.map((h, i) => (
                   <li key={`${h.type}-${h.slug}-${i}`}>
@@ -84,7 +90,6 @@ export default function HeroSearch({
                     </a>
                   </li>
                 ))}
-
                 {hasMore && (
                   <li>
                     <button
@@ -100,8 +105,17 @@ export default function HeroSearch({
           )}
         </div>
 
-        {/* Button pill (separate) */}
-        <button onClick={() => submit()} className="btn whitespace-nowrap">
+        {/* BUTTON PILL (same height as input) */}
+        <button
+          onClick={() => submit()}
+          className="
+            h-12 px-6 rounded-full
+            bg-saffron-500 text-white font-medium
+            shadow-[0_4px_16px_rgba(0,0,0,0.08)]
+            hover:bg-saffron-400 transition
+            whitespace-nowrap
+          "
+        >
           Search
         </button>
       </div>
