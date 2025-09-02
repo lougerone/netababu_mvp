@@ -38,6 +38,23 @@ const pickStates = (p: any): string[] => {
   return [];
 };
 
+// 3rd-row selectors (Alliance → Founded → HQ)
+const pickAlliance = (p: any): string | undefined => {
+  const arr = toList(p.alliance || p.alliances || p.coalition || p['alliance(s)']);
+  return arr[0];
+};
+
+const pickFounded = (p: any): string | undefined => {
+  const raw = p.founded || p.founding || p.established || p.formed || p['founded year'];
+  if (!raw) return undefined;
+  const s = String(Array.isArray(raw) ? raw[0] : raw);
+  const m = s.match(/\b(18|19|20)\d{2}\b/);
+  return m ? m[0] : s;
+};
+
+const pickHQ = (p: any): string | undefined =>
+  p.hq || p.headquarters || p['head office'] || p['headquarters city'] || undefined;
+
 export default function CardParty({ party }: { party: Party }) {
   const scopeRaw =
     party.status || (party as any).scope || (party as any).level || (party as any).type || '';
@@ -47,6 +64,14 @@ export default function CardParty({ party }: { party: Party }) {
   const states = pickStates(party as any);
   const stateDisplay = states.length > 1 ? `${states[0]} +${states.length - 1}` : states[0];
 
+  const alliance = pickAlliance(party as any);
+  const founded = pickFounded(party as any);
+  const hq = pickHQ(party as any);
+  const line3 =
+    alliance ? `Alliance ${alliance}`
+    : founded ? `Founded ${founded}`
+    : hq || undefined;
+
   return (
     <Link
       href={`/parties/${party.slug}`}
@@ -55,21 +80,41 @@ export default function CardParty({ party }: { party: Party }) {
       title={party.name || ''} // full name on hover
     >
       {/* Column layout with bottom row pinned and increased min-height */}
-      <div className="flex h-full flex-col min-h-[140px] min-w-0">
+      <div className="flex h-full flex-col min-h-[148px] min-w-0">
         {/* TOP */}
         <div className="flex items-start gap-3 min-w-0">
-          <AvatarSquare src={party.logo ?? undefined} alt={party.name ?? 'Party'} size={48} rounded="lg" variant="party" label={(party as any).abbr || party.name} />
+          <AvatarSquare
+            src={party.logo ?? undefined}
+            alt={party.name ?? 'Party'}
+            size={64}                 // bump if you want larger logos
+            rounded="lg"
+            variant="party"
+            label={(party as any).abbr || party.name}
+          />
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2 min-w-0">
-              <div className="font-semibold text-ink-800 truncate leading-5">{titleAbbr}</div>
+              <div className="text-[15px] font-semibold text-ink-800 truncate leading-5">
+                {titleAbbr}
+              </div>
               <ScopePill label={scopeRaw || undefined} />
             </div>
+
+            {/* 2nd row */}
             {leader && (
-              <div className="mt-0.5 text-xs text-ink-600 truncate">{`Led by ${leader}`}</div>
+              <div className="mt-0.5 text-xs text-ink-600 truncate">
+                {`Led by ${leader}`}
+              </div>
+            )}
+
+            {/* 3rd row (Alliance → Founded → HQ) */}
+            {line3 && (
+              <div className="mt-0.5 text-xs text-ink-600 truncate">
+                {line3}
+              </div>
             )}
           </div>
         </div>
-        
+
         {/* BOTTOM - Active in states (pinned to bottom) */}
         {states.length > 0 && (
           <div
