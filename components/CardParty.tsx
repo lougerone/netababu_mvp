@@ -1,7 +1,7 @@
 // components/CardParty.tsx
 import Link from 'next/link';
 import type { Party } from '@/lib/airtable';
-import AvatarSquare from './AvatarSquare';
+<AvatarSquare src={party.logo ?? undefined} alt={party.name ?? 'Party'} size={48} rounded="lg" variant="party" />
 
 /* UI */
 function ScopePill({ label }: { label?: string }) {
