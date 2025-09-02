@@ -53,11 +53,11 @@ export default function CardParty({ party }: { party: Party }) {
     <Link
       href={`/parties/${party.slug}`}
       aria-label={`Open ${party.name || titleAbbr} party page`}
-      className="card card-compact p-4 block h-full hover:shadow-lg transition-shadow overflow-hidden"
-      title={party.name || ''} // full name on hover
+      className="card card-compact p-4 block h-full hover:shadow-lg transition-shadow overflow-visible"
+      title={party.name || ''}
     >
-      {/* Column layout with bottom row pinned and width clamps for truncate */}
-      <div className="flex h-full flex-col min-h-[104px] min-w-0">
+      {/* tiny bump so the last row never clips */}
+      <div className="flex flex-col h-full min-h-[108px] min-w-0">
         {/* TOP */}
         <div className="flex items-start gap-3 min-w-0">
           <AvatarSquare src={party.logo ?? undefined} alt={party.name ?? 'Party'} size={48} rounded="lg" />
@@ -72,10 +72,10 @@ export default function CardParty({ party }: { party: Party }) {
           </div>
         </div>
 
-        {/* BOTTOM (pinned) */}
+        {/* BOTTOM (pinned and unclipped) */}
         {states.length > 0 && (
           <div
-            className="mt-auto pt-2 text-xs text-ink-500 truncate min-w-0"
+            className="mt-auto pt-1 text-xs leading-4 text-ink-500 truncate min-w-0"
             title={states.join(', ')}
           >
             {`Active in ${stateDisplay}`}
