@@ -374,7 +374,8 @@ export default function CompareTable({ politicians }: { politicians: Politician[
       return next;
     });
 
-  const activeOptional = OPTIONAL.filter((c) => value.has(c.key), { value: enabled });
+  // ✅ build fix: use enabled, not an undefined `value`
+  const activeOptional = OPTIONAL.filter((c) => enabled.has(c.key));
 
   const shouldShow = (field: string) => {
     const va =
@@ -476,7 +477,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
             )}
 
             {/* Optional rows */}
-            {OPTIONAL.filter((c) => enabled.has(c.key)).map((c) =>
+            {activeOptional.map((c) =>
               shouldShow(c.key as string) ? (
                 <tr key={`opt-${String(c.key)}`} className="odd:bg-cream-100/50">
                   <td className="py-3 pr-4">{c.label}</td>
