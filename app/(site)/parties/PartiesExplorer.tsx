@@ -35,9 +35,9 @@ const pillBase = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] 
 function pillClass(b: Exclude<Badge, null>) {
   switch (b) {
     case 'National':
-      return 'bg-saffron-100 text-saffron-800 ring-saffron-200';
+      return 'bg-purple-100 text-purple-700 ring-purple-200';
     case 'State':
-      return 'bg-ink-100 text-ink-800 ring-ink-200';
+      return 'bg-teal-100 text-teal-700 ring-teal-200';
   }
 }
 
