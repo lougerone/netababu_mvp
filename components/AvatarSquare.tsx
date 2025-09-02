@@ -13,7 +13,7 @@ type Props = {
 export default function AvatarSquare({
   src,
   alt = '',
-  size = 48,
+  size = 64,
   rounded = 'rounded-lg',
   variant = 'person',
   label,
