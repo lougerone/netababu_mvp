@@ -14,7 +14,7 @@ const items: Item[] = [
 ];
 
 const TWITTER_URL =
-  process.env.NEXT_PUBLIC_TWITTER_URL || 'https://x.com/netababu_';
+  process.env.NEXT_PUBLIC_TWITTER_URL || 'https://x.com/netababu';
 
 function XIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -34,10 +34,16 @@ export default function Nav() {
   return (
     <header
       className="
-        sticky top-0 z-[200] isolate
+        relative isolate sticky top-0 z-[200]
         bg-cream-200/90 backdrop-blur supports-[backdrop-filter]:bg-cream-200/75
       "
     >
+      {/* top saffron bar (non-interactive so it never blocks clicks) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-saffron-500"
+      />
+
       <div className="relative container max-w-6xl px-4 flex items-center min-h-14">
         {/* Left: logo */}
         <Link href="/" className="flex items-center" aria-label="Netababu Home">
@@ -53,10 +59,7 @@ export default function Nav() {
         </Link>
 
         {/* Center: menu */}
-        <nav
-          aria-label="Primary"
-          className="absolute left-1/2 -translate-x-1/2 z-10"
-        >
+        <nav aria-label="Primary" className="absolute left-1/2 -translate-x-1/2 z-10">
           <ul className="flex items-center gap-1 text-[13px] leading-none font-medium">
             {items.map((it) => {
               const active = isActive(it.href);
