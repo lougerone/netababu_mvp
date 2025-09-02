@@ -47,7 +47,7 @@ const letterSpace =
           style={{
             color: fg,
             fontSize: Math.round(size * ratio),
-            letterSpacing: charCount > 3 ? 0.1 : 0.25,
+            letterSpacing: letterSpace,
             fontFamily:
               'ui-rounded, "SF Pro Rounded", "Segoe UI Rounded", "Helvetica Rounded", "Arial Rounded MT", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
           }}
