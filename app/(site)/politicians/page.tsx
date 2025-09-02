@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function PoliticiansPage() {
   try {
-    const politicians = await listPoliticians();
+    const politicians: Politician[] = await listPoliticians();
 
     return (
       <main className="mx-auto max-w-6xl p-6">
@@ -29,6 +29,7 @@ export default async function PoliticiansPage() {
               <Link
                 key={p.slug}
                 href={`/politicians/${p.slug}`}
+                prefetch={false}
                 className="block p-4 border border-black/10 rounded-lg hover:border-black/20 transition-colors"
                 aria-label={`Open ${p.name} profile`}
               >
@@ -37,10 +38,12 @@ export default async function PoliticiansPage() {
                     <div className="w-16 h-16 rounded-lg overflow-hidden bg-black/5 flex-shrink-0">
                       <Image
                         src={p.photo}
-                        alt={p.name}
+                        alt={p.name || 'Politician photo'}
                         width={64}
                         height={64}
                         className="object-cover w-full h-full"
+                        sizes="(max-width: 1024px) 64px, 64px"
+                        priority={false}
                       />
                     </div>
                   ) : (
@@ -50,9 +53,9 @@ export default async function PoliticiansPage() {
                   <div className="min-w-0 flex-1">
                     <h2 className="font-semibold text-lg truncate">{p.name}</h2>
 
-                    {/* Use the correct field name from your Airtable mapping */}
-                    {p.current_position && (
-                      <p className="text-sm text-black/60 truncate">{p.current_position}</p>
+                    {/* CSV/Airtable field is `position` */}
+                    {p.position && (
+                      <p className="text-sm text-black/60 truncate">{p.position}</p>
                     )}
 
                     <p className="text-sm text-black/60 truncate">{p.party}</p>
