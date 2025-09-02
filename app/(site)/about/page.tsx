@@ -30,7 +30,7 @@ export default function AboutPage() {
         <h2 className="text-xl font-semibold">Data & Sources</h2>
         <ul className="list-disc pl-5 space-y-2">
           <li>
-            Primary data is maintained in Airtable and synced to this site via our API layer.
+            Primary data is maintained and synced to this site via our API layer.
           </li>
           <li>
             Each key fact aims to include a <em>verifiable</em> source (official sites, gazettes, affidavits, major publications).
@@ -47,12 +47,8 @@ export default function AboutPage() {
           Want to add or correct a record? Open an issue or PR on our repo, or send us a note.
         </p>
         <div className="flex flex-wrap gap-3 text-sm">
-          <Link href="https://github.com/" className="underline" target="_blank">GitHub</Link>
           <Link href="mailto:hello@netababu.com" className="underline">hello@netababu.com</Link>
         </div>
-        <p className="text-xs text-ink-500">
-          (If you prefer, replace contact details with your preferred email/Discord.)
-        </p>
       </section>
 
       <section className="card p-6 space-y-3">
