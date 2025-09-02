@@ -1,0 +1,53 @@
+import Link from 'next/link';
+
+export default function Footer() {
+  return (
+    <footer className="border-t border-black/10">
+      <div className="mx-auto max-w-6xl px-4 py-8 grid gap-8 md:grid-cols-4">
+        <div>
+          <div className="font-semibold text-ink-700">Netababu</div>
+          <p className="text-sm text-ink-600/80 mt-2">
+            Public, neutral, and source-driven political data. Not affiliated with any party, leader, or government.
+          </p>
+        </div>
+
+        <nav>
+          <div className="font-medium mb-2">Explore</div>
+          <ul className="space-y-1 text-sm">
+            <li><Link href="/" className="hover:underline">Home</Link></li>
+            <li><Link href="/politicians" className="hover:underline">Politicians</Link></li>
+            <li><Link href="/parties" className="hover:underline">Parties</Link></li>
+            <li><Link href="/compare" className="hover:underline">Compare</Link></li>
+          </ul>
+        </nav>
+
+        <nav>
+          <div className="font-medium mb-2">Legal</div>
+          <ul className="space-y-1 text-sm">
+            <li><Link href="/legal/terms" className="hover:underline">Terms of Use</Link></li>
+            <li><Link href="/legal/privacy" className="hover:underline">Privacy Policy</Link></li>
+            <li><Link href="/legal/editorial" className="hover:underline">Editorial &amp; Corrections</Link></li>
+            <li><Link href="/legal/takedown" className="hover:underline">Takedown &amp; Grievance</Link></li>
+          </ul>
+        </nav>
+
+        <div>
+          <div className="font-medium mb-2">Contact</div>
+          <ul className="space-y-1 text-sm">
+            <li><a href="mailto:hello@netababu.com" className="hover:underline">hello@netababu.com</a></li>
+            <li><a href="mailto:privacy@netababu.com" className="hover:underline">privacy@netababu.com</a></li>
+            <li>
+              <a href="mailto:go@netababu.com" className="hover:underline">go@netababu.com</a>{' '}
+              <span className="text-ink-600/60">(Grievance Officer)</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Disclaimer */}
+      <div className="mx-auto max-w-6xl px-4 pb-4 text-xs text-ink-600/80">
+        <p>
+          <strong>Disclaimer:</strong> While we strive to ensure accuracy and completeness, Netababu provides all information on an
+          <em> “as is” </em> and <em>“as available”</em> basis for general information and public-interest purposes only. We make no
+          representations or warranties of any kind—express or implied—about the accuracy, completeness, reliability, suitability, or
+          timeliness of any content. Your use of the site and reliance on any
