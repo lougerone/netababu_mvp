@@ -3,8 +3,9 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="border-t border-black/10">
-      <div className="mx-auto max-w-6xl px-4 py-8 grid gap-8 md:grid-cols-4">
+    // add mt-12/md:mt-16 for space ABOVE the border; increase top padding
+    <footer className="mt-12 md:mt-16 border-t border-black/10">
+      <div className="mx-auto max-w-6xl px-4 pt-10 pb-8 grid gap-8 md:grid-cols-4">
         <div>
           <div className="font-semibold text-ink-700">Netababu</div>
           <p className="mt-2 text-sm text-ink-600/80">
@@ -36,6 +37,11 @@ export default function Footer() {
           <div className="mb-2 font-medium">Contact</div>
           <ul className="space-y-1 text-sm">
             <li><a href="mailto:hello@netababu.com" className="hover:underline">hello@netababu.com</a></li>
+            <li><a href="mailto:privacy@netababu.com" className="hover:underline">privacy@netababu.com</a></li>
+            <li>
+              <a href="mailto:go@netababu.com" className="hover:underline">go@netababu.com</a>{' '}
+              <span className="text-ink-600/60">(Grievance Officer)</span>
+            </li>
           </ul>
         </div>
       </div>
