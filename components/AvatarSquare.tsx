@@ -24,11 +24,16 @@ export default function AvatarSquare({
 
   // Dynamic sizing: <=3 chars normal, 4 a bit smaller, 5+ even smaller
   const charCount = text.length;
-  const ratio =
-    charCount <= 3 ? 0.40 :
-    charCount === 4 ? 0.34 :
-    0.30; // 5+ chars
 
+const ratio =
+  variant === 'party'
+    ? (charCount <= 3 ? 0.34 : charCount === 4 ? 0.28 : 0.24) // smaller for party
+    : (charCount <= 3 ? 0.40 : charCount === 4 ? 0.34 : 0.30);
+
+const letterSpace =
+  variant === 'party'
+    ? (charCount >= 4 ? 0.3 : 0.2)
+    : (charCount > 3 ? 0.1 : 0.25);
   return (
     <div
       className={`relative flex items-center justify-center ${rounded} overflow-hidden shrink-0`}
