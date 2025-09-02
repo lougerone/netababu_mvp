@@ -13,15 +13,21 @@ type Props = {
 export default function AvatarSquare({
   src,
   alt = '',
-  size = 64,
+  size = 48,
   rounded = 'rounded-lg',
   variant = 'person',
   label,
 }: Props) {
   const { bg, fg, ring } = palette(variant);
   const seed = (label || alt || '').trim();
-  const text =
-    variant === 'party' ? abbrFromLabel(seed) : initialsFromName(seed);
+  const text = variant === 'party' ? abbrFromLabel(seed) : initialsFromName(seed);
+
+  // Dynamic sizing: <=3 chars normal, 4 a bit smaller, 5+ even smaller
+  const charCount = text.length;
+  const ratio =
+    charCount <= 3 ? 0.40 :
+    charCount === 4 ? 0.34 :
+    0.30; // 5+ chars
 
   return (
     <div
@@ -35,10 +41,8 @@ export default function AvatarSquare({
           className="antialiased font-medium leading-none"
           style={{
             color: fg,
-            // ↓ smaller monogram
-            fontSize: Math.round(size * 0.40),
-            letterSpacing: 0.25,
-            // rounded font stack (falls back gracefully)
+            fontSize: Math.round(size * ratio),
+            letterSpacing: charCount > 3 ? 0.1 : 0.25,
             fontFamily:
               'ui-rounded, "SF Pro Rounded", "Segoe UI Rounded", "Helvetica Rounded", "Arial Rounded MT", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
           }}
@@ -57,18 +61,18 @@ export default function AvatarSquare({
 
 function palette(variant: 'person' | 'party') {
   // Muted, on-brand colors (no gradients)
-  // Ink text: #0D1B2A
   if (variant === 'party') {
     return { bg: '#F2F4F7', fg: '#0D1B2A', ring: 'rgba(13,27,42,0.08)' }; // light grey
   }
   return { bg: '#FFF0D6', fg: '#0D1B2A', ring: 'rgba(13,27,42,0.08)' };     // light saffron
 }
 
+// Keep up to 5 alphanumerics for party ABBRs (e.g., YSRCP)
 function abbrFromLabel(s: string): string {
   if (!s) return '';
   const t = s.trim();
-  if (/^[A-Za-z0-9()\/-]{1,4}$/.test(t)) return t.toUpperCase();
-  return t.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 3);
+  if (/^[A-Za-z0-9()\/-]{1,5}$/.test(t)) return t.toUpperCase();
+  return t.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 5);
 }
 
 function initialsFromName(name: string): string {
