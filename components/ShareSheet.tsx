@@ -1,25 +1,9 @@
+// components/ShareSheet.tsx
 'use client';
 
 import { useMemo, useState } from 'react';
 
-type ShareStat = {
-  key: string;       // e.g. 'Attendance'
-  value: string;     // e.g. '83'
-  suffix?: string;   // e.g. '%'
-};
-
-type Props = {
-  slug: string;
-  name: string;
-  party: string;
-  photo?: string | null;
-  stats: ShareStat[];
-  /**
-   * Which share targets to render.
-   * Defaults to ['x','whatsapp'] for a compact UI.
-   */
-  only?: ('x' | 'whatsapp')[];
-};
+type Stat = { key: string; value: string; suffix?: string };
 
 export default function ShareSheet({
   slug,
@@ -28,93 +12,111 @@ export default function ShareSheet({
   photo,
   stats,
   only = ['x', 'whatsapp'],
-}: Props) {
-  const [selected, setSelected] = useState(0);
+  multi = false,
+}: {
+  slug: string;
+  name: string;
+  party?: string;
+  photo?: string | null;
+  stats: Stat[];
+  only?: Array<'x' | 'whatsapp'>;
+  multi?: boolean;
+}) {
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
 
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (typeof window !== 'undefined' ? window.location.origin : '');
+  const selectedStats = useMemo(
+    () => stats.filter(s => selected[s.key]),
+    [stats, selected]
+  );
 
-  const shareUrl = useMemo(() => {
-    const s = stats[selected];
-    const url = new URL(`${baseUrl}/politicians/${slug}/share`);
-    url.searchParams.set('name', name);
-    url.searchParams.set('party', party);
-    if (photo) url.searchParams.set('photo', photo);
-    url.searchParams.set('statKey', s.key);
-    url.searchParams.set('statValue', s.value);
-    if (s.suffix) url.searchParams.set('statSuffix', s.suffix);
-    return url.toString();
-  }, [baseUrl, slug, name, party, photo, stats, selected]);
+  const shareText = useMemo(() => {
+    const parts = selectedStats.length
+      ? selectedStats.map(s => `${s.key}: ${s.value}${s.suffix ?? ''}`)
+      : [];
+    const head = `${name}${party ? ` (${party})` : ''}`;
+    const body = parts.length ? ` – ${parts.join(' · ')}` : '';
+    return `${head}${body}`;
+  }, [name, party, selectedStats]);
 
-  const onX = () => {
-    const s = stats[selected];
-    const text = encodeURIComponent(`${name} — ${s.key}: ${s.value}${s.suffix || ''} #Netababu`);
-    const u = encodeURIComponent(shareUrl);
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${u}`, '_blank', 'noopener,noreferrer');
+  // Build a share image (OG) URL that includes the photo + chosen stats
+  const ogUrl = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set('name', name);
+    if (party) params.set('party', party);
+    if (photo) params.set('photo', photo);
+    if (selectedStats.length) {
+      params.set('stats', selectedStats.map(s => `${s.key}:${s.value}${s.suffix ?? ''}`).join('|'));
+    }
+    return `/api/share/og?${params.toString()}`;
+  }, [name, party, photo, selectedStats]);
+
+  const pageUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/politicians/${slug}`
+    : `https://www.netababu.com/politicians/${slug}`;
+
+  const shareUrlWithImage = useMemo(() => {
+    // Add ?og=<encoded> so a downstream short link or card page can adopt it if needed
+    const u = new URL(pageUrl);
+    u.searchParams.set('og', ogUrl);
+    return u.toString();
+  }, [pageUrl, ogUrl]);
+
+  const shareToX = () => {
+    const u = new URL('https://twitter.com/intent/tweet');
+    u.searchParams.set('text', shareText);
+    u.searchParams.set('url', shareUrlWithImage);
+    window.open(u.toString(), '_blank', 'noopener,noreferrer');
   };
 
-  const onWhatsApp = () => {
-    const s = stats[selected];
-    const text = encodeURIComponent(`${name} — ${s.key}: ${s.value}${s.suffix || ''}\n${shareUrl}`);
-    window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
+  const shareToWhatsApp = () => {
+    const u = new URL('https://api.whatsapp.com/send');
+    u.searchParams.set('text', `${shareText}\n${shareUrlWithImage}`);
+    window.open(u.toString(), '_blank', 'noopener,noreferrer');
   };
 
-  // Small, streamlined UI
   return (
-    <div className="flex flex-col gap-3">
-      {/* stat picker – compact */}
-      {stats.length > 1 ? (
-        <label className="text-sm flex items-center gap-2">
-          <span className="text-black/70">Share stat:</span>
-          <select
-            value={selected}
-            onChange={(e) => setSelected(Number(e.target.value))}
-            className="rounded-md border border-black/10 bg-white/80 text-sm px-2 py-1"
-          >
-            {stats.map((s, i) => (
-              <option key={i} value={i}>
-                {s.key}: {s.value}
-                {s.suffix || ''}
-              </option>
+    <div className="space-y-3">
+      {/* Multi-select checklist */}
+      {multi && (
+        <div className="rounded-xl border border-black/10 p-3">
+          <div className="text-xs font-medium mb-2 text-black/60">Pick stats to include</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {stats.map(s => (
+              <label key={s.key} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="accent-saffron-500"
+                  checked={!!selected[s.key]}
+                  onChange={e => setSelected(prev => ({ ...prev, [s.key]: e.target.checked }))}
+                />
+                <span className="truncate">{s.key}: <span className="text-black/70">{s.value}{s.suffix ?? ''}</span></span>
+              </label>
             ))}
-          </select>
-        </label>
-      ) : (
-        <div className="text-sm text-black/70">
-          Share stat: <span className="font-medium">
-            {stats[0].key}: {stats[0].value}{stats[0].suffix || ''}
-          </span>
+          </div>
+
+          {/* Tiny preview row */}
+          <div className="mt-3 flex items-center gap-3">
+            <div className="w-20 h-12 rounded-md overflow-hidden bg-black/5 border border-black/10">
+              {/* preview image (server generates) */}
+              <img src={ogUrl} alt="share preview" className="w-full h-full object-cover" />
+            </div>
+            <div className="text-xs text-black/60 line-clamp-2">{shareText}</div>
+          </div>
         </div>
       )}
 
-      {/* buttons – only X + WhatsApp */}
+      {/* Buttons */}
       <div className="flex items-center gap-2">
         {only.includes('x') && (
-          <button
-            onClick={onX}
-            className="px-3 py-1.5 rounded-md bg-black text-white text-sm"
-            aria-label="Share on X"
-          >
-            Share on X
-          </button>
+          <button onClick={shareToX} className="btn">Share on X</button>
         )}
         {only.includes('whatsapp') && (
-          <button
-            onClick={onWhatsApp}
-            className="px-3 py-1.5 rounded-md text-white text-sm"
-            style={{ backgroundColor: '#25D366' }}
-            aria-label="Share on WhatsApp"
-          >
-            WhatsApp
-          </button>
+          <button onClick={shareToWhatsApp} className="btn-ghost">WhatsApp</button>
         )}
       </div>
 
-      {/* tiny helper: display current share URL (truncated) */}
-      <div className="text-xs text-black/50 break-all">
-        {shareUrl.length > 120 ? `${shareUrl.slice(0, 120)}…` : shareUrl}
-      </div>
+      {/* Raw link (for copying if needed) */}
+      <p className="text-xs text-black/40 break-all">{shareUrlWithImage}</p>
     </div>
   );
 }
