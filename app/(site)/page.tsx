@@ -142,138 +142,191 @@ export default async function HomePage() {
   const displaySearches = ['Modi', 'Gandhi', 'BJP', 'RSS'];
 
   return (
-    <main className="space-y-12">
-      {/* Hero */}
-      <section
-        className="relative isolate overflow-hidden
-                   h-[55vh] md:h-[65vh] lg:h-[75vh] flex items-start justify-center"
-      >
-        {/* Background image */}
-        <Image
-          src="/hero/hero-2560w.webp"
-          alt="Watercolor collage of Indian political figures — Netababu"
-          fill
-          priority
-          className="absolute inset-0 -z-10 h-full w-full object-contain object-bottom opacity-50 scale-90"
-          sizes="100vw"
-        />
+    <>
+      <main className="space-y-12">
+        {/* Hero */}
+        <section
+          className="relative isolate overflow-hidden
+                     h-[55vh] md:h-[65vh] lg:h-[75vh] flex items-start justify-center"
+        >
+          {/* Background image */}
+          <Image
+            src="/hero/hero-2560w.webp"
+            alt="Watercolor collage of Indian political figures — Netababu"
+            fill
+            priority
+            className="absolute inset-0 -z-10 h-full w-full object-contain object-bottom opacity-50 scale-90"
+            sizes="100vw"
+          />
 
-        {/* Edge fades */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream-200 to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-cream-200 to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-cream-200 to-transparent" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
+          {/* Edge fades */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream-200 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-cream-200 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-cream-200 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
 
-        {/* Centered headline + search */}
-        <div className="relative mx-auto max-w-4xl px-4 pt-6 md:pt-8 lg:pt-10 text-center">
-          <div className="h-kicker text-shadow-cream">India • Politics • Data</div>
+          {/* Centered headline + search */}
+          <div className="relative mx-auto max-w-4xl px-4 pt-6 md:pt-8 lg:pt-10 text-center">
+            <div className="h-kicker text-shadow-cream">India • Politics • Data</div>
 
-          <h1
-            className="whitespace-nowrap font-semibold text-ink-700 leading-tight tracking-tight 
-                       text-[clamp(22px,4.5vw,42px)] text-shadow-cream"
-          >
-            Netas, parties, drama — all in one place.
-          </h1>
+            <h1
+              className="whitespace-nowrap font-semibold text-ink-700 leading-tight tracking-tight 
+                         text-[clamp(22px,4.5vw,42px)] text-shadow-cream"
+            >
+              Netas, parties, drama — all in one place.
+            </h1>
 
-          <div className="text-saffron-600 text-xl md:text-2xl font-semibold mt-1 text-shadow-cream">
-            नेताजी, पार्टियाँ और इंफो — एक ही जगह
+            <div className="text-saffron-600 text-xl md:text-2xl font-semibold mt-1 text-shadow-cream">
+              नेताजी, पार्टियाँ और इंफो — एक ही जगह
+            </div>
+
+            <HeroSearch />
           </div>
 
-          <HeroSearch />
+          {/* Explore cards anchored to hero bottom */}
+          <div className="absolute inset-x-0 bottom-6 sm:bottom-10 md:bottom-14 z-10"> 
+            <div className="mx-auto max-w-6xl px-4">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="card p-5">
+                  <h3 className="flex items-center gap-2 font-medium text-lg">
+                    <span className="text-2xl">🏳️</span> Explore by Party
+                  </h3>
+                  <p className="text-sm text-ink-600/80 mb-3 mt-1">Browse active & latent parties.</p>
+                  <Link href="/parties" className="text-saffron-600 font-medium">View all →</Link>
+                </div>
+
+                <div className="card p-5">
+                  <h3 className="flex items-center gap-2 font-medium text-lg">
+                    <span className="text-2xl">📍</span> Explore by State
+                  </h3>
+                  <p className="text-sm text-ink-600/80 mb-3 mt-1">Filter politicians by state.</p>
+                  <Link href="/politicians" className="text-saffron-600 font-medium">View all →</Link>
+                </div>
+
+                <div className="card p-5">
+                  <h3 className="flex items-center gap-2 font-medium text-lg">
+                    <span className="text-2xl">⚔️</span> Compare Netas
+                  </h3>
+                  <p className="text-sm text-ink-600/80 mb-3 mt-1">Head-to-head netas → spicy facts.</p>
+                  <Link href="/compare" className="text-saffron-600 font-medium">Compare →</Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Content container */}
+        <div className="mx-auto max-w-6xl px-4 space-y-12">
+          {/* Featured netas & parties */}
+          <section className="space-y-6">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-saffron-600">Featured</h2>
+
+            <div className="space-y-8">
+              {/* Top netas */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Top Netas</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 items-stretch">
+                  {topNetas.map((p: any) => <CardPolitician key={p.id} p={p} />)}
+                </div>
+              </div>
+
+              {/* Top parties */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Top Parties</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 items-stretch">
+                  {topParties.map((party: any) => <CardParty key={party.id} party={party} />)}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Latest netas & parties */}
+          <section className="space-y-6">
+            <h2 className="text-2xl md:text-3xl font-extrabold">Newly Added</h2>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Latest netas */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Latest Netas</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8 items-stretch">
+                  {latestNetas.map((p: any) => <CardPolitician key={p.id} p={p} />)}
+                </div>
+              </div>
+
+              {/* Latest parties */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Latest Parties</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8 items-stretch">
+                  {latestParties.map((party: any) => <CardParty key={party.id} party={party} />)}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Sources */}
+          <section className="space-y-2 mt-4">
+            <h2 className="text-xl font-semibold">Sources</h2>
+            <p className="text-sm text-ink-600/80 space-x-2">
+              <a href="https://eci.gov.in" className="underline" target="_blank" rel="noopener noreferrer">ECI</a> •
+              <a href="https://prsindia.org" className="underline" target="_blank" rel="noopener noreferrer">PRS</a> •
+              <a href="https://loksabha.nic.in" className="underline" target="_blank" rel="noopener noreferrer">Lok Sabha</a> •
+              <a href="https://censusindia.gov.in" className="underline" target="_blank" rel="noopener noreferrer">Census</a> •
+              <a href="https://mospi.gov.in" className="underline" target="_blank" rel="noopener noreferrer">NSS</a>
+            </p>
+          </section>
+        </div>
+      </main>
+
+      {/* Global Footer */}
+      <footer className="mt-12 border-t border-black/10">
+        <div className="mx-auto max-w-6xl px-4 py-8 grid gap-8 md:grid-cols-4">
+          <div>
+            <div className="font-semibold text-ink-700">Netababu</div>
+            <p className="text-sm text-ink-600/80 mt-2">
+              Public, neutral, and source-driven political data. Not affiliated with any party, leader, or government.
+            </p>
+          </div>
+
+          <nav>
+            <div className="font-medium mb-2">Explore</div>
+            <ul className="space-y-1 text-sm">
+              <li><Link href="/" className="hover:underline">Home</Link></li>
+              <li><Link href="/politicians" className="hover:underline">Politicians</Link></li>
+              <li><Link href="/parties" className="hover:underline">Parties</Link></li>
+              <li><Link href="/compare" className="hover:underline">Compare</Link></li>
+            </ul>
+          </nav>
+
+          <nav>
+            <div className="font-medium mb-2">Legal</div>
+            <ul className="space-y-1 text-sm">
+              <li><Link href="/legal/terms" className="hover:underline">Terms of Use</Link></li>
+              <li><Link href="/legal/privacy" className="hover:underline">Privacy Policy</Link></li>
+              <li><Link href="/legal/editorial" className="hover:underline">Editorial &amp; Corrections</Link></li>
+              <li><Link href="/legal/takedown" className="hover:underline">Takedown &amp; Grievance</Link></li>
+            </ul>
+          </nav>
+
+          <div>
+            <div className="font-medium mb-2">Contact</div>
+            <ul className="space-y-1 text-sm">
+              <li><a href="mailto:hello@netababu.com" className="hover:underline">hello@netababu.com</a></li>
+              <li><a href="mailto:privacy@netababu.com" className="hover:underline">privacy@netababu.com</a></li>
+              <li>
+                <a href="mailto:go@netababu.com" className="hover:underline">go@netababu.com</a>{' '}
+                <span className="text-ink-600/60">(Grievance Officer)</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
-        {/* Explore cards anchored to hero bottom */}
-        <div className="absolute inset-x-0 bottom-6 sm:bottom-10 md:bottom-14 z-10"> 
-          <div className="mx-auto max-w-6xl px-4">
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="card p-5">
-                <h3 className="flex items-center gap-2 font-medium text-lg">
-                  <span className="text-2xl">🏳️</span> Explore by Party
-                </h3>
-                <p className="text-sm text-ink-600/80 mb-3 mt-1">Browse active & latent parties.</p>
-                <Link href="/parties" className="text-saffron-600 font-medium">View all →</Link>
-              </div>
-
-              <div className="card p-5">
-                <h3 className="flex items-center gap-2 font-medium text-lg">
-                  <span className="text-2xl">📍</span> Explore by State
-                </h3>
-                <p className="text-sm text-ink-600/80 mb-3 mt-1">Filter politicians by state.</p>
-                <Link href="/politicians" className="text-saffron-600 font-medium">View all →</Link>
-              </div>
-
-              <div className="card p-5">
-                <h3 className="flex items-center gap-2 font-medium text-lg">
-                  <span className="text-2xl">⚔️</span> Compare Netas
-                </h3>
-                <p className="text-sm text-ink-600/80 mb-3 mt-1">Head-to-head netas → spicy facts.</p>
-                <Link href="/compare" className="text-saffron-600 font-medium">Compare →</Link>
-              </div>
-            </div>
+        <div className="mx-auto max-w-6xl px-4 pb-8 text-xs text-ink-600/70">
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+            <div>© {new Date().getFullYear()} Netababu. Some content may be available under CC BY-SA / CC0 as noted.</div>
+            <div>For identification only. No endorsement implied.</div>
           </div>
         </div>
-      </section>
-
-      {/* Content container */}
-      <div className="mx-auto max-w-6xl px-4 space-y-12">
-        {/* Featured netas & parties */}
-        <section className="space-y-6">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-saffron-600">Featured</h2>
-
-          <div className="space-y-8">
-            {/* Top netas */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Top Netas</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 items-stretch">
-                {topNetas.map((p: any) => <CardPolitician key={p.id} p={p} />)}
-              </div>
-            </div>
-
-            {/* Top parties */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Top Parties</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 items-stretch">
-                {topParties.map((party: any) => <CardParty key={party.id} party={party} />)}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Latest netas & parties */}
-        <section className="space-y-6">
-          <h2 className="text-2xl md:text-3xl font-extrabold">Newly Added</h2>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Latest netas */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Latest Netas</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8 items-stretch">
-                {latestNetas.map((p: any) => <CardPolitician key={p.id} p={p} />)}
-              </div>
-            </div>
-
-            {/* Latest parties */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Latest Parties</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8 items-stretch">
-                {latestParties.map((party: any) => <CardParty key={party.id} party={party} />)}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Sources */}
-        <section className="space-y-2 mt-4">
-          <h2 className="text-xl font-semibold">Sources</h2>
-          <p className="text-sm text-ink-600/80 space-x-2">
-            <Link href="https://eci.gov.in" className="underline">ECI</Link> •
-            <Link href="https://prsindia.org" className="underline">PRS</Link> •
-            <Link href="https://loksabha.nic.in" className="underline">Lok Sabha</Link> •
-            <Link href="https://censusindia.gov.in" className="underline">Census</Link> •
-            <Link href="https://mospi.gov.in" className="underline">NSS</Link>
-          </p>
-        </section>
-      </div>
-    </main>
+      </footer>
+    </>
   );
 }
