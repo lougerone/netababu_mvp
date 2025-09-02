@@ -3,6 +3,7 @@ import Image from 'next/image';
 import CardPolitician from '@/components/CardPolitician';
 import CardParty from '@/components/CardParty';
 import { listPoliticians, listParties } from '@/lib/airtable';
+import HeroSearch from '@/components/HeroSearch';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,29 +63,14 @@ export default async function HomePage() {
           </div>
 
           {/* Search form */}
-          <form action="/search" method="GET" className="max-w-2xl mx-auto mt-3 flex gap-2">
-            <input
-              type="text"
-              name="query"
-              className="input-pill flex-1"
-              placeholder="Search politicians, parties…"
-            />
-            <button type="submit" className="btn">Search</button>
-          </form>
+<form action="/search" method="GET" className="max-w-2xl mx-auto mt-3 flex gap-2">
+  <input type="text" name="query" className="input-pill flex-1" placeholder="Search politicians, parties…" />
+  <button type="submit" className="btn">Search</button>
+</form>
 
-          {/* Popular searches */}
-          <div className="mt-2 text-sm font-medium text-ink-700 text-shadow-cream">
-            Popular:{' '}
-            {displaySearches.map((term, i) => (
-              <span key={term}>
-                <Link href={`/search?query=${encodeURIComponent(term)}`} className="underline">
-                  {term}
-                </Link>
-                {i < displaySearches.length - 1 && ' • '}
-              </span>
-            ))}
-          </div>
-        </div>
+{/* Popular searches */}
+<div className="mt-2 text-sm font-medium text-ink-700 text-shadow-cream">…</div>
+
 
         {/* Explore cards anchored to hero bottom */}
 <div className="absolute inset-x-0 bottom-6 sm:bottom-10 md:bottom-14 z-30">
