@@ -183,26 +183,23 @@ export default async function HomePage() {
   return (
     <>
       {/* ───────────────────────── Hero ───────────────────────── */}
-      <main className="space-y-12">
+      <main className="space-y-12 pt-10">
         <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
-          {/* Background image (always behind overlays) */}
-<div className="absolute inset-0 -z-10">
-  <Image
-    src="/hero/hero-2560w.webp"
-    alt="Watercolor collage of Indian political figures — Netababu"
-    fill
-    priority
-    sizes="100vw"
-    className="h-full w-full object-contain object-bottom opacity-50 scale-90"
-  />
-</div>
-
+          {/* Background image */}
+          <Image
+            src="/hero/hero-2560w.webp"
+            alt="Watercolor collage of Indian political figures — Netababu"
+            fill
+            priority
+            sizes="100vw"
+            className="absolute inset-0 -z-10 h-full w-full scale-90 object-contain object-bottom opacity-50"
+          />
 
           {/* Edge fades */}
           <div className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-32 bg-gradient-to-b from-cream-200 to-transparent" />
-<div className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-48 bg-gradient-to-r from-cream-200 to-transparent" />
-<div className="pointer-events-none absolute inset-y-0 right-0 z-[1] w-48 bg-gradient-to-l from-cream-200 to-transparent" />
-<div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-32 bg-gradient-to-t from-cream-200 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-48 bg-gradient-to-r from-cream-200 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-[1] w-48 bg-gradient-to-l from-cream-200 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-32 bg-gradient-to-t from-cream-200 to-transparent" />
 
           {/* Centered headline + search */}
           <div className="relative mx-auto max-w-4xl px-4 pt-6 text-center md:pt-8 lg:pt-10">
