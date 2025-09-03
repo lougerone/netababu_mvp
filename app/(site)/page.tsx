@@ -186,17 +186,16 @@ export default async function HomePage() {
       <main className="space-y-12 pt-10">
         <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
           {/* Background image + fades (behind content only) */}
-          <div className="absolute inset-0 -z-10">
-            {/* Image layer */}
-            <div className="absolute inset-0 z-0">
-              <Image
-                src="/hero/hero-2560w.webp"
-                alt="Watercolor collage of Indian political figures — Netababu"
-                fill
-                priority
-                sizes="100vw"
-                className="h-full w-full object-cover opacity-50"
-              />
+          <div className="absolute inset-0 z-0 flex items-center justify-center">
+              <div className="relative h-1/2 w-1/2">
+                <Image
+                  src="/hero/hero-2560w.webp"
+                  alt="Watercolor collage of Indian political figures — Netababu"
+                  fill
+                  priority
+                  sizes="50vw"
+                  className="h-full w-full object-contain opacity-50"
+                />
             </div>
 
             {/* Fade overlays ABOVE the image, BELOW hero content */}
