@@ -2,9 +2,11 @@ import type { Metadata, Viewport } from 'next';
 import '../globals.css';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
-import { Analytics } from "@vercel/analytics/react"; // ✅ send events to Vercel
+import { Analytics } from "@vercel/analytics/react";
 
 export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
   themeColor: '#fff7ed',
   colorScheme: 'light',
 };
@@ -34,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="flex-1 pt-10 md:pt-12">{children}</main>
 
         <Footer />
-        <Analytics /> {/* ← add this */}
+        <Analytics />
       </body>
     </html>
   );
