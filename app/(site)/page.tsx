@@ -182,47 +182,44 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* ───────────────────────── Hero ───────────────────────── */}
+{/* ───────────────────────── Hero ───────────────────────── */}
       <main className="space-y-12 pt-10">
         <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
           {/* Background image + fades (behind content only) */}
-{/* Background image + fades (behind content only) */}
-<div className="absolute inset-0 -z-10">
-  {/* Image layer */}
-  <div className="absolute inset-0 z-0">
-    <Image
-      src="/hero/hero-2560w.webp"
-      alt="Watercolor collage of Indian political figures — Netababu"
-      fill
-      priority
-      sizes="100vw"
-      className="h-full w-full object-cover opacity-50"
-    />
-  </div>
+          <div className="absolute inset-0 -z-10">
+            {/* Image layer */}
+            <div className="absolute inset-0 z-0">
+              <Image
+                src="/hero/hero-2560w.webp"
+                alt="Watercolor collage of Indian political figures — Netababu"
+                fill
+                priority
+                sizes="100vw"
+                className="h-full w-full object-cover opacity-50"
+              />
+            </div>
 
-  {/* Fade overlays ABOVE the image, BELOW hero content */}
-  <div className="pointer-events-none absolute inset-0 z-10">
-    {/* Top fade */}
-    <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream-200 via-cream-200/80 to-transparent" />
-    
-    {/* Bottom fade */}
-    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 via-cream-200/80 to-transparent" />
-    
-    {/* Left fade */}
-    <div className="absolute inset-y-0 left-0 w-32 md:w-64 bg-gradient-to-r from-cream-200 via-cream-200/80 to-transparent" />
-    
-    {/* Right fade */}
-    <div className="absolute inset-y-0 right-0 w-32 md:w-64 bg-gradient-to-l from-cream-200 via-cream-200/80 to-transparent" />
-    
-    {/* Corner fades for better blending */}
-    <div className="absolute top-0 left-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-br from-cream-200 via-cream-200/60 to-transparent" />
-    <div className="absolute top-0 right-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-bl from-cream-200 via-cream-200/60 to-transparent" />
-    <div className="absolute bottom-0 left-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-tr from-cream-200 via-cream-200/60 to-transparent" />
-    <div className="absolute bottom-0 right-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-tl from-cream-200 via-cream-200/60 to-transparent" />
-  </div>
-}
-
-
+            {/* Fade overlays ABOVE the image, BELOW hero content */}
+            <div className="pointer-events-none absolute inset-0 z-10">
+              {/* Top fade */}
+              <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream-200 via-cream-200/80 to-transparent" />
+              
+              {/* Bottom fade */}
+              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 via-cream-200/80 to-transparent" />
+              
+              {/* Left fade */}
+              <div className="absolute inset-y-0 left-0 w-32 md:w-64 bg-gradient-to-r from-cream-200 via-cream-200/80 to-transparent" />
+              
+              {/* Right fade */}
+              <div className="absolute inset-y-0 right-0 w-32 md:w-64 bg-gradient-to-l from-cream-200 via-cream-200/80 to-transparent" />
+              
+              {/* Corner fades for better blending */}
+              <div className="absolute top-0 left-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-br from-cream-200 via-cream-200/60 to-transparent" />
+              <div className="absolute top-0 right-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-bl from-cream-200 via-cream-200/60 to-transparent" />
+              <div className="absolute bottom-0 left-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-tr from-cream-200 via-cream-200/60 to-transparent" />
+              <div className="absolute bottom-0 right-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-tl from-cream-200 via-cream-200/60 to-transparent" />
+            </div>
+          </div>
 
           {/* Centered headline + search */}
           <div className="relative mx-auto max-w-4xl px-4 pt-6 text-center md:pt-8 lg:pt-10">
