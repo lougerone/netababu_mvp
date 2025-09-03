@@ -188,9 +188,9 @@ export default async function HomePage() {
           {/* Background image + fades (behind content only) */}
           {/* Background image + fades (behind content only) */}
           <div className="absolute inset-0 -z-10">
-            {/* Image layer */}
+            {/* Image layer with fades applied directly to image container */}
             <div className="absolute inset-0 z-0 flex items-center justify-center">
-              <div className="relative h-[75%] w-[75%]">
+              <div className="relative h-1/2 w-1/2">
                 <Image
                   src="/hero/hero-2560w.webp"
                   alt="Watercolor collage of Indian political figures — Netababu"
@@ -199,28 +199,28 @@ export default async function HomePage() {
                   sizes="50vw"
                   className="h-full w-full object-contain opacity-50"
                 />
+                
+                {/* Fade overlays applied directly to the image */}
+                <div className="pointer-events-none absolute inset-0">
+                  {/* Top fade */}
+                  <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-cream-200 via-cream-200/50 to-transparent" />
+                  
+                  {/* Bottom fade */}
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-cream-200 via-cream-200/50 to-transparent" />
+                  
+                  {/* Left fade */}
+                  <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-cream-200 via-cream-200/50 to-transparent" />
+                  
+                  {/* Right fade */}
+                  <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-cream-200 via-cream-200/50 to-transparent" />
+                  
+                  {/* Corner fades for smoother blending */}
+                  <div className="absolute top-0 left-0 h-16 w-16 bg-gradient-to-br from-cream-200 via-cream-200/30 to-transparent" />
+                  <div className="absolute top-0 right-0 h-16 w-16 bg-gradient-to-bl from-cream-200 via-cream-200/30 to-transparent" />
+                  <div className="absolute bottom-0 left-0 h-16 w-16 bg-gradient-to-tr from-cream-200 via-cream-200/30 to-transparent" />
+                  <div className="absolute bottom-0 right-0 h-16 w-16 bg-gradient-to-tl from-cream-200 via-cream-200/30 to-transparent" />
+                </div>
               </div>
-            </div>
-
-            {/* Fade overlays ABOVE the image, BELOW hero content */}
-            <div className="pointer-events-none absolute inset-0 z-10">
-              {/* Top fade */}
-              <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream-200 via-cream-200/80 to-transparent" />
-              
-              {/* Bottom fade */}
-              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 via-cream-200/80 to-transparent" />
-              
-              {/* Left fade */}
-              <div className="absolute inset-y-0 left-0 w-32 md:w-64 bg-gradient-to-r from-cream-200 via-cream-200/80 to-transparent" />
-              
-              {/* Right fade */}
-              <div className="absolute inset-y-0 right-0 w-32 md:w-64 bg-gradient-to-l from-cream-200 via-cream-200/80 to-transparent" />
-              
-              {/* Corner fades for better blending */}
-              <div className="absolute top-0 left-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-br from-cream-200 via-cream-200/60 to-transparent" />
-              <div className="absolute top-0 right-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-bl from-cream-200 via-cream-200/60 to-transparent" />
-              <div className="absolute bottom-0 left-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-tr from-cream-200 via-cream-200/60 to-transparent" />
-              <div className="absolute bottom-0 right-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-tl from-cream-200 via-cream-200/60 to-transparent" />
             </div>
           </div>
 
