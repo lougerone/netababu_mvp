@@ -200,26 +200,41 @@ export default async function HomePage() {
                   className="h-full w-full object-contain opacity-50"
                 />
                 
-                {/* Fade overlays applied directly to the image */}
-                <div className="pointer-events-none absolute inset-0">
-                  {/* Top fade */}
-                  <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-cream-200 via-cream-200/50 to-transparent" />
-                  
-                  {/* Bottom fade */}
-                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-cream-200 via-cream-200/50 to-transparent" />
-                  
-                  {/* Left fade */}
-                  <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-cream-200 via-cream-200/50 to-transparent" />
-                  
-                  {/* Right fade */}
-                  <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-cream-200 via-cream-200/50 to-transparent" />
-                  
-                  {/* Corner fades for smoother blending */}
-                  <div className="absolute top-0 left-0 h-16 w-16 bg-gradient-to-br from-cream-200 via-cream-200/30 to-transparent" />
-                  <div className="absolute top-0 right-0 h-16 w-16 bg-gradient-to-bl from-cream-200 via-cream-200/30 to-transparent" />
-                  <div className="absolute bottom-0 left-0 h-16 w-16 bg-gradient-to-tr from-cream-200 via-cream-200/30 to-transparent" />
-                  <div className="absolute bottom-0 right-0 h-16 w-16 bg-gradient-to-tl from-cream-200 via-cream-200/30 to-transparent" />
-                </div>
+                {/* Background image + fades (behind content only) */}
+          <div className="absolute inset-0 -z-10">
+            {/* Image layer with CSS mask for proper fading */}
+            <div className="absolute inset-0 z-0 flex items-center justify-center">
+              <div 
+                className="relative h-1/2 w-1/2"
+                style={{
+                  maskImage: `
+                    radial-gradient(ellipse at center, 
+                      black 30%, 
+                      black 50%, 
+                      rgba(0,0,0,0.8) 70%, 
+                      rgba(0,0,0,0.4) 85%, 
+                      transparent 100%
+                    )
+                  `,
+                  WebkitMaskImage: `
+                    radial-gradient(ellipse at center, 
+                      black 30%, 
+                      black 50%, 
+                      rgba(0,0,0,0.8) 70%, 
+                      rgba(0,0,0,0.4) 85%, 
+                      transparent 100%
+                    )
+                  `
+                }}
+              >
+                <Image
+                  src="/hero/hero-2560w.webp"
+                  alt="Watercolor collage of Indian political figures — Netababu"
+                  fill
+                  priority
+                  sizes="50vw"
+                  className="h-full w-full object-contain opacity-50"
+                />
               </div>
             </div>
           </div>
