@@ -30,7 +30,7 @@ export default function Nav() {
     href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
 
   return (
-    <div className="relative mx-auto max-w-6xl px-4 py-1 flex items-center">
+    <div className="relative mx-auto max-w-6xl px-4 py-1 grid grid-cols-[auto_1fr_auto] items-center">
       {/* Left: logo */}
       <Link href="/" className="flex items-center" aria-label="Netababu Home">
         <Image
@@ -46,31 +46,32 @@ export default function Nav() {
 
       {/* Center: menu */}
       <nav
-        aria-label="Primary"
-        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 text-[13px] leading-none font-medium"
-      >
-        {items.map((it) => {
-          const active = isActive(it.href);
-          return (
-            <Link
-              key={it.href}
-              href={it.href}
-              aria-current={active ? 'page' : undefined}
-              className={[
-                'px-3 py-2 rounded-full transition-colors whitespace-nowrap',
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500',
-                'text-ink-700 hover:bg-black/5',
-                active ? 'bg-black/10 text-ink-900' : '',
-              ].join(' ')}
-            >
-              {it.label}
-            </Link>
-          );
-        })}
-      </nav>
+    aria-label="Primary"
+    className="justify-self-center flex items-center gap-1 text-[13px] leading-none font-medium"
+  >
+    {items.map(it => {
+      const active = isActive(it.href);
+      return (
+        <Link
+          key={it.href}
+          href={it.href}
+          aria-current={active ? 'page' : undefined}
+          className={[
+            'px-3 py-2 rounded-full transition-colors whitespace-nowrap',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500',
+            'text-ink-700 hover:bg-black/5',
+            active ? 'bg-black/10 text-ink-900' : '',
+          ].join(' ')}
+        >
+          {it.label}
+        </Link>
+      );
+    })}
+  </nav>
 
       {/* Right: socials */}
-      <div className="ml-auto flex items-center gap-2">
+        <div className="justify-self-end ml-auto flex items-center gap-2">
+
         <a
           href={TWITTER_URL}
           target="_blank"
