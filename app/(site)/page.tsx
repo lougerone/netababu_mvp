@@ -190,7 +190,7 @@ export default async function HomePage() {
           <div className="absolute inset-0 -z-10">
             {/* Image layer */}
             <div className="absolute inset-0 z-0 flex items-center justify-center">
-              <div className="relative h-1/2 w-1/2">
+              <div className="relative h-[75%] w-[75%]">
                 <Image
                   src="/hero/hero-2560w.webp"
                   alt="Watercolor collage of Indian political figures — Netababu"
