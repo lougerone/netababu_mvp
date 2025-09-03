@@ -185,11 +185,6 @@ export default async function HomePage() {
 {/* ───────────────────────── Hero ───────────────────────── */}
       <main className="space-y-12 pt-10">
         <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
-          return (
-    <>
-      {/* ───────────────────────── Hero ───────────────────────── */}
-      <main className="space-y-12 pt-10">
-        <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
           {/* Background image + fades (behind content only) */}
           <div className="absolute inset-0 -z-10">
             {/* Image layer */}
