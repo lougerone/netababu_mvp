@@ -18,11 +18,18 @@ const TWITTER_URL = process.env.NEXT_PUBLIC_TWITTER_URL || 'https://x.com/netaba
 
 function XIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
-      <path d="M3 3h3l15 18h-3L3 3Zm0 18L18 3h3L3 21Z" />
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M4 4L20 20M20 4L4 20"
+        stroke="currentColor"
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
+
 
 export default function Nav() {
   const pathname = usePathname();
