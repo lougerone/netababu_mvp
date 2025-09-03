@@ -207,10 +207,10 @@ export default async function HomePage() {
               <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 via-cream-200/80 to-transparent" />
               
               {/* Left fade */}
-              <div className="absolute inset-y-0 left-0 w-32 md:w-64 bg-gradient-to-r from-cream-200 via-cream-200/80 to-transparent" />
+              <div className="absolute inset-y-0 left-10 w-64 md:w-128 bg-gradient-to-r from-cream-200 via-cream-200/80 to-transparent" />
               
               {/* Right fade */}
-              <div className="absolute inset-y-0 right-0 w-32 md:w-64 bg-gradient-to-l from-cream-200 via-cream-200/80 to-transparent" />
+              <div className="absolute inset-y-0 right-10 w-64 md:w-128 bg-gradient-to-l from-cream-200 via-cream-200/80 to-transparent" />
               
               {/* Corner fades for better blending */}
               <div className="absolute top-0 left-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-br from-cream-200 via-cream-200/60 to-transparent" />
