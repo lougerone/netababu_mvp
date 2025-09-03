@@ -185,46 +185,22 @@ export default async function HomePage() {
 {/* ───────────────────────── Hero ───────────────────────── */}
       <main className="space-y-12 pt-10">
         <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
-          {/* Background image + fades (behind content only) */}
-          {/* Background image + fades (behind content only) */}
+          {/* Background image with CSS mask fade */}
           <div className="absolute inset-0 -z-10">
-            {/* Image layer with fades applied directly to image container */}
-            <div className="absolute inset-0 z-0 flex items-center justify-center">
-              <div className="relative h-[90%] w-[90%]">
-                <Image
-                  src="/hero/hero-2560w.webp"
-                  alt="Watercolor collage of Indian political figures — Netababu"
-                  fill
-                  priority
-                  sizes="50vw"
-                  className="h-full w-full object-contain opacity-50"
-                />
-                
-                {/* Background image + fades (behind content only) */}
-          <div className="absolute inset-0 -z-10">
-            {/* Image layer with CSS mask for proper fading */}
             <div className="absolute inset-0 z-0 flex items-center justify-center">
               <div 
-                className="relative h-1/2 w-1/2"
+                className="relative h-[70%] w-[70%]"
                 style={{
                   maskImage: `
-                    radial-gradient(ellipse at center, 
-                      black 30%, 
-                      black 50%, 
-                      rgba(0,0,0,0.8) 70%, 
-                      rgba(0,0,0,0.4) 85%, 
-                      transparent 100%
-                    )
+                    linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%),
+                    linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)
                   `,
                   WebkitMaskImage: `
-                    radial-gradient(ellipse at center, 
-                      black 30%, 
-                      black 50%, 
-                      rgba(0,0,0,0.8) 70%, 
-                      rgba(0,0,0,0.4) 85%, 
-                      transparent 100%
-                    )
-                  `
+                    linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%),
+                    linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)
+                  `,
+                  maskComposite: 'intersect',
+                  WebkitMaskComposite: 'source-in'
                 }}
               >
                 <Image
@@ -232,7 +208,7 @@ export default async function HomePage() {
                   alt="Watercolor collage of Indian political figures — Netababu"
                   fill
                   priority
-                  sizes="50vw"
+                  sizes="70vw"
                   className="h-full w-full object-contain opacity-50"
                 />
               </div>
