@@ -198,8 +198,8 @@ export default async function HomePage() {
 
   {/* Fades affect only the image because they live in the -z-10 wrapper */}
   <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream-200 to-transparent" />
-  <div className="pointer-events-none absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-cream-200 to-transparent" />
-  <div className="pointer-events-none absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-cream-200 to-transparent" />
+  <div className="pointer-events-none absolute inset-y-0 left-0 w-64 bg-gradient-to-r from-cream-200 to-transparent" />
+  <div className="pointer-events-none absolute inset-y-0 right-0 w-64 bg-gradient-to-l from-cream-200 to-transparent" />
   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 to-transparent" />
 </div>
 
