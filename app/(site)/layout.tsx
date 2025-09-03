@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import '../globals.css';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from '@vercel/analytics/react';
 
 export const viewport: Viewport = {
   themeColor: '#fff7ed',
@@ -24,19 +24,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="min-h-screen bg-cream-200 text-ink-700 flex flex-col">
-        {/* Sticky header with saffron strip ALWAYS above the menu */}
         <header className="sticky top-0 z-[10000]">
-          {/* thickness: tweak h-[6px] to taste (h-2 = 8px, h-1 = 4px) */}
           <div aria-hidden className="h-[6px] bg-saffron-500 pointer-events-none" />
           <div className="bg-cream-200/90 backdrop-blur border-b border-black/10">
             <Nav />
           </div>
         </header>
 
-        {/* keep your existing page spacing if you want the hero offset */}
         <main className="flex-1 pt-10 md:pt-12">{children}</main>
 
         <Footer />
+        <Analytics /> {/* ← add this */}
       </body>
     </html>
   );
