@@ -103,21 +103,47 @@ function getFirstAttachmentUrl(v: any): string | undefined {
 type AirtableRecord = { id: string; createdTime: string; fields: Record<string, any> };
 type AirtablePage = { records: AirtableRecord[]; offset?: string };
 
+// Replace your current atFetch and atFetchAll with these:
+
 async function atFetch(
   table: string,
-  params: Record<string, string | undefined> = {}
+  params: Record<string, string | undefined> = {},
+  { noCache = true }: { noCache?: boolean } = {}
 ): Promise<AirtablePage> {
-  const search = new URLSearchParams(params as Record<string, string>);
+  // Never cache list pages; iterator tokens can expire and caching makes it worse
+  noStore();
+  const search = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v != null) search.set(k, v);
+  }
+  if (!search.has('pageSize')) search.set('pageSize', '100');
+
   const url = `${AIRTABLE_API}/${BASE_ID}/${encodeURIComponent(table)}?${search.toString()}`;
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${TOKEN}` },
-    next: { revalidate: Number(process.env.REVALIDATE_SECONDS || 3600) },
+    cache: noCache ? 'no-store' : 'force-cache',
+    next: { revalidate: noCache ? 0 : Number(process.env.REVALIDATE_SECONDS || 3600) },
   });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Airtable error ${res.status}: ${text}`);
+
+  const text = await res.text();
+  let json: any;
+  try {
+    json = text ? JSON.parse(text) : {};
+  } catch {
+    json = { raw: text };
   }
-  return res.json();
+
+  if (!res.ok) {
+    const msg = json?.error?.type || res.statusText || 'Unknown Airtable error';
+    throw new Error(`Airtable error ${res.status}: ${msg}`);
+  }
+
+  return json as AirtablePage;
+}
+
+function isIteratorError(e: unknown) {
+  const s = String(e ?? '');
+  return s.includes('LIST_RECORDS_ITERATOR_NOT_AVAILABLE');
 }
 
 async function atFetchAll(
@@ -125,16 +151,36 @@ async function atFetchAll(
   params: Record<string, string | undefined> = {},
   max = Infinity
 ): Promise<AirtableRecord[]> {
+  noStore();
   const results: AirtableRecord[] = [];
   let offset: string | undefined;
-  do {
-    const page = await atFetch(table, { ...params, ...(offset ? { offset } : {}) });
-    results.push(...page.records);
-    offset = page.offset;
-    if (results.length >= max) break;
-  } while (offset);
+  let restarted = false;
+
+  while (true) {
+    try {
+      const page = await atFetch(
+        table,
+        { ...params, ...(offset ? { offset } : {}) },
+        { noCache: true }
+      );
+      results.push(...page.records);
+      if (Number.isFinite(max) && results.length >= max) break;
+      offset = page.offset;
+      if (!offset) break;
+    } catch (e) {
+      // If Airtable says the iterator is invalid, restart once from the beginning
+      if (!restarted && isIteratorError(e)) {
+        offset = undefined;
+        restarted = true;
+        continue;
+      }
+      throw e;
+    }
+  }
+
   return Number.isFinite(max) ? results.slice(0, max) : results;
 }
+
 
 /* --------------------------------- Types --------------------------------- */
 
