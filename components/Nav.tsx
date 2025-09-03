@@ -18,17 +18,30 @@ const items: Item[] = [
   { href: '/about', label: 'About' },
 ];
 
+const TWITTER_URL =
+  process.env.NEXT_PUBLIC_TWITTER_URL || 'https://x.com/netababu';
+
+function XIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <path d="M3 3h3l15 18h-3L3 3Zm0 18L18 3h3L3 21Z" />
+    </svg>
+  );
+}
+
 export default function Nav() {
   const pathname = usePathname();
 
   const isActive = (href: string) =>
-    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
+    href === '/'
+      ? pathname === '/'
+      : pathname === href || pathname.startsWith(href + '/');
 
   return (
-    // no border/shadow so the hero’s divider is the only line
-    <header className="sticky top-0 z-[9999] isolate bg-cream-200/90 backdrop-blur">
+    // sticky + isolate to keep it above page content; relative so saffron bar can be absolutely placed
+    <header className="relative sticky top-0 z-[9999] isolate bg-cream-200/90 backdrop-blur">
       <div className="relative container max-w-6xl px-4 py-1 flex items-center">
-        {/* Left: logo (new wide PNG, bigger but compact header) */}
+        {/* Left: logo */}
         <Link href="/" className="flex items-center" aria-label="Netababu Home">
           <Image
             src="/logo-wordmark.png"
@@ -44,7 +57,7 @@ export default function Nav() {
         {/* Center: menu */}
         <nav
           aria-label="Primary"
-          className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 text-sm leading-none"
+          className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 text-[13px] leading-none font-medium"
         >
           {items.map((it) => {
             const active = isActive(it.href);
@@ -54,9 +67,10 @@ export default function Nav() {
                 href={it.href}
                 aria-current={active ? 'page' : undefined}
                 className={[
-                  'px-2 py-0.5 rounded-md transition-colors whitespace-nowrap',
-                  'hover:bg-white/5',
-                  active ? 'bg-white/10' : '',
+                  'px-3 py-2 rounded-full transition-colors whitespace-nowrap',
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500',
+                  'text-ink-700 hover:bg-black/5',
+                  active ? 'bg-black/10 text-ink-900' : '',
                 ].join(' ')}
               >
                 {it.label}
@@ -65,9 +79,25 @@ export default function Nav() {
           })}
         </nav>
 
-        {/* Right: spacer (keeps layout stable) */}
-        <div className="ml-auto" />
+        {/* Right: socials */}
+        <div className="ml-auto flex items-center gap-2">
+          <a
+            href={TWITTER_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-ink-700 hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500"
+            aria-label="Open Netababu on X (Twitter)"
+          >
+            <XIcon className="h-4 w-4" />
+          </a>
+        </div>
       </div>
+
+      {/* Saffron strip, rendered AFTER content so it sits on top; pointer-events-none so it never blocks clicks */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-saffron-500 z-[10000]"
+      />
     </header>
   );
 }
