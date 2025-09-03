@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import '../globals.css';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
-import { Analytics } from '@vercel/analytics/react';
+import { Analytics } from '@vercel/analytics/next';
 
 export const viewport: Viewport = {
   themeColor: '#fff7ed',
