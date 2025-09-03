@@ -32,10 +32,21 @@ export default function Nav() {
 
   // Prevent body scroll when menu is open
   useEffect(() => {
-    if (open) document.documentElement.style.overflow = 'hidden';
-    else document.documentElement.style.overflow = '';
-    return () => (document.documentElement.style.overflow = '');
-  }, [open]);
+  const root = document.documentElement;
+  const prev = root.style.overflow;
+
+  if (open) {
+    root.style.overflow = 'hidden';
+  } else {
+    root.style.overflow = '';
+  }
+
+  // cleanup must return void, not a string
+  return () => {
+    root.style.overflow = prev;
+  };
+}, [open]);
+
 
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
