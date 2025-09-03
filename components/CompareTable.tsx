@@ -410,7 +410,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
       {/* Comparison table */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="sticky top-0 bg-cream-200/95 backdrop-blur z-10">
+          <thead className="sticky top-14 md:top-16 bg-cream-200/95 backdrop-blur z-[120]">
             <tr className="text-left text-ink-600/80">
               <th className="w-[240px] py-2 pr-4">Attribute</th>
               <th className="py-2 pr-4">A</th>
