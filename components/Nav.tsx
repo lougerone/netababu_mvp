@@ -1,103 +1,48 @@
-'use client';
+import type { Metadata, Viewport } from 'next';
+import '../globals.css';
+import Nav from '@/components/Nav';
+import Footer from '@/components/Footer';
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { usePathname } from 'next/navigation';
-
-type Item = {
-  href: string;
-  label: string;
-  disabled?: boolean;
+export const viewport: Viewport = {
+  themeColor: '#fff7ed',
+  colorScheme: 'light',
 };
 
-const items: Item[] = [
-  { href: '/', label: 'Home' },
-  { href: '/politicians', label: 'Politicians' },
-  { href: '/parties', label: 'Parties' },
-  { href: '/compare', label: 'Compare' },
-  { href: '/about', label: 'About' },
-];
+export const metadata: Metadata = {
+  title: 'Netababu',
+  description: 'Netas, parties, drama — all in one place.',
+  manifest: '/site.webmanifest',
+  icons: {
+    icon: [{ url: '/favicon.png', sizes: '32x32', type: 'image/png' }],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Netababu',
+  },
+};
 
-const TWITTER_URL =
-  process.env.NEXT_PUBLIC_TWITTER_URL || 'https://x.com/netababu';
-
-function XIcon(props: React.SVGProps<SVGSVGElement>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
-      <path d="M3 3h3l15 18h-3L3 3Zm0 18L18 3h3L3 21Z" />
-    </svg>
-  );
-}
+    <html lang="en">
+      <body className="min-h-screen bg-cream-200 text-ink-700 flex flex-col">
+        {/* saffron top bar */}
+        <div className="h-2 bg-saffron-500" />
 
-export default function Nav() {
-  const pathname = usePathname();
+        {/* light nav */}
+        <header className="sticky top-0 z-40 bg-cream-200/90 backdrop-blur border-b border-black/10">
+          <nav className="mx-auto max-w-6xl px-4 py-3">
+            <Nav />
+          </nav>
+        </header>
 
-  const isActive = (href: string) =>
-    href === '/'
-      ? pathname === '/'
-      : pathname === href || pathname.startsWith(href + '/');
+        {/* page content (global top padding to restore hero offset) */}
+        <main className="flex-1 pt-10 md:pt-12">{children}</main>
 
-  return (
-    // sticky + isolate to keep it above page content; relative so saffron bar can be absolutely placed
-    <header className="relative sticky top-0 z-[9999] isolate bg-cream-200/90 backdrop-blur">
-      <div className="relative container max-w-6xl px-4 py-1 flex items-center">
-        {/* Left: logo */}
-        <Link href="/" className="flex items-center" aria-label="Netababu Home">
-          <Image
-            src="/logo-wordmark.png"
-            alt="Netababu"
-            width={797}
-            height={526}
-            priority
-            className="h-10 md:h-14 w-auto -translate-y-[1px]"
-          />
-          <span className="sr-only">Netababu</span>
-        </Link>
-
-        {/* Center: menu */}
-        <nav
-          aria-label="Primary"
-          className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 text-[13px] leading-none font-medium"
-        >
-          {items.map((it) => {
-            const active = isActive(it.href);
-            return (
-              <Link
-                key={it.href}
-                href={it.href}
-                aria-current={active ? 'page' : undefined}
-                className={[
-                  'px-3 py-2 rounded-full transition-colors whitespace-nowrap',
-                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500',
-                  'text-ink-700 hover:bg-black/5',
-                  active ? 'bg-black/10 text-ink-900' : '',
-                ].join(' ')}
-              >
-                {it.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Right: socials */}
-        <div className="ml-auto flex items-center gap-2">
-          <a
-            href={TWITTER_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-ink-700 hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500"
-            aria-label="Open Netababu on X (Twitter)"
-          >
-            <XIcon className="h-4 w-4" />
-          </a>
-        </div>
-      </div>
-
-      {/* Saffron strip, rendered AFTER content so it sits on top; pointer-events-none so it never blocks clicks */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-saffron-500 z-[10000]"
-      />
-    </header>
+        {/* global footer */}
+        <Footer />
+      </body>
+    </html>
   );
 }
