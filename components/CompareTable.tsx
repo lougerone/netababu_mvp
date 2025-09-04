@@ -228,7 +228,7 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
         )}
 
         {open && (
-          <div className="absolute z-40 mt-1 w-full rounded-xl border border-black/10 bg-white shadow-card max-h-72 overflow-auto">
+          <div className="absolute z-[200] mt-1 w-full rounded-xl border border-black/10 bg-white shadow-card max-h-72 overflow-auto">
             {filtered.length === 0 ? (
               <div className="px-3 py-2 text-sm text-ink-600/70">No matches</div>
             ) : (
@@ -287,7 +287,7 @@ function MultiSelect({ label, options, value, onToggle }: MultiProps) {
       </button>
       {open && (
         <div className="relative">
-          <div className="absolute z-40 mt-1 w-full rounded-xl border border-black/10 bg-white shadow-card max-h-72 overflow-auto">
+          <div className="absolute z-[200] mt-1 w-full rounded-xl border border-black/10 bg-white shadow-card max-h-72 overflow-auto">
             {options.map((o) => (
               <label
                 key={String(o.key)}
@@ -410,7 +410,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
       {/* Comparison table */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="sticky top-14 md:top-16 bg-cream-200/95 backdrop-blur z-[120]">
+          <thead className="sticky top-[64px] bg-cream-200/95 backdrop-blur z-[150]">
             <tr className="text-left text-ink-600/80">
               <th className="w-[240px] py-2 pr-4">Attribute</th>
               <th className="py-2 pr-4">A</th>
