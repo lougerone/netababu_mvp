@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -31,58 +30,59 @@ export default function Nav() {
     href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
 
   return (
-    <div className="relative mx-auto max-w-6xl px-4 py-1 grid grid-cols-[auto_1fr_auto] items-center">
-      {/* Left: logo */}
-      <Link href="/" className="flex items-center" aria-label="Netababu Home">
-        <Image
-          src="/logo-wordmark.png"
-          alt="Netababu"
-          width={797}
-          height={526}
-          priority
-          className="h-10 md:h-14 w-auto -translate-y-[1px]"
-        />
-        <span className="sr-only">Netababu</span>
-      </Link>
-
-      {/* Center: menu */}
-      <nav
-    aria-label="Primary"
-    className="justify-self-center flex items-center gap-1 text-[13px] leading-none font-medium"
-  >
-    {items.map(it => {
-      const active = isActive(it.href);
-      return (
-        <Link
-          key={it.href}
-          href={it.href}
-          aria-current={active ? 'page' : undefined}
-          className={[
-            'px-3 py-2 rounded-full transition-colors whitespace-nowrap',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500',
-            'text-ink-700 hover:bg-black/5',
-            active ? 'bg-black/10 text-ink-900' : '',
-          ].join(' ')}
-        >
-          {it.label}
+    <header className="sticky top-0 z-[500] bg-white/95 backdrop-blur-sm border-b border-black/5">
+      <div className="relative mx-auto max-w-6xl px-4 py-1 grid grid-cols-[auto_1fr_auto] items-center">
+        {/* Left: logo */}
+        <Link href="/" className="flex items-center" aria-label="Netababu Home">
+          <Image
+            src="/logo-wordmark.png"
+            alt="Netababu"
+            width={797}
+            height={526}
+            priority
+            className="h-10 md:h-14 w-auto -translate-y-[1px]"
+          />
+          <span className="sr-only">Netababu</span>
         </Link>
-      );
-    })}
-  </nav>
 
-      {/* Right: socials */}
-        <div className="justify-self-end ml-auto flex items-center gap-2">
-
-        <a
-          href={TWITTER_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-ink-700 hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500"
-          aria-label="Open Netababu on X (Twitter)"
+        {/* Center: menu */}
+        <nav
+          aria-label="Primary"
+          className="justify-self-center flex items-center gap-1 text-[13px] leading-none font-medium"
         >
-          <XIcon className="h-4 w-4" />
-        </a>
+          {items.map(it => {
+            const active = isActive(it.href);
+            return (
+              <Link
+                key={it.href}
+                href={it.href}
+                aria-current={active ? 'page' : undefined}
+                className={[
+                  'px-3 py-2 rounded-full transition-colors whitespace-nowrap relative z-10',
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500',
+                  'text-ink-700 hover:bg-black/5',
+                  active ? 'bg-black/10 text-ink-900' : '',
+                ].join(' ')}
+              >
+                {it.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Right: socials */}
+        <div className="justify-self-end ml-auto flex items-center gap-2">
+          <a
+            href={TWITTER_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-ink-700 hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500 relative z-10"
+            aria-label="Open Netababu on X (Twitter)"
+          >
+            <XIcon className="h-4 w-4" />
+          </a>
+        </div>
       </div>
-    </div>
+    </header>
   );
 }
