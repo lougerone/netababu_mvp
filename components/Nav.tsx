@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import SearchBar from "./SearchBar";
 
 type Item = { href: string; label: string; disabled?: boolean };
 
