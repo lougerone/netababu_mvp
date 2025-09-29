@@ -1,10 +1,9 @@
-
 'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import SearchBar from "./SearchBar";
+import SearchBar from './SearchBar';
 
 type Item = { href: string; label: string; disabled?: boolean };
 
@@ -16,12 +15,13 @@ const items: Item[] = [
   { href: '/about', label: 'About' },
 ];
 
-const TWITTER_URL = process.env.NEXT_PUBLIC_TWITTER_URL || 'https://x.com/netababu';
+const TWITTER_URL =
+  process.env.NEXT_PUBLIC_TWITTER_URL || 'https://x.com/netababu';
 
 function XIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" {...props}>
-      <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/>
+      <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z" />
     </svg>
   );
 }
@@ -29,10 +29,12 @@ function XIcon(props: React.SVGProps<SVGSVGElement>) {
 export default function Nav() {
   const pathname = usePathname();
   const isActive = (href: string) =>
-    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
+    href === '/'
+      ? pathname === '/'
+      : pathname === href || pathname.startsWith(href + '/');
 
   return (
-    <div className="relative mx-auto max-w-6xl px-4 py-1 grid grid-cols-[auto_1fr_auto] items-center">
+    <div className="relative mx-auto max-w-6xl px-4 py-1 grid grid-cols-[auto_auto_1fr_auto] items-center gap-4">
       {/* Left: logo */}
       <Link href="/" className="flex items-center" aria-label="Netababu Home">
         <Image
@@ -46,58 +48,46 @@ export default function Nav() {
         <span className="sr-only">Netababu</span>
       </Link>
 
-      {/* Center: menu */}
+      {/* Menu */}
       <nav
-    aria-label="Primary"
-    className="justify-self-center flex items-center gap-1 text-[13px] leading-none font-medium"
-  >
-    {items.map(it => {
-      const active = isActive(it.href);
-      return (
-        <Link
-          key={it.href}
-          href={it.href}
-          aria-current={active ? 'page' : undefined}
-          className={[
-            'px-3 py-2 rounded-full transition-colors whitespace-nowrap',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500',
-            'text-ink-700 hover:bg-black/5',
-            active ? 'bg-black/10 text-ink-900' : '',
-          ].join(' ')}
-        >
-          {it.label}
-        </Link>
-      );
-    })}
-  </nav>
-<div className="relative mx-auto max-w-6xl px-4 py-3 grid grid-cols-[auto_1fr_auto] items-center gap-4">
-  <Link href="/" className="flex items-center" aria-label="Netababu Home">
-    <span className="sr-only">Netababu</span>
-  </Link>
+        aria-label="Primary"
+        className="flex items-center gap-1 text-[13px] leading-none font-medium"
+      >
+        {items.map((it) => {
+          const active = isActive(it.href);
+          return (
+            <Link
+              key={it.href}
+              href={it.href}
+              aria-current={active ? 'page' : undefined}
+              className={[
+                'px-3 py-2 rounded-full transition-colors whitespace-nowrap',
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500',
+                'text-ink-700 hover:bg-black/5',
+                active ? 'bg-black/10 text-ink-900' : '',
+              ].join(' ')}
+            >
+              {it.label}
+            </Link>
+          );
+        })}
+      </nav>
 
-  {/* SEARCH IN NAV */}
-  <div className="w-full max-w-lg mx-auto">
-    <SearchBar />
-  </div>
-
-  {/* Right-side links / icons here if you have them */}
-</div>
-      {/* Right: socials */}
-        <div className="justify-self-end ml-auto flex items-center gap-2">
-
-        <a
-          href={TWITTER_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-ink-700 hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500"
-          aria-label="Open Netababu on X (Twitter)"
-        >
-          <XIcon className="h-4 w-4" />
-        </a>
+      {/* Search fills the gap between menu and X */}
+      <div className="justify-self-end w-full max-w-[520px] md:max-w-[560px] lg:max-w-[620px]">
+        <SearchBar placeholder="Search netas or parties" />
       </div>
+
+      {/* Top-right: X icon */}
+      <a
+        href={TWITTER_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="justify-self-end inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 text-ink-700 hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500"
+        aria-label="Open Netababu on X (Twitter)"
+      >
+        <XIcon className="h-4 w-4" />
+      </a>
     </div>
   );
 }
-
-
-
