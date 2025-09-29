@@ -17,18 +17,57 @@ const LABEL: Record<Hit["type"], string> = {
   party: "Party",
 };
 
-export default function SearchBar({ className = "" }: { className?: string }) {
+type Props = {
+  className?: string;
+  /** If provided, component acts as a SIMPLE controlled input (no dropdown, no API) */
+  value?: string;
+  onChange?: (v: string) => void;
+  placeholder?: string;
+};
+
+export default function SearchBar({
+  className = "",
+  value,
+  onChange,
+  placeholder = "Search netas or parties",
+}: Props) {
+  const controlled = typeof onChange === "function";
+  const router = useRouter();
+
+  // State only used in typeahead (uncontrolled) mode
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<Hit[]>([]);
   const [highlight, setHighlight] = useState(0);
 
-  const router = useRouter();
   const boxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
+  // ---------- SIMPLE MODE ----------
+  if (controlled) {
+    return (
+      <div className={`relative ${className}`}>
+        <div className="flex items-center gap-2 rounded-2xl border border-neutral-300 bg-white px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500">
+          <svg width="18" height="18" viewBox="0 0 24 24" className="opacity-60">
+            <path
+              fill="currentColor"
+              d="M10 2a8 8 0 0 1 6.32 12.9l5.39 5.39l-1.41 1.41l-5.39-5.39A8 8 0 1 1 10 2m0 2a6 6 0 1 0 .001 12.001A6 6 0 0 0 10 4"
+            />
+          </svg>
+          <input
+            value={value ?? ""}
+            onChange={(e) => onChange!(e.target.value)}
+            placeholder={placeholder}
+            className="w-full bg-transparent outline-none text-[15px]"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- TYPEAHEAD MODE ----------
   // Debounced fetch
   useEffect(() => {
     if (!q.trim()) {
@@ -51,8 +90,8 @@ export default function SearchBar({ className = "" }: { className?: string }) {
         setItems(data.results.slice(0, 8));
         setOpen(true);
         setHighlight(0);
-      } catch (e) {
-        if ((e as any).name !== "AbortError") console.error(e);
+      } catch (e: any) {
+        if (e?.name !== "AbortError") console.error(e);
       } finally {
         setLoading(false);
       }
@@ -74,7 +113,7 @@ export default function SearchBar({ className = "" }: { className?: string }) {
   function goto(hit: Hit) {
     setOpen(false);
     if (hit.type === "politician") router.push(`/politicians/${hit.slug}`);
-    else if (hit.type === "party") router.push(`/parties/${hit.slug}`);
+    else router.push(`/parties/${hit.slug}`);
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -104,12 +143,11 @@ export default function SearchBar({ className = "" }: { className?: string }) {
           />
         </svg>
         <input
-          ref={inputRef}
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => q && setOpen(true)}
           onKeyDown={onKeyDown}
-          placeholder="Search netas or parties"
+          placeholder={placeholder}
           className="w-full bg-transparent outline-none text-[15px]"
           aria-autocomplete="list"
           aria-expanded={open}
