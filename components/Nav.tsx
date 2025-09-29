@@ -72,7 +72,6 @@ export default function Nav() {
   </nav>
 <div className="relative mx-auto max-w-6xl px-4 py-3 grid grid-cols-[auto_1fr_auto] items-center gap-4">
   <Link href="/" className="flex items-center" aria-label="Netababu Home">
-    <img src="/logo-mark.png" alt="Netababu" width={77} height={52} />
     <span className="sr-only">Netababu</span>
   </Link>
 
