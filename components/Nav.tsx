@@ -87,3 +87,18 @@ export default function Nav() {
     </div>
   );
 }
+
+<div className="relative mx-auto max-w-6xl px-4 py-3 grid grid-cols-[auto_1fr_auto] items-center gap-4">
+  <Link href="/" className="flex items-center" aria-label="Netababu Home">
+    <img src="/logo-mark.png" alt="Netababu" width={77} height={52} />
+    <span className="sr-only">Netababu</span>
+  </Link>
+
+  {/* SEARCH IN NAV */}
+  <div className="w-full max-w-lg mx-auto">
+    <SearchBar />
+  </div>
+
+  {/* Right-side links / icons here if you have them */}
+</div>
+
