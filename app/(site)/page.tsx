@@ -186,39 +186,41 @@ export default async function HomePage() {
       <main className="space-y-12 pt-10">
         <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
           {/* Background image + fades (behind content only) */}
-          <div className="absolute inset-0 z-0 flex items-center justify-center">
-              <div className="relative h-[90%] w-[90%]">
-                <Image
-                  src="/hero/hero-2560w.webp"
-                  alt="Watercolor collage of Indian political figures — Netababu"
-                  fill
-                  priority
-                  sizes="50vw"
-                  className="h-full w-full object-contain opacity-50"
-                />
-            </div>
+<div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden">
+  <div className="relative h-[90%] w-[90%]">
+    <Image
+      src="/hero/hero-2560w.webp"
+      alt="Watercolor collage of Indian political figures — Netababu"
+      fill
+      priority
+      sizes="50vw"
+      className={[
+        "h-full w-full object-contain opacity-50",
+        // Feather the left/right edges of the image
+        // Safari needs -webkit-mask-image; others use mask-image.
+        "[-webkit-mask-image:linear-gradient(to_right,transparent_0,black_12%,black_88%,transparent_100%)]",
+        "[mask-image:linear-gradient(to_right,transparent_0,black_12%,black_88%,transparent_100%)]",
+        "[mask-size:100%_100%]",
+        "[mask-repeat:no-repeat]",
+      ].join(" ")}
+    />
+  </div>
 
-            {/* Fade overlays ABOVE the image, BELOW hero content */}
-            <div className="pointer-events-none absolute inset-0 z-10">
-              {/* Top fade */}
-              <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream-200 via-cream-200/80 to-transparent" />
-              
-              {/* Bottom fade */}
-              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 via-cream-200/80 to-transparent" />
-              
-              {/* Left fade */}
-              <div className="absolute inset-y-0 left-10 w-64 md:w-128 bg-gradient-to-r from-cream-200 via-cream-200/80 to-transparent" />
-              
-              {/* Right fade */}
-              <div className="absolute inset-y-0 right-10 w-64 md:w-128 bg-gradient-to-l from-cream-200 via-cream-200/80 to-transparent" />
-              
-              {/* Corner fades for better blending */}
-              <div className="absolute top-0 left-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-br from-cream-200 via-cream-200/60 to-transparent" />
-              <div className="absolute top-0 right-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-bl from-cream-200 via-cream-200/60 to-transparent" />
-              <div className="absolute bottom-0 left-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-tr from-cream-200 via-cream-200/60 to-transparent" />
-              <div className="absolute bottom-0 right-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-tl from-cream-200 via-cream-200/60 to-transparent" />
-            </div>
-          </div>
+  {/* Fade overlays ABOVE the image, BELOW hero content */}
+  <div className="pointer-events-none absolute inset-0 z-10">
+    {/* Top fade */}
+    <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream-200 via-cream-200/80 to-transparent" />
+    {/* Bottom fade */}
+    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 via-cream-200/80 to-transparent" />
+
+    {/* Corner vignettes for extra blending */}
+    <div className="absolute top-0 left-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-br from-cream-200 via-cream-200/60 to-transparent" />
+    <div className="absolute top-0 right-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-bl from-cream-200 via-cream-200/60 to-transparent" />
+    <div className="absolute bottom-0 left-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-tr from-cream-200 via-cream-200/60 to-transparent" />
+    <div className="absolute bottom-0 right-0 h-32 w-32 md:h-32 md:w-64 bg-gradient-to-tl from-cream-200 via-cream-200/60 to-transparent" />
+  </div>
+</div>
+
 
           {/* Centered headline + search */}
           <div className="relative mx-auto max-w-4xl px-4 pt-6 text-center md:pt-8 lg:pt-10">
