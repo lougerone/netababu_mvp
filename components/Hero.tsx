@@ -9,7 +9,7 @@ const blurDataURL =
 export default function Hero() {
   return (
     <section className="relative isolate h-[80vh] w-full overflow-hidden">
-      {/* Background image */}
+      {/* Background image (feathered left/right via inline mask) */}
       <Image
         src="/hero/hero-2560w.webp"
         alt="Watercolor collage of Indian political figures — Netababu"
@@ -17,12 +17,33 @@ export default function Hero() {
         priority
         placeholder="blur"
         blurDataURL={blurDataURL}
-        className="object-cover object-top"
         sizes="100vw"
+        className="object-cover object-top"
+        style={{
+          // Feather horizontally so hard edges disappear on all screens
+          WebkitMaskImage:
+            'linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)',
+          maskImage:
+            'linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)',
+          WebkitMaskRepeat: 'no-repeat',
+          maskRepeat: 'no-repeat',
+          WebkitMaskSize: '100% 100%',
+          maskSize: '100% 100%',
+        }}
       />
 
-      {/* Gradient overlay */}
+      {/* Dark gradient overlay (unchanged) */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/70" />
+
+      {/* Optional: ultra-subtle vignette to the page bg to guarantee no edge line on extreme ultrawide */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(120% 100% at 50% 50%, rgba(255,247,237,0) 60%, rgba(255,247,237,0.35) 85%, #fff7ed 100%)',
+          mixBlendMode: 'normal',
+        }}
+      />
 
       {/* Orange top rule (brand cue) */}
       <div className="absolute top-0 left-0 right-0 h-2 bg-saffron-500/95 z-10" />
