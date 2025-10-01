@@ -51,7 +51,7 @@ export default function Nav() {
       {/* Menu */}
       <nav
         aria-label="Primary"
-        className="flex items-center gap-1 text-[13px] leading-none font-medium"
+        className="justify-self-center flex items-center gap-1 text-[13px] leading-none font-medium"
       >
         {items.map((it) => {
           const active = isActive(it.href);
@@ -74,7 +74,7 @@ export default function Nav() {
       </nav>
 
       {/* Search fills the gap between menu and X (now ~1/3 width) */}
-      <div className="justify-self-end w-full max-w-[220px] md:max-w-[280px] lg:max-w-[340px]">
+      <div className="justify-self-end w-full max-w-[150px] md:max-w-[200px] lg:max-w-[240px]">
         <SearchBar placeholder="Search netas or parties" />
       </div>
 
