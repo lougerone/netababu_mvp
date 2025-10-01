@@ -26,12 +26,25 @@ function XIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+function SearchIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+      <path
+        fill="currentColor"
+        d="M10 2a8 8 0 0 1 6.32 12.9l5.39 5.39l-1.41 1.41l-5.39-5.39A8 8 0 1 1 10 2m0 2a6 6 0 1 0 .001 12.001A6 6 0 0 0 10 4"
+      />
+    </svg>
+  );
+}
+
 export default function Nav() {
   const pathname = usePathname();
   const isActive = (href: string) =>
     href === '/'
       ? pathname === '/'
       : pathname === href || pathname.startsWith(href + '/');
+
+  const isHome = pathname === '/';
 
   return (
     <div className="relative mx-auto max-w-6xl px-4 py-1 grid grid-cols-[auto_auto_1fr_auto] items-center gap-4">
@@ -73,10 +86,24 @@ export default function Nav() {
         })}
       </nav>
 
-     {/* Search fills the gap between menu and X (now ~1/3 width) */}
-<div className="justify-self-end w-full max-w-[220px] md:max-w-[280px] lg:max-w-[340px]">
-  <SearchBar placeholder="Search netas or parties" />
-</div>
+      {/* Search area */}
+      {isHome ? (
+        // HOME: just a search icon linking to the hero input
+        <div className="justify-self-end">
+          <a
+            href="#home-search"
+            aria-label="Jump to search"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white text-ink-700 hover:bg-black/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500"
+          >
+            <SearchIcon />
+          </a>
+        </div>
+      ) : (
+        // OTHER PAGES: larger search bar
+        <div className="justify-self-end w-full max-w-[560px] lg:max-w-[720px]">
+          <SearchBar placeholder="Search netas or parties" />
+        </div>
+      )}
 
       {/* Top-right: X icon */}
       <a
