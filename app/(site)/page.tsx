@@ -185,37 +185,36 @@ export default async function HomePage() {
       {/* ───────────────────────── Hero ───────────────────────── */}
       <main className="space-y-12 pt-10">
         <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
-          {/* Background image with inline mask + top/bottom fades */}
-          <div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden">
-            <div className="relative h-[90%] w-[90%]">
-              <Image
-                src="/hero/hero-2560w.webp"
-                alt="Watercolor collage of Indian political figures — Netababu"
-                fill
-                priority
-                sizes="50vw"
-                className="h-full w-full object-contain opacity-50"
-                style={{
-                  WebkitMaskImage:
-                    'linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%)',
-                  maskImage:
-                    'linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%)',
-                  WebkitMaskRepeat: 'no-repeat',
-                  maskRepeat: 'no-repeat',
-                  WebkitMaskSize: '100% 100%',
-                  maskSize: '100% 100%',
-                }}
-              />
-            </div>
+          {/* Background image + vignette (behind content only) */}
+<div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden">
+  {/* Artwork */}
+  <div className="relative h-[90%] w-[90%]">
+    <Image
+      src="/hero/hero-2560w.webp"
+      alt="Watercolor collage of Indian political figures — Netababu"
+      fill
+      priority
+      sizes="50vw"
+      className="h-full w-full object-contain opacity-50"
+    />
+  </div>
 
-            {/* Fades ABOVE the image, BELOW hero content */}
-            <div className="pointer-events-none absolute inset-0 z-10">
-              {/* Top fade */}
-              <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-cream-200 via-cream-200/80 to-transparent" />
-              {/* Bottom fade */}
-              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-cream-200 via-cream-200/80 to-transparent" />
-            </div>
-          </div>
+  {/* One overlay to rule them all: radial vignette to #fff7ed */}
+  <div
+    className="pointer-events-none absolute inset-0 z-10"
+    // radial: transparent center → cream edges (removes visible image edges)
+    style={{
+      background:
+        'radial-gradient(120% 100% at 50% 50%, rgba(255,247,237,0) 58%, rgba(255,247,237,0.75) 82%, #fff7ed 100%)',
+    }}
+  />
+
+  {/* Optional: keep subtle top/bottom linear fades if you like that look */}
+  <div className="pointer-events-none absolute inset-0 z-10">
+    <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-cream-200/90 via-cream-200/70 to-transparent" />
+    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-cream-200/90 via-cream-200/70 to-transparent" />
+  </div>
+</div>
 
           {/* Centered headline + search */}
           <div className="relative mx-auto max-w-4xl px-4 pt-6 text-center md:pt-8 lg:pt-10">
