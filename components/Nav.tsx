@@ -73,10 +73,10 @@ export default function Nav() {
         })}
       </nav>
 
-      {/* Search fills the gap between menu and X */}
-      <div className="justify-self-end w-full max-w-[520px] md:max-w-[560px] lg:max-w-[620px]">
-        <SearchBar placeholder="Search netas or parties" />
-      </div>
+     {/* Search fills the gap between menu and X (now ~1/3 width) */}
+<div className="justify-self-end w-full max-w-[220px] md:max-w-[280px] lg:max-w-[340px]">
+  <SearchBar placeholder="Search netas or parties" />
+</div>
 
       {/* Top-right: X icon */}
       <a
