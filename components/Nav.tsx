@@ -34,7 +34,8 @@ export default function Nav() {
       : pathname === href || pathname.startsWith(href + '/');
 
   return (
-    <div className="relative mx-auto max-w-6xl px-4 py-1 grid grid-cols-[auto_auto_1fr_auto] items-center gap-4">
+    // 5 columns: logo | 1fr | MENU (center) | 1fr with search | X icon
+    <div className="relative mx-auto max-w-6xl px-4 py-1 grid grid-cols-[auto_1fr_auto_1fr_auto] items-center gap-4">
       {/* Left: logo */}
       <Link href="/" className="flex items-center" aria-label="Netababu Home">
         <Image
@@ -48,7 +49,10 @@ export default function Nav() {
         <span className="sr-only">Netababu</span>
       </Link>
 
-      {/* Menu */}
+      {/* Left spacer (balances center) */}
+      <div />
+
+      {/* Center: primary menu */}
       <nav
         aria-label="Primary"
         className="justify-self-center flex items-center gap-1 text-[13px] leading-none font-medium"
@@ -73,12 +77,12 @@ export default function Nav() {
         })}
       </nav>
 
-      {/* Search fills the gap between menu and X (now ~1/3 width) */}
+      {/* Right spacer hosts the (smaller) search bar */}
       <div className="justify-self-end w-full max-w-[150px] md:max-w-[200px] lg:max-w-[240px]">
         <SearchBar placeholder="Search netas or parties" />
       </div>
 
-      {/* Top-right: X icon */}
+      {/* Far right: X icon */}
       <a
         href={TWITTER_URL}
         target="_blank"
