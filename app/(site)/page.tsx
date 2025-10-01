@@ -1,9 +1,10 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 import CardParty from '@/components/CardParty';
 import CardPolitician from '@/components/CardPolitician';
+import HeroSearch from '@/components/HeroSearch';
 import { listParties, listPoliticians } from '@/lib/airtable';
-import Hero from '@/components/Hero';
 
 export const dynamic = 'force-dynamic';
 
@@ -182,89 +183,174 @@ export default async function HomePage() {
   return (
     <>
       {/* ───────────────────────── Hero ───────────────────────── */}
-      <Hero />
+      <main className="space-y-12 pt-10">
+        <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
+          {/* Background image + vignette (behind content only) */}
+<div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden">
+  {/* Artwork */}
+  <div className="relative h-[90%] w-[90%]">
+    <Image
+      src="/hero/hero-2560w.webp"
+      alt="Watercolor collage of Indian political figures — Netababu"
+      fill
+      priority
+      sizes="50vw"
+      className="h-full w-full object-contain opacity-50"
+    />
+  </div>
 
-      {/* ───────────────────────── Featured ───────────────────────── */}
-      <div className="mx-auto max-w-6xl space-y-12 px-4 py-12">
-        <section className="space-y-6">
-          <h2 className="text-2xl font-extrabold text-saffron-600 md:text-3xl">Featured</h2>
+  {/* One overlay to rule them all: radial vignette to #fff7ed */}
+  <div
+    className="pointer-events-none absolute inset-0 z-10"
+    // radial: transparent center → cream edges (removes visible image edges)
+    style={{
+      background:
+        'radial-gradient(120% 100% at 50% 50%, rgba(255,247,237,0) 58%, rgba(255,247,237,0.75) 82%, #fff7ed 100%)',
+    }}
+  />
 
-          <div className="space-y-8">
-            {/* Top netas */}
-            <div>
-              <h3 className="mb-3 text-lg font-semibold">Top Netas</h3>
-              <div className="grid grid-cols-1 items-stretch gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
-                {topNetas.map((p: any) => (
-                  <CardPolitician key={p.id} p={p} />
-                ))}
-              </div>
+  {/* Optional: keep subtle top/bottom linear fades if you like that look */}
+  <div className="pointer-events-none absolute inset-0 z-10">
+    <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-cream-200/90 via-cream-200/70 to-transparent" />
+    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-cream-200/90 via-cream-200/70 to-transparent" />
+  </div>
+</div>
+
+          {/* Centered headline + search */}
+          <div className="relative mx-auto max-w-4xl px-4 pt-6 text-center md:pt-8 lg:pt-10">
+            <div className="h-kicker text-shadow-cream">India • Politics • Data</div>
+
+            <h1 className="text-shadow-cream whitespace-nowrap text-[clamp(22px,4.5vw,42px)] font-semibold leading-tight tracking-tight text-ink-700">
+              Netas, parties, drama — all in one place.
+            </h1>
+
+            <div className="text-shadow-cream mt-1 text-xl font-semibold text-saffron-600 md:text-2xl">
+              नेताजी, पार्टियाँ और इंफो — एक ही जगह
             </div>
 
-            {/* Top parties */}
-            <div>
-              <h3 className="mb-3 text-lg font-semibold">Top Parties</h3>
-              <div className="grid grid-cols-1 items-stretch gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
-                {topParties.map((party: any) => (
-                  <CardParty key={party.id} party={party} />
-                ))}
+            <HeroSearch />
+          </div>
+
+          {/* Explore cards anchored to hero bottom */}
+          <div className="absolute inset-x-0 bottom-6 z-10 sm:bottom-10 md:bottom-14">
+            <div className="mx-auto max-w-6xl px-4">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="card p-5">
+                  <h3 className="flex items-center gap-2 text-lg font-medium">
+                    <span className="text-2xl">🏳️</span> Explore by Party
+                  </h3>
+                  <p className="mt-1 mb-3 text-sm text-ink-600/80">Browse active &amp; latent parties.</p>
+                  <Link href="/parties" className="font-medium text-saffron-600">
+                    View all →
+                  </Link>
+                </div>
+
+                <div className="card p-5">
+                  <h3 className="flex items-center gap-2 text-lg font-medium">
+                    <span className="text-2xl">📍</span> Explore by State
+                  </h3>
+                  <p className="mt-1 mb-3 text-sm text-ink-600/80">Filter politicians by state.</p>
+                  <Link href="/politicians" className="font-medium text-saffron-600">
+                    View all →
+                  </Link>
+                </div>
+
+                <div className="card p-5">
+                  <h3 className="flex items-center gap-2 text-lg font-medium">
+                    <span className="text-2xl">⚔️</span> Compare Netas
+                  </h3>
+                  <p className="mt-1 mb-3 text-sm text-ink-600/80">Head-to-head netas → spicy facts.</p>
+                  <Link href="/compare" className="font-medium text-saffron-600">
+                    Compare →
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ───────────────────────── Newly Added ───────────────────────── */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-extrabold md:text-3xl">Newly Added</h2>
+        {/* ───────────────────────── Featured ───────────────────────── */}
+        <div className="mx-auto max-w-6xl space-y-12 px-4">
+          <section className="space-y-6">
+            <h2 className="text-2xl font-extrabold text-saffron-600 md:text-3xl">Featured</h2>
 
-          <div className="grid gap-8 md:grid-cols-2">
-            {/* Latest netas */}
-            <div>
-              <h3 className="mb-3 text-lg font-semibold">Latest Netas</h3>
-              <div className="grid grid-cols-1 items-stretch gap-x-6 gap-y-8 sm:grid-cols-2">
-                {latestNetas.map((p: any) => (
-                  <CardPolitician key={p.id} p={p} />
-                ))}
+            <div className="space-y-8">
+              {/* Top netas */}
+              <div>
+                <h3 className="mb-3 text-lg font-semibold">Top Netas</h3>
+                <div className="grid grid-cols-1 items-stretch gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+                  {topNetas.map((p: any) => (
+                    <CardPolitician key={p.id} p={p} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Top parties */}
+              <div>
+                <h3 className="mb-3 text-lg font-semibold">Top Parties</h3>
+                <div className="grid grid-cols-1 items-stretch gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+                  {topParties.map((party: any) => (
+                    <CardParty key={party.id} party={party} />
+                  ))}
+                </div>
               </div>
             </div>
+          </section>
 
-            {/* Latest parties */}
-            <div>
-              <h3 className="mb-3 text-lg font-semibold">Latest Parties</h3>
-              <div className="grid grid-cols-1 items-stretch gap-x-6 gap-y-8 sm:grid-cols-2">
-                {latestParties.map((party: any) => (
-                  <CardParty key={party.id} party={party} />
-                ))}
+          {/* ───────────────────────── Newly Added ───────────────────────── */}
+          <section className="space-y-6">
+            <h2 className="text-2xl font-extrabold md:text-3xl">Newly Added</h2>
+
+            <div className="grid gap-8 md:grid-cols-2">
+              {/* Latest netas */}
+              <div>
+                <h3 className="mb-3 text-lg font-semibold">Latest Netas</h3>
+                <div className="grid grid-cols-1 items-stretch gap-x-6 gap-y-8 sm:grid-cols-2">
+                  {latestNetas.map((p: any) => (
+                    <CardPolitician key={p.id} p={p} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Latest parties */}
+              <div>
+                <h3 className="mb-3 text-lg font-semibold">Latest Parties</h3>
+                <div className="grid grid-cols-1 items-stretch gap-x-6 gap-y-8 sm:grid-cols-2">
+                  {latestParties.map((party: any) => (
+                    <CardParty key={party.id} party={party} />
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* ───────────────────────── Sources ───────────────────────── */}
-        <section className="mt-4 space-y-2">
-          <h2 className="text-xl font-semibold">Sources</h2>
-          <p className="space-x-2 text-sm text-ink-600/80">
-            <a href="https://eci.gov.in" className="underline" target="_blank" rel="noopener noreferrer">
-              ECI
-            </a>{' '}
-            •{' '}
-            <a href="https://prsindia.org" className="underline" target="_blank" rel="noopener noreferrer">
-              PRS
-            </a>{' '}
-            •{' '}
-            <a href="https://loksabha.nic.in" className="underline" target="_blank" rel="noopener noreferrer">
-              Lok Sabha
-            </a>{' '}
-            •{' '}
-            <a href="https://censusindia.gov.in" className="underline" target="_blank" rel="noopener noreferrer">
-              Census
-            </a>{' '}
-            •{' '}
-            <a href="https://mospi.gov.in" className="underline" target="_blank" rel="noopener noreferrer">
-              NSS
-            </a>
-          </p>
-        </section>
-      </div>
+          {/* ───────────────────────── Sources ───────────────────────── */}
+          <section className="mt-4 space-y-2">
+            <h2 className="text-xl font-semibold">Sources</h2>
+            <p className="space-x-2 text-sm text-ink-600/80">
+              <a href="https://eci.gov.in" className="underline" target="_blank" rel="noopener noreferrer">
+                ECI
+              </a>{' '}
+              •{' '}
+              <a href="https://prsindia.org" className="underline" target="_blank" rel="noopener noreferrer">
+                PRS
+              </a>{' '}
+              •{' '}
+              <a href="https://loksabha.nic.in" className="underline" target="_blank" rel="noopener noreferrer">
+                Lok Sabha
+              </a>{' '}
+              •{' '}
+              <a href="https://censusindia.gov.in" className="underline" target="_blank" rel="noopener noreferrer">
+                Census
+              </a>{' '}
+              •{' '}
+              <a href="https://mospi.gov.in" className="underline" target="_blank" rel="noopener noreferrer">
+                NSS
+              </a>
+            </p>
+          </section>
+        </div>
+      </main>
     </>
   );
 }
