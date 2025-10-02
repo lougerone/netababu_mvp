@@ -41,13 +41,12 @@ const letterSpace =
     >
       {src ? (
   <Image
-    src={src}
-    alt={alt}
-    fill                 // <-- key: let it fill the square wrapper
-    sizes={`${size}px`}  // hint to the browser for correct thumb size
-    className="object-cover object-center"
-    priority={false}
-  />
+  src={src}
+  alt={alt}
+  fill
+  sizes={`${size}px`}
+  className={variant === 'party' ? 'object-contain object-center p-1' : 'object-cover object-center'}
+/>
 ) : text ? (
   <span
     className="antialiased font-medium leading-none"
