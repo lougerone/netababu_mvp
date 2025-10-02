@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import AvatarSquare from '@/components/AvatarSquare';
 import { pickPartyLogoUrl } from '@/lib/data';
 
-// Define a local type so we don't import from server-only code
+// Local type so we don't import server-only modules
 type PartyRow = {
   id: string;
   slug: string;
@@ -24,8 +24,7 @@ type PartyRow = {
 
 type Props = { initialParties: PartyRow[]; initialQuery?: string };
 
-
-// ---------- helpers ----------
+/* ---------- helpers ---------- */
 function toInt(v: unknown): number | null {
   if (v == null) return null;
   if (typeof v === 'number' && Number.isFinite(v)) return v;
@@ -35,7 +34,7 @@ function toInt(v: unknown): number | null {
   }
   return null;
 }
-const seatsNum = (p: Party) => toInt(p.seats) ?? 0;
+const seatsNum = (p: PartyRow) => toInt(p.seats) ?? 0;
 const cx = (...c: Array<string | false | null | undefined>) => c.filter(Boolean).join(' ');
 
 type Badge = 'National' | 'State' | null;
@@ -49,7 +48,8 @@ function getStatusLabel(s: string | null | undefined): Badge {
   return null;
 }
 
-const pillBase = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ring-1';
+const pillBase =
+  'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ring-1';
 function pillClass(b: Exclude<Badge, null>) {
   switch (b) {
     case 'National':
@@ -67,10 +67,13 @@ const normalize = (s = '') =>
     .replace(/\s+/g, ' ')
     .trim();
 
-// ---------- component ----------
+/* ---------- component ---------- */
 export default function PartiesExplorer({ initialParties, initialQuery = '' }: Props) {
   // base rows sorted by seats desc initially
-  const rows = useMemo(() => [...initialParties].sort((a, b) => seatsNum(b) - seatsNum(a)), [initialParties]);
+  const rows = useMemo(
+    () => [...initialParties].sort((a, b) => seatsNum(b) - seatsNum(a)),
+    [initialParties],
+  );
 
   // filters / sort / pagination
   const [q, setQ] = useState(initialQuery);
@@ -116,7 +119,7 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
       const text = normalize(
         [p.name, p.abbr, p.state, p.status, p.symbolText, p.details, ...(p.leaders || [])]
           .filter(Boolean)
-          .join(' ')
+          .join(' '),
       );
       const statusNorm = normalize(p.status || '');
       const statusLabel = getStatusLabel(p.status);
@@ -128,22 +131,20 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
   const filtered = useMemo(() => {
     const tokens = normalize(q).split(' ').filter(Boolean); // multi-token AND
     const tierMin =
-      seatTier === '50+' ? 50 :
-      seatTier === '10+' ? 10 :
-      seatTier === '5+'  ? 5  :
-      seatTier === '1+'  ? 1  : 0;
+      seatTier === '50+' ? 50 : seatTier === '10+' ? 10 : seatTier === '5+' ? 5 : seatTier === '1+' ? 1 : 0;
 
     const wantNational = status ? normalize(status).includes('national') : null;
-    const wantState    = status ? normalize(status).includes('state')    : null;
+    const wantState = status ? normalize(status).includes('state') : null;
 
     const out = indexed
       .filter(({ p, text, statusNorm }) => {
         const okQ = tokens.length ? tokens.every((t) => text.includes(t)) : true;
         const okState = state ? normalize(p.state || '') === normalize(state) : true;
 
+        // status match (accepts “National”/“State” variants from Airtable)
         const okStatus = status
           ? (wantNational ? statusNorm.includes('national') : false) ||
-            (wantState    ? statusNorm.includes('state')    : false)
+            (wantState ? statusNorm.includes('state') : false)
           : true;
 
         const okSeats = tierMin > 0 ? seatsNum(p) >= tierMin : true;
@@ -210,7 +211,9 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
       seats: seatsNum(p),
       leaders: (p.leaders || []).join('; '),
     }));
-    const headers = Object.keys(rowsOut[0] || { id: '', name: '', abbr: '', state: '', status: '', founded: '', seats: '', leaders: '' });
+    const headers = Object.keys(
+      rowsOut[0] || { id: '', name: '', abbr: '', state: '', status: '', founded: '', seats: '', leaders: '' },
+    );
     const csv = [
       headers.join(','),
       ...rowsOut.map((r) => headers.map((h) => JSON.stringify((r as any)[h] ?? '')).join(',')),
@@ -226,19 +229,106 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
 
   return (
     <div className="max-w-[1400px] mx-auto my-6 sm:my-8 rounded-2xl overflow-hidden bg-white shadow-2xl">
-      {/* Header (cream, no gradient) */}
+      {/* Header */}
       <div className="px-6 sm:px-8 py-5 sm:py-6 text-center bg-cream-200 border-b border-ink-200">
-        <h1 className="text-ink-800 text-2xl sm:text-3xl font-extrabold tracking-tight">
-          Indian Political Parties
-        </h1>
+        <h1 className="text-ink-800 text-2xl sm:text-3xl font-extrabold tracking-tight">Indian Political Parties</h1>
       </div>
 
       {/* Controls */}
       <div className="px-5 sm:px-8 py-6 bg-cream-200/50 border-b border-ink-200">
-        {/* ...controls unchanged... */}
-        {/* (content omitted for brevity — keep your existing controls block) */}
         <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-4">
-          {/* your inputs/selects/buttons stay the same */}
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search by name, abbreviation, leader, state…"
+            className="flex-1 min-w-[240px] rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-[15px] outline-none
+                       focus:border-ink-500 focus:ring-2 focus:ring-ink-200"
+          />
+
+          <div className="flex flex-wrap gap-2">
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
+            >
+              <option value="">All Status</option>
+              {allStatuses.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
+            >
+              <option value="">All States</option>
+              {allStates.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={seatTier}
+              onChange={(e) => setSeatTier(e.target.value)}
+              className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
+            >
+              <option value="">All Seats</option>
+              <option value="1+">1+ seats</option>
+              <option value="5+">5+ seats</option>
+              <option value="10+">10+ seats</option>
+              <option value="50+">50+ seats</option>
+            </select>
+
+            <select
+              value={`${sortKey}:${sortDir}`}
+              onChange={(e) => {
+                const [k, d] = e.target.value.split(':') as [
+                  'name' | 'seats' | 'founded' | 'status',
+                  'asc' | 'desc'
+                ];
+                setSortKey(k);
+                setSortDir(d);
+              }}
+              className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm"
+            >
+              <option value="seats:desc">Sort: Seats ↓</option>
+              <option value="seats:asc">Sort: Seats ↑</option>
+              <option value="name:asc">Sort: Name A→Z</option>
+              <option value="name:desc">Sort: Name Z→A</option>
+              <option value="founded:desc">Sort: Founded ↓</option>
+              <option value="founded:asc">Sort: Founded ↑</option>
+              <option value="status:asc">Sort: Status A→Z</option>
+              <option value="status:desc">Sort: Status Z→A</option>
+            </select>
+
+            <button
+              onClick={() => {
+                setQ('');
+                setState('');
+                setStatus('');
+                setSeatTier('');
+                setSortKey('seats');
+                setSortDir('desc');
+              }}
+              className="rounded-lg border border-ink-200 px-3 py-2 text-sm hover:border-ink-500 hover:bg-ink-900/5"
+              type="button"
+            >
+              Clear filters
+            </button>
+
+            <button
+              onClick={exportCSV}
+              className="rounded-lg border border-ink-200 px-3 py-2 text-sm hover:border-ink-500 hover:bg-ink-900/5"
+              type="button"
+            >
+              Export CSV
+            </button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -256,12 +346,20 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
           <thead className="sticky top-0 z-10">
             <tr className="bg-cream-100/90 backdrop-blur supports-[backdrop-filter]:bg-cream-100/80 text-ink-700 border-y border-ink-200 text-sm">
               <Th>Logo</Th>
-              <Th sort={sortKey==='name' ? (sortDir==='asc'?'ascending':'descending') : 'none'}>Name</Th>
+              <Th sort={sortKey === 'name' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                Name
+              </Th>
               <Th>Abbr</Th>
               <Th>State</Th>
-              <Th align="right" sort={sortKey==='founded' ? (sortDir==='asc'?'ascending':'descending') : 'none'}>Founded</Th>
-              <Th sort={sortKey==='status' ? (sortDir==='asc'?'ascending':'descending') : 'none'}>Status</Th>
-              <Th align="right" sort={sortKey==='seats' ? (sortDir==='asc'?'ascending':'descending') : 'none'}>LS Seats</Th>
+              <Th align="right" sort={sortKey === 'founded' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                Founded
+              </Th>
+              <Th sort={sortKey === 'status' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                Status
+              </Th>
+              <Th align="right" sort={sortKey === 'seats' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                LS Seats
+              </Th>
               <Th>Leaders</Th>
               <Th>Details</Th>
             </tr>
@@ -332,7 +430,40 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
 
         {/* Pagination */}
         <div className="flex justify-center items-center gap-2 mt-6">
-          {/* …pagination unchanged… */}
+          {page > 1 && (
+            <button
+              className="w-20 px-3 py-2 rounded-md border border-ink-200 hover:border-ink-500 hover:bg-ink-700 hover:text-white"
+              onClick={() => setPage(page - 1)}
+            >
+              ‹ Prev
+            </button>
+          )}
+          {Array.from({ length: totalPages })
+            .slice(Math.max(0, page - 3), page + 2)
+            .map((_, i) => {
+              const n = Math.max(1, page - 2) + i;
+              if (n > totalPages) return null;
+              return (
+                <button
+                  key={n}
+                  onClick={() => setPage(n)}
+                  className={cx(
+                    'min-w-10 px-3 py-2 rounded-md border',
+                    n === page ? 'bg-ink-700 border-ink-700 text-white' : 'border-ink-200 hover:border-ink-500',
+                  )}
+                >
+                  {n}
+                </button>
+              );
+            })}
+          {page < totalPages && (
+            <button
+              className="w-20 px-3 py-2 rounded-md border border-ink-200 hover:border-ink-500 hover:bg-ink-700 hover:text-white"
+              onClick={() => setPage(page + 1)}
+            >
+              Next ›
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -353,7 +484,7 @@ function Th({
       aria-sort={sort}
       className={cx(
         'px-3 py-3 first:pl-6 last:pr-6 font-semibold whitespace-nowrap',
-        align === 'right' ? 'text-right' : 'text-left'
+        align === 'right' ? 'text-right' : 'text-left',
       )}
     >
       {children}
