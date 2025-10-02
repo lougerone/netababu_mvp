@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import type { Party } from '@/lib/airtable';
 import AvatarSquare from './AvatarSquare';
-import { pickPartyLogo } from '@/lib/data';
+import { pickPartyLogo, proxyImage } from '@/lib/data';
 
 /* UI */
 function ScopePill({ label }: { label?: string }) {
@@ -64,7 +64,8 @@ export default function CardParty({ party }: { party: Party }) {
   const leader = pickLeader(party as any);
   const states = pickStates(party as any);
   const stateDisplay = states.length > 1 ? `${states[0]} +${states.length - 1}` : states[0];
-  const logo = pickPartyLogo(party);
+  const rawLogo = pickPartyLogo(party);
+  const logo = proxyImage(rawLogo);
   const alliance = pickAlliance(party as any);
   const founded = pickFounded(party as any);
   const hq = pickHQ(party as any);
@@ -85,13 +86,13 @@ export default function CardParty({ party }: { party: Party }) {
         {/* TOP */}
         <div className="flex items-start gap-3 min-w-0">
           <AvatarSquare
-          variant="party"
-          src={logo}                     // ← now a URL string
-          alt={party.name ?? 'Party'}
-          size={64}
-          rounded="rounded-xl"
-          label={(party as any).abbr || party.name}
-        />
+  variant="party"
+  src={logo}
+  alt={party.name ?? 'Party'}
+  size={64}
+  rounded="rounded-xl"
+  label={(party as any).abbr || party.name}
+/>
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2 min-w-0">
               <div className="text-[15px] font-semibold text-ink-800 truncate leading-5">
