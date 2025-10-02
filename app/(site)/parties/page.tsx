@@ -4,6 +4,8 @@ import PartiesExplorer from './PartiesExplorer';
 
 export const revalidate = Number(process.env.REVALIDATE_SECONDS || 3600);
 // or: export const dynamic = 'force-dynamic';
+const logo = proxyImage(pickPartyLogo(party));
+<AvatarSquare variant="party" src={logo} alt={party.name} size={40} rounded="rounded-lg" />
 
 export default async function PartiesPage({
   searchParams,
