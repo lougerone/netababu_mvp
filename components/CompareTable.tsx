@@ -342,16 +342,6 @@ function uniq<T>(arr: T[]) {
   return Array.from(new Set(arr));
 }
 
-/* winner highlight (numeric rows) */
-const betterHigh = new Set(['attendance', 'assets', 'yearsInPolitics']);
-const betterLow  = new Set(['criminalCases']);
-const numFrom = (v: unknown) => Number(String(v ?? '').replace(/[^\d.-]/g, ''));
-function winnerClass(key: string, a: unknown, b: unknown) {
-  const na = numFrom(a), nb = numFrom(b);
-  if (!Number.isFinite(na) || !Number.isFinite(nb) || na === nb) return '';
-  const wins = betterHigh.has(key) ? na > nb : betterLow.has(key) ? na < nb : null;
-  return wins ? 'ring-1 ring-saffron-500/60 rounded-md' : '';
-}
 
 /* ---------------- main ---------------- */
 export default function CompareTable({ politicians }: { politicians: Politician[] }) {
@@ -443,90 +433,35 @@ export default function CompareTable({ politicians }: { politicians: Politician[
         <table className="w-full text-sm">
           <caption className="sr-only">Compare Netas</caption>
           <thead className="sticky top-[64px] z-[150] bg-cream-200/95 backdrop-blur">
-            <tr className="text-left text-ink-600/80">
-              <th scope="col" className="w-[240px] py-2 pr-4">Attribute</th>
-              <th scope="col" className="py-2 pr-4">A</th>
-              <th scope="col" className="py-2 pr-4">B</th>
-            </tr>
-          </thead>
-          <tbody className="[&_tr]:border-t [&_tr]:border-black/10">
-            {/* Identity row (with chips) */}
-            <tr>
-              <th scope="row" className="py-3 pr-4 font-medium">Identity</th>
-              <td className="py-3 pr-4">
-                {A ? (
-                  <div className="flex items-center gap-2">
-                    <AvatarSquare src={A.photo ?? null} alt={A.name} size={40} rounded="lg" />
-                    <div className="min-w-0">
-                      <div className="truncate font-medium">{A.name}</div>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        <span className={`rounded-md px-2 py-0.5 text-[11px] ${partyBadgeClass(A.party)}`}>
-                          {A.party || 'Unknown'}
-                        </span>
-                        {A.constituency && (
-                          <span className="rounded-md bg-cream-200/70 px-2 py-0.5 text-[11px] text-ink-700">
-                            {fmtVal('constituency', A.constituency)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ) : '—'}
-              </td>
-              <td className="py-3 pr-4">
-                {B ? (
-                  <div className="flex items-center gap-2">
-                    <AvatarSquare src={B.photo ?? null} alt={B.name} size={40} rounded="lg" />
-                    <div className="min-w-0">
-                      <div className="truncate font-medium">{B.name}</div>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        <span className={`rounded-md px-2 py-0.5 text-[11px] ${partyBadgeClass(B.party)}`}>
-                          {B.party || 'Unknown'}
-                        </span>
-                        {B.constituency && (
-                          <span className="rounded-md bg-cream-200/70 px-2 py-0.5 text-[11px] text-ink-700">
-                            {fmtVal('constituency', B.constituency)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ) : '—'}
-              </td>
-            </tr>
+  <tr className="text-left text-ink-600/80">
+    <th scope="col" className="w-[240px] py-2 pr-4">Attribute</th>
 
-            {/* Always-on rows */}
-            {['party', 'constituency', 'current_position'].map((f) =>
-              shouldShow(f) ? (
-                <tr key={`locked-${f}`} className="odd:bg-cream-100/50">
-                  <th scope="row" className="py-3 pr-4 font-medium">
-                    {f === 'party' ? 'Party' : f === 'constituency' ? 'Constituency' : 'Current Position'}
-                  </th>
-                  <td className="py-3 pr-4">{renderValue(f, A)}</td>
-                  <td className="py-3 pr-4">{renderValue(f, B)}</td>
-                </tr>
-              ) : null
-            )}
+    {/* Header for A: avatar + name (no letter) */}
+    <th scope="col" className="py-2 pr-4">
+      {A ? (
+        <div className="flex items-center gap-2 min-w-0">
+          <AvatarSquare src={A.photo ?? null} alt={A.name} size={28} rounded="md" />
+          <span className="truncate max-w-[180px] text-ink-700">{A.name}</span>
+        </div>
+      ) : (
+        <span className="text-ink-500">Select Neta</span>
+      )}
+    </th>
 
-            {/* Optional rows with winner highlight where numeric */}
-            {activeOptional.map((c) =>
-              shouldShow(c.key as string) ? (
-                <tr key={`opt-${String(c.key)}`} className="odd:bg-cream-100/50">
-                  <th scope="row" className="py-3 pr-4">{c.label}</th>
-                  <td
-                    className={`py-3 pr-4 ${winnerClass(String(c.key), getRaw(A, String(c.key)), getRaw(B, String(c.key)))}`}
-                  >
-                    {renderValue(String(c.key), A)}
-                  </td>
-                  <td
-                    className={`py-3 pr-4 ${winnerClass(String(c.key), getRaw(B, String(c.key)), getRaw(A, String(c.key)))}`}
-                  >
-                    {renderValue(String(c.key), B)}
-                  </td>
-                </tr>
-              ) : null
-            )}
-          </tbody>
+    {/* Header for B: avatar + name (no letter) */}
+    <th scope="col" className="py-2 pr-4">
+      {B ? (
+        <div className="flex items-center gap-2 min-w-0">
+          <AvatarSquare src={B.photo ?? null} alt={B.name} size={28} rounded="md" />
+          <span className="truncate max-w-[180px] text-ink-700">{B.name}</span>
+        </div>
+      ) : (
+        <span className="text-ink-500">Select Neta</span>
+      )}
+    </th>
+  </tr>
+</thead>
+
         </table>
       </div>
 
