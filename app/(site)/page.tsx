@@ -210,19 +210,19 @@ export default async function HomePage() {
     priority
     sizes="100vw"
     className={[
-      // keep it within the canvas nicely
       'object-contain object-top',
-      // faint it out
       'opacity-30',
-      // tiny de-pop so text pops more
       '[filter:contrast(.9)_saturate(.9)_blur(.3px)]',
-      // feather all edges to remove seams no matter the viewport
-      // (big radial that keeps center opaque and fades to transparent toward edges)
       '[mask-image:radial-gradient(120%_90%_at_50%_45%,_#000_58%,_transparent_85%)]'
     ].join(' ')}
+    // Safari fallback for the soft edge mask
+    style={{
+      WebkitMaskImage:
+        'radial-gradient(120% 90% at 50% 45%, #000 58%, transparent 85%)',
+    }}
   />
 
-  {/* One overlay to rule them all: radial vignette to cream */}
+  {/* Radial vignette to cream (smoothly removes edges) */}
   <div
     className="pointer-events-none absolute inset-0"
     style={{
@@ -231,7 +231,7 @@ export default async function HomePage() {
     }}
   />
 
-  {/* Subtle top/bottom linear fades (kept, but a bit softer) */}
+  {/* Subtle top/bottom linear fades */}
   <div className="pointer-events-none absolute inset-0">
     <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-cream-200/70 via-cream-200/40 to-transparent" />
     <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-cream-200/70 via-cream-200/40 to-transparent" />
