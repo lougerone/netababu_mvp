@@ -441,7 +441,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
           <caption className="sr-only">Compare Netas</caption>
 
           {/* Header: bigger avatar; lifted upward so it fills the gap above the first row */}
-          <thead className="sticky top-[64px] z-[150] bg-cream-200/95 backdrop-blur">
+          <thead className="sticky top-[96px] z-[150] bg-cream-200/95 backdrop-blur">
             <tr className="align-middle text-left text-ink-600/80">
               <th scope="col" className="w-[240px] py-3 pr-4 align-middle">
                 Attribute
