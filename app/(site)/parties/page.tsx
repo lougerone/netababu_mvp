@@ -1,6 +1,6 @@
 // app/(site)/parties/page.tsx
+import { listParties } from '@/lib/airtable';
 import PartiesExplorer from './PartiesExplorer';
-import { getHomeParties } from '@/lib/data.server';
 
 export const revalidate = Number(process.env.REVALIDATE_SECONDS || 3600);
 
@@ -14,7 +14,8 @@ export default async function PartiesPage({
       ? searchParams.q[0]
       : '';
 
-  const parties: Party[] = await listParties({ query: q || undefined, limit: 1000 });
+  const parties = await listParties({ query: q || undefined, limit: 1000 });
 
-  return <PartiesExplorer initialParties={parties} initialQuery={q} />;
+  // If PartiesExplorer has a narrower prop type, you can keep this cast:
+  return <PartiesExplorer initialParties={parties as any} initialQuery={q} />;
 }
