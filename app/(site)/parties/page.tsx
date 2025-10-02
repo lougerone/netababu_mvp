@@ -1,5 +1,4 @@
 // app/(site)/parties/page.tsx
-import { listParties, type Party } from '@/lib/airtable';
 import PartiesExplorer from './PartiesExplorer';
 import { getHomeParties } from '@/lib/data.server';
 
