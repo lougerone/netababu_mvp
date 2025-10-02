@@ -24,3 +24,6 @@ export function pickPartyLogo(p: Party): string | undefined {
     undefined
   );
 }
+
+export const proxyImage = (u?: string) =>
+  u ? `/api/proxy-image?u=${encodeURIComponent(u)}` : undefined;
