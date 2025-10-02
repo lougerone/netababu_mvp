@@ -53,8 +53,21 @@ const findRole = (pols: AnyRec[], role: 'pm' | 'president' | 'home' | 'lop') => 
   if (role === 'home') return pols.find((p) => /\bhome\s+minister\b/i.test(roleText(p)));
 
   if (role === 'president') {
-    return pols.find((p) => /\bpresident\s+of\s+india\b/i.test(roleText(p)));
-  }
+  return pols.find((p) => {
+    const t = roleText(p);
+
+    // must contain the exact office phrase
+    const hasOffice = /\bPresident of India\b/i.test(t);
+
+    // exclude party/org titles and qualifiers
+    const isViceLike = /\bVice\s+President\b/i.test(t);
+    const hasQualifier = /\b(Ex|Former|Acting|Deputy|Pro\s*Tem|Past|Emeritus)\b\.?\s*/i.test(t);
+    const isPartyTitle = /\bparty\s+president\b/i.test(t);
+
+    return hasOffice && !isViceLike && !hasQualifier && !isPartyTitle;
+  });
+}
+
 
 
   // LOP: prefer Lok Sabha if present
