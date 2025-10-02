@@ -8,10 +8,29 @@ export async function getHomeParties(): Promise<Party[]> {
 }
 
 const firstUrl = (v: any): string | undefined => {
-  if (!v) return;
-  if (typeof v === 'string') return v;
-  if (Array.isArray(v)) return v[0]?.url || v[0]?.thumbnails?.full?.url;
-  if (typeof v === 'object') return v.url || v.thumbnails?.full?.url;
+  if (!v) return undefined;
+  
+  // Handle string
+  if (typeof v === 'string') {
+    // Make sure it's a complete URL
+    return v.startsWith('http') ? v : undefined;
+  }
+  
+  // Handle array of attachments
+  if (Array.isArray(v) && v.length > 0) {
+    const first = v[0];
+    // Try different possible URL fields in Airtable attachments
+    const url = first?.url || first?.thumbnails?.large?.url || first?.thumbnails?.full?.url;
+    return url && url.startsWith('http') ? url : undefined;
+  }
+  
+  // Handle object
+  if (typeof v === 'object' && v) {
+    const url = v.url || v.thumbnails?.large?.url || v.thumbnails?.full?.url;
+    return url && url.startsWith('http') ? url : undefined;
+  }
+  
+  return undefined;
 };
 
 export function pickPartyLogo(p: Party): string | undefined {
