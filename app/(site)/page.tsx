@@ -72,9 +72,6 @@ const findRole = (pols: AnyRec[], role: 'pm' | 'president' | 'home' | 'lop') => 
   });
 }
 
-const logo = proxyImage(pickPartyLogo(party));
-<AvatarSquare variant="party" src={logo} alt={`${party.name} logo`} size={64} rounded="rounded-xl" />
-
   // LOP: prefer Lok Sabha if present
   const lopLS = pols.find(
     (p) =>
