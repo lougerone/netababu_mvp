@@ -53,10 +53,27 @@ const findRole = (pols: AnyRec[], role: 'pm' | 'president' | 'home' | 'lop') => 
   if (role === 'home') return pols.find((p) => /\bhome\s+minister\b/i.test(roleText(p)));
 
   if (role === 'president') {
-    return pols.find(
-      (p) => /\bpresident\b/i.test(roleText(p)) && !/\bparty\s+president\b/i.test(roleText(p)),
-    );
-  }
+  // 1) Exact constitutional office
+  const exact = pols.find((p) => /\bpresident\s+of\s+india\b/i.test(roleText(p)));
+  if (exact) return exact;
+
+  // 2) Very defensive fallback: allow "President" only when it clearly isn't a party/org title
+  return pols.find((p) => {
+    const t = roleText(p);
+
+    // reject obvious party/org variants
+    if (/\b(party|state|district|working|acting)\s+president\b/i.test(t)) return false;
+
+    // reject "ABC President" patterns e.g., "RJD President", "INC President"
+    if (/\b[A-Z]{2,7}\b\s+President\b/.test(t)) return false;
+
+    // accept "President" only if paired with 'India' context (e.g., "President, India")
+    if (/\bPresident\b/i.test(t) && /\b(India|Republic of India)\b/i.test(t)) return true;
+
+    return false;
+  });
+}
+
 
   // LOP: prefer Lok Sabha if present
   const lopLS = pols.find(
