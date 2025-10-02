@@ -88,7 +88,7 @@ function renderValue(field: string, p?: Politician) {
 }
 
 /* ---------------- optional rows ---------------- */
-// Keep assets; remove liabilities. Add twitter + created.
+// keep assets, remove liabilities; include twitter + created
 const OPTIONAL: { key: keyof Politician; label: string }[] = [
   { key: 'age', label: 'Age' },
   { key: 'yearsInPolitics', label: 'Years in Politics' },
@@ -422,25 +422,27 @@ export default function CompareTable({ politicians }: { politicians: Politician[
         <table className="w-full text-sm">
           <caption className="sr-only">Compare Netas</caption>
 
-          {/* Header: photo + name (no A/B letters) */}
+          {/* Header: BIGGER photo + name (no A/B letters) */}
           <thead className="sticky top-[64px] z-[150] bg-cream-200/95 backdrop-blur">
-            <tr className="text-left text-ink-600/80">
-              <th scope="col" className="w-[240px] py-2 pr-4">Attribute</th>
-              <th scope="col" className="py-2 pr-4">
+            <tr className="text-left text-ink-600/80 align-middle">
+              <th scope="col" className="w-[240px] py-3 pr-4">Attribute</th>
+
+              <th scope="col" className="py-3 pr-4">
                 {A ? (
-                  <div className="flex min-w-0 items-center gap-2">
-                    <AvatarSquare src={A.photo ?? null} alt={A.name} size={28} rounded="md" />
-                    <span className="max-w-[180px] truncate text-ink-700">{A.name}</span>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <AvatarSquare src={A.photo ?? null} alt={A.name} size={44} rounded="lg" />
+                    <span className="max-w-[220px] truncate font-semibold text-ink-700">{A.name}</span>
                   </div>
                 ) : (
                   <span className="text-ink-500">Select Neta</span>
                 )}
               </th>
-              <th scope="col" className="py-2 pr-4">
+
+              <th scope="col" className="py-3 pr-4">
                 {B ? (
-                  <div className="flex min-w-0 items-center gap-2">
-                    <AvatarSquare src={B.photo ?? null} alt={B.name} size={28} rounded="md" />
-                    <span className="max-w-[180px] truncate text-ink-700">{B.name}</span>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <AvatarSquare src={B.photo ?? null} alt={B.name} size={44} rounded="lg" />
+                    <span className="max-w-[220px] truncate font-semibold text-ink-700">{B.name}</span>
                   </div>
                 ) : (
                   <span className="text-ink-500">Select Neta</span>
@@ -450,51 +452,6 @@ export default function CompareTable({ politicians }: { politicians: Politician[
           </thead>
 
           <tbody className="[&_tr]:border-t [&_tr]:border-black/10">
-            {/* Identity row (kept, with chips) */}
-            <tr>
-              <th scope="row" className="py-3 pr-4 font-medium">Identity</th>
-              <td className="py-3 pr-4">
-                {A ? (
-                  <div className="flex items-center gap-2">
-                    <AvatarSquare src={A.photo ?? null} alt={A.name} size={40} rounded="lg" />
-                    <div className="min-w-0">
-                      <div className="truncate font-medium">{A.name}</div>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        <span className={`rounded-md px-2 py-0.5 text-[11px] ${partyBadgeClass(A.party)}`}>
-                          {A.party || 'Unknown'}
-                        </span>
-                        {A.constituency && (
-                          <span className="rounded-md bg-cream-200/70 px-2 py-0.5 text-[11px] text-ink-700">
-                            {fmtVal('constituency', A.constituency)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ) : '—'}
-              </td>
-              <td className="py-3 pr-4">
-                {B ? (
-                  <div className="flex items-center gap-2">
-                    <AvatarSquare src={B.photo ?? null} alt={B.name} size={40} rounded="lg" />
-                    <div className="min-w-0">
-                      <div className="truncate font-medium">{B.name}</div>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        <span className={`rounded-md px-2 py-0.5 text-[11px] ${partyBadgeClass(B.party)}`}>
-                          {B.party || 'Unknown'}
-                        </span>
-                        {B.constituency && (
-                          <span className="rounded-md bg-cream-200/70 px-2 py-0.5 text-[11px] text-ink-700">
-                            {fmtVal('constituency', B.constituency)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ) : '—'}
-              </td>
-            </tr>
-
             {/* Always-on rows */}
             {['party', 'constituency', 'current_position'].map((f) =>
               shouldShow(f) ? (
@@ -508,7 +465,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
               ) : null
             )}
 
-            {/* Optional rows (no winner cue) */}
+            {/* Optional rows */}
             {activeOptional.map((c) =>
               shouldShow(c.key as string) ? (
                 <tr key={`opt-${String(c.key)}`} className="odd:bg-cream-100/50">
