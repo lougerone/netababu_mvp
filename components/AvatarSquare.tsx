@@ -1,7 +1,5 @@
 // components/AvatarSquare.tsx
 import Image from 'next/image';
-import AvatarSquare from '@/components/AvatarSquare';
-import { pickPartyLogo, proxyImage } from '@/lib/data';
 
 type Props = {
   src?: string | null;
