@@ -36,8 +36,30 @@ export function pickPartyLogo(p: Party | Record<string, any>): string | undefine
 }
 
 /** Wrap a remote image URL with our proxy endpoint (prevents Airtable URL expiry) */
-export const proxyImage = (u?: string) =>
-  u ? `/api/proxy-image?u=${encodeURIComponent(u)}` : undefined;
+export function proxyImage(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  
+  if (url.startsWith('data:') || url.startsWith('/')) return url;
+  
+  try {
+    const parsed = new URL(url);
+    const allowedHosts = [
+      'v5.airtableusercontent.com',
+      'dl.airtable.com',
+      'upload.wikimedia.org',
+      'www.netababu.com',  // <-- Add this
+      'netababu.com',      // <-- Add this
+    ];
+    
+    if (allowedHosts.includes(parsed.hostname)) {
+      return `/api/proxy?u=${encodeURIComponent(url)}`;
+    }
+    
+    return url;
+  } catch {
+    return undefined;
+  }
+}
 
 /* ──────────────────────────────
    Optional: role helpers (used by Featured)
