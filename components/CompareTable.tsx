@@ -37,7 +37,9 @@ function fmtVal(key: string, val: unknown): string {
     return toTitle(s);
   }
   if (key === 'current_position') {
-    const s = String(val).trim();
+    // Normalize: "Ex." -> "Former", keep MP uppercase
+    let s = String(val).trim();
+    s = s.replace(/\bex\.?/i, 'Former');
     if (s.toLowerCase() === 'mop') return 'MP';
     return toTitle(s);
   }
@@ -92,7 +94,7 @@ function renderValue(field: string, p?: Politician) {
 }
 
 /* ---------------- optional rows ---------------- */
-// Removed "Parliament Attendance"
+// No "Parliament Attendance"
 const OPTIONAL: { key: keyof Politician; label: string }[] = [
   { key: 'age', label: 'Age' },
   { key: 'yearsInPolitics', label: 'Years in Politics' },
@@ -103,7 +105,7 @@ const OPTIONAL: { key: keyof Politician; label: string }[] = [
   { key: 'created' as keyof Politician, label: 'Last Updated' },
 ];
 
-/* ---------------- party badge ---------------- */
+/* ---------------- party badge (kept for future use) ---------------- */
 const PARTY_COLORS: Record<string, string> = {
   'Bharatiya Janata Party': 'bg-[#FFCC00] text-black',
   'Indian National Congress': 'bg-[#138808] text-white',
@@ -440,27 +442,36 @@ export default function CompareTable({ politicians }: { politicians: Politician[
         <table className="w-full text-sm">
           <caption className="sr-only">Compare Netas</caption>
 
-          {/* Sticky header with extra top padding so big photos don't overlap first row */}
+        {/* Sticky header that fully contains the big avatars and aligns baselines */}
           <thead className="sticky top-[64px] z-[150] bg-cream-200/95 backdrop-blur">
-            <tr className="text-left text-ink-600/80 align-bottom">
-              <th scope="col" className="w-[240px] px-4 pt-4 pb-3 text-center">
+            <tr className="text-left text-ink-600/80">
+              {/* Attribute header centered */}
+              <th scope="col" className="w-[240px] px-4 py-4 text-center align-bottom">
                 Attribute
               </th>
-              <th scope="col" className="px-4 pt-6 pb-3">
+
+              {/* A */}
+              <th scope="col" className="px-4 py-4 align-bottom">
                 {A ? (
-                  <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex min-w-0 items-end gap-3 min-h-[88px]">
                     <AvatarSquare src={A.photo ?? null} alt={A.name} size={72} rounded="lg" />
-                    <span className="max-w-[240px] truncate font-semibold text-ink-700">{A.name}</span>
+                    <span className="max-w-[240px] truncate font-semibold text-ink-700 leading-tight">
+                      {A.name}
+                    </span>
                   </div>
                 ) : (
                   <span className="text-ink-500">Select Neta</span>
                 )}
               </th>
-              <th scope="col" className="px-4 pt-6 pb-3">
+
+              {/* B */}
+              <th scope="col" className="px-4 py-4 align-bottom">
                 {B ? (
-                  <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex min-w-0 items-end gap-3 min-h-[88px]">
                     <AvatarSquare src={B.photo ?? null} alt={B.name} size={72} rounded="lg" />
-                    <span className="max-w-[240px] truncate font-semibold text-ink-700">{B.name}</span>
+                    <span className="max-w-[240px] truncate font-semibold text-ink-700 leading-tight">
+                      {B.name}
+                    </span>
                   </div>
                 ) : (
                   <span className="text-ink-500">Select Neta</span>
@@ -470,14 +481,14 @@ export default function CompareTable({ politicians }: { politicians: Politician[
           </thead>
 
           <tbody className="[&_tr]:border-t [&_tr]:border-black/10">
-            {/* Constituency — always shown so it can't disappear */}
+            {/* Constituency — always first and always shown */}
             <tr className="odd:bg-cream-100/50">
               <th scope="row" className="px-4 py-3 font-medium">Constituency</th>
               <td className="px-4 py-3">{renderValue('constituency', A)}</td>
               <td className="px-4 py-3">{renderValue('constituency', B)}</td>
             </tr>
 
-            {/* Always-on rows */}
+            {/* Always-on rows (do NOT include 'constituency' again) */}
             {['current_position', 'party'].map((f) =>
               shouldShow(f) ? (
                 <tr key={`locked-${f}`} className="odd:bg-cream-100/50">
