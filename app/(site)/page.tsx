@@ -5,6 +5,8 @@ import CardParty from '@/components/CardParty';
 import CardPolitician from '@/components/CardPolitician';
 import HeroSearch from '@/components/HeroSearch';
 import { listParties, listPoliticians } from '@/lib/airtable';
+import AvatarSquare from '@/components/AvatarSquare';
+import { pickPartyLogo, proxyImage } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,7 +70,8 @@ const findRole = (pols: AnyRec[], role: 'pm' | 'president' | 'home' | 'lop') => 
   });
 }
 
-
+const logo = proxyImage(pickPartyLogo(party));
+<AvatarSquare variant="party" src={logo} alt={`${party.name} logo`} size={64} rounded="rounded-xl" />
 
   // LOP: prefer Lok Sabha if present
   const lopLS = pols.find(
