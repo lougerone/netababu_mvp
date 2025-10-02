@@ -4,8 +4,6 @@ import PartiesExplorer from './PartiesExplorer';
 
 export const revalidate = Number(process.env.REVALIDATE_SECONDS || 3600);
 // or: export const dynamic = 'force-dynamic';
-const logo = proxyImage(pickPartyLogo(party));
-<AvatarSquare variant="party" src={logo} alt={party.name} size={40} rounded="rounded-lg" />
 
 export default async function PartiesPage({
   searchParams,
@@ -22,6 +20,8 @@ export default async function PartiesPage({
 
   // Pull a large batch so client filters feel instant
   const parties: Party[] = await listParties({ query: q || undefined, limit: 1000 });
-
+  const logo = proxyImage(pickPartyLogo(party));
+  <AvatarSquare variant="party" src={logo} alt={party.name} size={40} rounded="rounded-lg" />
+  
   return <PartiesExplorer initialParties={parties} initialQuery={q} />;
 }
