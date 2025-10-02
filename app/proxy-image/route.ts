@@ -6,6 +6,8 @@ const ALLOW = new Set([
   'v5.airtableusercontent.com',
   'dl.airtable.com',
   'upload.wikimedia.org',
+  'www.netababu.com',  // <-- Add this
+  'netababu.com',      // <-- And this (without www)
 ]);
 
 export async function GET(req: NextRequest) {
@@ -16,10 +18,11 @@ export async function GET(req: NextRequest) {
   try { target = new URL(raw); } catch { return new NextResponse('Bad URL', { status: 400 }); }
 
   if (!ALLOW.has(target.hostname)) {
+    console.error('Host not allowed:', target.hostname); // <-- Add logging
     return new NextResponse('Host not allowed', { status: 400 });
   }
 
-  const resp = await fetch(target.toString(), { next: { revalidate: 3600 } }); // cache 1h at edge
+  const resp = await fetch(target.toString(), { next: { revalidate: 3600 } });
   if (!resp.ok || !resp.body) return new NextResponse('Upstream error', { status: resp.status || 502 });
 
   return new NextResponse(resp.body, {
