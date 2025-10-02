@@ -2,6 +2,28 @@
 import Link from 'next/link';
 import type { Party } from '@/lib/airtable';
 import AvatarSquare from './AvatarSquare';
+import { pickPartyLogo } from '@/lib/data';
+
+export default function CardParty({ party }: { party: Party }) {
+  const logo = pickPartyLogo(party);
+
+  return (
+    <Link /* ... */>
+      <div className="flex items-start gap-3 min-w-0">
+        <AvatarSquare
+          variant="party"
+          src={logo}                     // ← now a URL string
+          alt={party.name ?? 'Party'}
+          size={64}
+          rounded="rounded-xl"
+          label={(party as any).abbr || party.name}
+        />
+        {/* ... */}
+      </div>
+      {/* ... */}
+    </Link>
+  );
+}
 
 /* UI */
 function ScopePill({ label }: { label?: string }) {
