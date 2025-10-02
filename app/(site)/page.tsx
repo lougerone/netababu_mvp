@@ -56,10 +56,6 @@ const findRole = (pols: AnyRec[], role: 'pm' | 'president' | 'home' | 'lop') => 
     return pols.find((p) => /\bpresident\s+of\s+india\b/i.test(roleText(p)));
   }
 
-  // …rest (LoP) unchanged
-};
-
-
 
   // LOP: prefer Lok Sabha if present
   const lopLS = pols.find(
