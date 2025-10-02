@@ -1,6 +1,5 @@
 // components/CardParty.tsx
 import Link from 'next/link';
-import type { Party } from '@/lib/airtable';
 import AvatarSquare from './AvatarSquare';
 import { pickPartyLogoUrl } from '@/lib/media';
 
