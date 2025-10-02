@@ -2,12 +2,28 @@
 'use client';
 
 import Link from 'next/link';
-import type { Party } from '@/lib/airtable';
 import { useEffect, useMemo, useState } from 'react';
 import AvatarSquare from '@/components/AvatarSquare';
 import { pickPartyLogoUrl } from '@/lib/data';
 
-type Props = { initialParties: Party[]; initialQuery?: string };
+// Define a local type so we don't import from server-only code
+type PartyRow = {
+  id: string;
+  slug: string;
+  name: string;
+  abbr?: string | null;
+  status?: string | null;
+  state?: string | null;
+  founded?: string | null;
+  seats?: number | string | null;
+  leaders?: string[] | null;
+  symbolText?: string | null;
+  details?: string | null;
+  logo?: string | null;
+};
+
+type Props = { initialParties: PartyRow[]; initialQuery?: string };
+
 
 // ---------- helpers ----------
 function toInt(v: unknown): number | null {
