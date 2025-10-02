@@ -40,24 +40,32 @@ const letterSpace =
       style={{ width: size, height: size, background: bg, boxShadow: `inset 0 0 0 1px ${ring}` }}
     >
       {src ? (
-        <Image src={src} alt={alt} width={size} height={size} className="object-cover" />
-      ) : text ? (
-        <span
-          className="antialiased font-medium leading-none"
-          style={{
-            color: fg,
-            fontSize: Math.round(size * ratio),
-            letterSpacing: letterSpace,
-            fontFamily:
-              'ui-rounded, "SF Pro Rounded", "Segoe UI Rounded", "Helvetica Rounded", "Arial Rounded MT", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
-          }}
-          aria-hidden
-        >
-          {text}
-        </span>
-      ) : (
-        <FallbackIcon variant={variant} size={size} color={fg} />
-      )}
+  <Image
+    src={src}
+    alt={alt}
+    fill                 // <-- key: let it fill the square wrapper
+    sizes={`${size}px`}  // hint to the browser for correct thumb size
+    className="object-cover object-center"
+    priority={false}
+  />
+) : text ? (
+  <span
+    className="antialiased font-medium leading-none"
+    style={{
+      color: fg,
+      fontSize: Math.round(size * ratio),
+      letterSpacing: letterSpace,
+      fontFamily:
+        'ui-rounded, "SF Pro Rounded", "Segoe UI Rounded", "Helvetica Rounded", "Arial Rounded MT", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
+    }}
+    aria-hidden
+  >
+    {text}
+  </span>
+) : (
+  <FallbackIcon variant={variant} size={size} color={fg} />
+)}
+
     </div>
   );
 }
