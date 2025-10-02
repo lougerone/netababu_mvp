@@ -1,9 +1,8 @@
 // app/parties/[slug]/page.tsx
-import Image from "next/image";
 import type { ReactNode } from "react";
 import { getPartyBySlug, allPartySlugs } from "@/lib/airtable";
-import AvatarSquare from '@/components/AvatarSquare';
-import { pickPartyLogo, proxyImage } from '@/lib/data';
+import AvatarSquare from "@/components/AvatarSquare";
+import { pickPartyLogo, proxyImage } from "@/lib/data";
 
 export const revalidate = Number(process.env.REVALIDATE_SECONDS || 3600);
 
@@ -31,33 +30,9 @@ export default async function PartyPage({ params }: { params: { slug: string } }
   const p = (await getPartyBySlug(params.slug)) as ExtParty | null;
   if (!p) return <div className="mx-auto max-w-3xl p-6">Not found.</div>;
 
-  // helpers
+  // Use helpers to get a stable, proxied logo URL
   const logo = proxyImage(pickPartyLogo(p as any));
-<header className="flex items-start gap-4">
-  {logo ? (
-    <AvatarSquare
-      variant="party"
-      src={logo}
-      alt={`${p.name} logo`}
-      size={96}
-      rounded="rounded-lg"
-      label={p.abbr || p.name}
-    />
-  ) : (
-    <div className="w-24 h-24 rounded-lg bg-black/10" />
-  )}
 
-  <div className="min-w-0">
-    <h1 className="text-2xl font-semibold">{p.name}</h1>
-    <p className="text-sm text-black/60">
-      {[p.abbr, p.status].filter(Boolean).join(' • ') || '—'}
-    </p>
-    {!!p.leaders?.length && (
-      <p className="text-sm mt-1">Leaders: {p.leaders.join(', ')}</p>
-    )}
-  </div>
-</header>
-  
   const isEmpty = (v: any) =>
     v == null ||
     (typeof v === "string" && v.trim() === "") ||
@@ -66,7 +41,6 @@ export default async function PartyPage({ params }: { params: { slug: string } }
   const formatValue = (v: any): ReactNode => {
     if (isEmpty(v)) return "—";
     if (Array.isArray(v)) {
-      // attachments / arrays of objects with url/filename
       if (v[0] && typeof v[0] === "object" && ("url" in v[0] || "filename" in v[0])) {
         return (
           <ul className="space-y-1">
@@ -85,9 +59,7 @@ export default async function PartyPage({ params }: { params: { slug: string } }
         );
       }
       return v
-        .map((x: any) =>
-          typeof x === "object" && x && "name" in x ? String(x.name) : String(x)
-        )
+        .map((x: any) => (typeof x === "object" && x && "name" in x ? String(x.name) : String(x)))
         .filter(Boolean)
         .join(", ");
     }
@@ -101,7 +73,11 @@ export default async function PartyPage({ params }: { params: { slug: string } }
           </a>
         );
       }
-      try { return JSON.stringify(v); } catch { return String(v); }
+      try {
+        return JSON.stringify(v);
+      } catch {
+        return String(v);
+      }
     }
     return String(v);
   };
@@ -109,10 +85,10 @@ export default async function PartyPage({ params }: { params: { slug: string } }
   // fields to hide from the generic table (already shown or noisy)
   const EXCLUDE = new Set<string>([
     // technical
-    "id","createdTime","Created","slug","Slug",
+    "id", "createdTime", "Created", "slug", "Slug",
     // already surfaced/normalized
     "name","Name","Party","Party Name","party_name",
-    "Logo","logo", "Symbol","Emblem","Image","Attachments",
+    "Logo","logo","Symbol","Emblem","Image","Attachments",
     "abbr","Abbreviation","Short Name","Acronym","ticker","Ticker",
     "status","Recognition","Type",
     "state","State","State Name","Home State","Region",
@@ -127,20 +103,20 @@ export default async function PartyPage({ params }: { params: { slug: string } }
     .filter(([k, v]) => !EXCLUDE.has(k) && !isEmpty(v) && typeof v !== "function")
     .sort(([a], [b]) => a.localeCompare(b));
 
-  // Handy picks if they exist on the record
   const rajyaSeats = p["Rajya Sabha Seats"];
 
   return (
     <main className="mx-auto max-w-3xl p-6 space-y-8">
-      {/* Header */}
+      {/* Header (single, correct) */}
       <header className="flex items-start gap-4">
-        {p.logo ? (
-          <Image
-            src={p.logo}
+        {logo ? (
+          <AvatarSquare
+            variant="party"
+            src={logo}
             alt={`${p.name} logo`}
-            width={96}
-            height={96}
-            className="rounded-lg object-contain bg-white p-2"
+            size={96}
+            rounded="rounded-lg"
+            label={p.abbr || p.name}
           />
         ) : (
           <div className="w-24 h-24 rounded-lg bg-black/10" />
@@ -190,14 +166,6 @@ export default async function PartyPage({ params }: { params: { slug: string } }
           </div>
         )}
       </section>
-
-      {/* About */}
-      {p.details && (
-        <section>
-          <h2 className="text-lg font-semibold mb-2">About</h2>
-          <p className="text-sm leading-relaxed">{p.details}</p>
-        </section>
-      )}
 
       {/* All Airtable fields */}
       {allEntries.length > 0 && (
