@@ -11,7 +11,7 @@ export async function getHomeParties(): Promise<Party[]> {
    Attachment / URL helpers
    ────────────────────────────── */
 
-/** Safely extract a URL string from a value that may be:
+/** Safely extract a URL string from:
  *  - a plain string URL
  *  - an Airtable attachment array/object with { url, thumbnails }
  */
@@ -22,43 +22,25 @@ export const firstUrl = (v: any): string | undefined => {
   if (typeof v === 'object') return v.url || v.thumbnails?.full?.url || v.thumbnails?.large?.url;
 };
 
-/** Pick a party logo URL from common fields (works with Airtable attachments) */
-export function pickPartyLogo(p: Party | Record<string, any>): string | undefined {
+/** Pick a party logo URL from common fields (no proxy).  
+ * Prefer a stable text URL (wiki/CDN/your domain); fall back to attachments.
+ */
+export function pickPartyLogoUrl(p: Party | Record<string, any>): string | undefined {
   const any = p as Record<string, any>;
   return (
-    firstUrl(any.logo) ||
+    // preferred stable text/url fields you can maintain
+    firstUrl(any.logo_url) ||
     firstUrl(any['logo url']) ||
+    firstUrl(any.logoUrl) ||
+    firstUrl(any.cdn_logo) ||
+    firstUrl(any.logo_cdn) ||
+    // fallbacks: Airtable attachments (may expire)
+    firstUrl(any.logo) ||
     firstUrl(any.symbol) ||
     firstUrl(any.image) ||
     firstUrl(any.photo) ||
     undefined
   );
-}
-
-/** Wrap a remote image URL with our proxy endpoint (prevents Airtable URL expiry) */
-export function proxyImage(url: string | null | undefined): string | undefined {
-  if (!url) return undefined;
-  
-  if (url.startsWith('data:') || url.startsWith('/')) return url;
-  
-  try {
-    const parsed = new URL(url);
-    const allowedHosts = [
-      'v5.airtableusercontent.com',
-      'dl.airtable.com',
-      'upload.wikimedia.org',
-      'www.netababu.com',  // <-- Add this
-      'netababu.com',      // <-- Add this
-    ];
-    
-    if (allowedHosts.includes(parsed.hostname)) {
-      return `/api/proxy?u=${encodeURIComponent(url)}`;
-    }
-    
-    return url;
-  } catch {
-    return undefined;
-  }
 }
 
 /* ──────────────────────────────
