@@ -6,9 +6,8 @@ import Link from 'next/link';
 import CardParty from '@/components/CardParty';
 import CardPolitician from '@/components/CardPolitician';
 import HeroSearch from '@/components/HeroSearch';
-import { listParties, listPoliticians } from '@/lib/airtable';
 import AvatarSquare from '@/components/AvatarSquare';
-import { pickPartyLogoUrl } from '@/lib/data';
+import { pickPartyLogoUrl } from '@/lib/media';
 import { getHomeParties } from '@/lib/data.server';
 
 
