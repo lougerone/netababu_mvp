@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import AvatarSquare from '@/components/AvatarSquare';
 import { pickPartyLogoUrl } from '@/lib/data';
+import { getHomeParties } from '@/lib/data.server';
+
 
 // Local type so we don't import server-only modules
 type PartyRow = {
