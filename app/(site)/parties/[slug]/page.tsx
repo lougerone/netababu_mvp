@@ -2,7 +2,7 @@
 import type { ReactNode } from "react";
 import { getPartyBySlug, allPartySlugs } from "@/lib/airtable";
 import AvatarSquare from "@/components/AvatarSquare";
-import { pickPartyLogo, proxyImage } from "@/lib/data";
+import { pickPartyLogoUrl } from "@/lib/data";
 
 export const revalidate = Number(process.env.REVALIDATE_SECONDS || 3600);
 
@@ -30,8 +30,8 @@ export default async function PartyPage({ params }: { params: { slug: string } }
   const p = (await getPartyBySlug(params.slug)) as ExtParty | null;
   if (!p) return <div className="mx-auto max-w-3xl p-6">Not found.</div>;
 
-  // Use helpers to get a stable, proxied logo URL
-  const logo = proxyImage(pickPartyLogo(p as any));
+  // Direct (no-proxy) logo URL
+  const logo = pickPartyLogoUrl(p as any);
 
   const isEmpty = (v: any) =>
     v == null ||
@@ -107,7 +107,7 @@ export default async function PartyPage({ params }: { params: { slug: string } }
 
   return (
     <main className="mx-auto max-w-3xl p-6 space-y-8">
-      {/* Header (single, correct) */}
+      {/* Header */}
       <header className="flex items-start gap-4">
         {logo ? (
           <AvatarSquare
