@@ -17,10 +17,21 @@ export async function getHomeParties(): Promise<Party[]> {
  */
 export const firstUrl = (v: any): string | undefined => {
   if (!v) return;
-  if (typeof v === 'string') return v.trim();
-  if (Array.isArray(v)) return v[0]?.url || v[0]?.thumbnails?.full?.url || v[0]?.thumbnails?.large?.url;
-  if (typeof v === 'object') return v.url || v.thumbnails?.full?.url || v.thumbnails?.large?.url;
+  if (typeof v === 'string') {
+    const s = v.trim();
+    // accept only actual URLs/paths
+    if (/^https?:\/\//i.test(s) || s.startsWith('data:') || s.startsWith('/')) return s;
+    return undefined; // reject plain words like "Lotus"
+  }
+  if (Array.isArray(v)) {
+    const a = v[0];
+    return a?.url || a?.thumbnails?.full?.url || a?.thumbnails?.large?.url || undefined;
+  }
+  if (typeof v === 'object') {
+    return v.url || v.thumbnails?.full?.url || v.thumbnails?.large?.url || undefined;
+  }
 };
+
 
 /** Pick a party logo URL from common fields (no proxy).  
  * Prefer a stable text URL (wiki/CDN/your domain); fall back to attachments.
