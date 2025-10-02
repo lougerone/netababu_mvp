@@ -4,27 +4,6 @@ import type { Party } from '@/lib/airtable';
 import AvatarSquare from './AvatarSquare';
 import { pickPartyLogo } from '@/lib/data';
 
-export default function CardParty({ party }: { party: Party }) {
-  const logo = pickPartyLogo(party);
-
-  return (
-    <Link /* ... */>
-      <div className="flex items-start gap-3 min-w-0">
-        <AvatarSquare
-          variant="party"
-          src={logo}                     // ← now a URL string
-          alt={party.name ?? 'Party'}
-          size={64}
-          rounded="rounded-xl"
-          label={(party as any).abbr || party.name}
-        />
-        {/* ... */}
-      </div>
-      {/* ... */}
-    </Link>
-  );
-}
-
 /* UI */
 function ScopePill({ label }: { label?: string }) {
   if (!label) return null;
@@ -85,7 +64,7 @@ export default function CardParty({ party }: { party: Party }) {
   const leader = pickLeader(party as any);
   const states = pickStates(party as any);
   const stateDisplay = states.length > 1 ? `${states[0]} +${states.length - 1}` : states[0];
-
+  const logo = pickPartyLogo(party);
   const alliance = pickAlliance(party as any);
   const founded = pickFounded(party as any);
   const hq = pickHQ(party as any);
@@ -106,13 +85,13 @@ export default function CardParty({ party }: { party: Party }) {
         {/* TOP */}
         <div className="flex items-start gap-3 min-w-0">
           <AvatarSquare
-            src={party.logo ?? undefined}
-            alt={party.name ?? 'Party'}
-            size={64}                 // bump if you want larger logos
-            rounded="rounded-xl"
-            variant="party"
-            label={(party as any).abbr || party.name}
-          />
+          variant="party"
+          src={logo}                     // ← now a URL string
+          alt={party.name ?? 'Party'}
+          size={64}
+          rounded="rounded-xl"
+          label={(party as any).abbr || party.name}
+        />
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2 min-w-0">
               <div className="text-[15px] font-semibold text-ink-800 truncate leading-5">
