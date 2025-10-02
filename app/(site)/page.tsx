@@ -201,28 +201,43 @@ export default async function HomePage() {
       <main className="space-y-12 pt-10">
         <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
           {/* Background image + vignette (behind content only) */}
-<div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden">
-  {/* Artwork */}
-  <div className="relative h-[90%] w-[90%]">
-    <Image
-      src="/hero/hero-2560w.webp"
-      alt="Watercolor collage of Indian political figures — Netababu"
-      fill
-      priority
-      sizes="50vw"
-      className="h-full w-full object-contain opacity-50"
-    />
-  </div>
+<div className="absolute inset-0 z-0 overflow-hidden">
+  {/* Artwork with soft edge mask + lighter/less contrast */}
+  <Image
+    src="/hero/hero-2560w.webp"
+    alt="Watercolor collage of Indian political figures — Netababu"
+    fill
+    priority
+    sizes="100vw"
+    className={[
+      // keep it within the canvas nicely
+      'object-contain object-top',
+      // faint it out
+      'opacity-30',
+      // tiny de-pop so text pops more
+      '[filter:contrast(.9)_saturate(.9)_blur(.3px)]',
+      // feather all edges to remove seams no matter the viewport
+      // (big radial that keeps center opaque and fades to transparent toward edges)
+      '[mask-image:radial-gradient(120%_90%_at_50%_45%,_#000_58%,_transparent_85%)]'
+    ].join(' ')}
+  />
 
-  {/* One overlay to rule them all: radial vignette to #fff7ed */}
+  {/* One overlay to rule them all: radial vignette to cream */}
   <div
-    className="pointer-events-none absolute inset-0 z-10"
-    // radial: transparent center → cream edges (removes visible image edges)
+    className="pointer-events-none absolute inset-0"
     style={{
       background:
-        'radial-gradient(120% 100% at 50% 50%, rgba(255,247,237,0) 58%, rgba(255,247,237,0.75) 82%, #fff7ed 100%)',
+        'radial-gradient(120% 100% at 50% 50%, rgba(255,247,237,0) 55%, rgba(255,247,237,0.75) 82%, #fff7ed 100%)',
     }}
   />
+
+  {/* Subtle top/bottom linear fades (kept, but a bit softer) */}
+  <div className="pointer-events-none absolute inset-0">
+    <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-cream-200/70 via-cream-200/40 to-transparent" />
+    <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-cream-200/70 via-cream-200/40 to-transparent" />
+  </div>
+</div>
+
 
   {/* Optional: keep subtle top/bottom linear fades if you like that look */}
   <div className="pointer-events-none absolute inset-0 z-10">
