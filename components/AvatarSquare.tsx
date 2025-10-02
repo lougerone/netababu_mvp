@@ -46,7 +46,10 @@ const letterSpace =
   fill
   sizes={`${size}px`}
   className={variant === 'party' ? 'object-contain object-center p-1' : 'object-cover object-center'}
+  unoptimized={!!src && src.startsWith('/api/proxy-image')}   // ← add this
+  draggable={false}
 />
+
 ) : text ? (
   <span
     className="antialiased font-medium leading-none"
