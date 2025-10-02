@@ -9,7 +9,7 @@ import HeroSearch from '@/components/HeroSearch';
 import AvatarSquare from '@/components/AvatarSquare';
 import { pickPartyLogoUrl } from '@/lib/media';
 import { getHomeParties } from '@/lib/data.server';
-
+import { listPoliticians, listParties } from '@/lib/airtable';
 
 export const dynamic = 'force-dynamic';
 
