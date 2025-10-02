@@ -1,3 +1,4 @@
+// app/components/CompareTable.tsx
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -13,7 +14,6 @@ const INR = new Intl.NumberFormat('en-IN');
 
 function formatINRCompact(n: number) {
   if (!Number.isFinite(n)) return '';
-  // show “₹35 cr”, “₹12.5 lakh”, else normal separators
   if (n >= 1e7) return `₹${(n / 1e7).toFixed(n % 1e7 ? 1 : 0)} cr`;
   if (n >= 1e5) return `₹${(n / 1e5).toFixed(n % 1e5 ? 1 : 0)} lakh`;
   return `₹${INR.format(n)}`;
@@ -33,7 +33,6 @@ function fmtVal(key: string, val: unknown): string {
   }
   if (key === 'constituency') {
     const s = String(val).trim();
-    // Title-case city; keep state code uppercase in parentheses if present
     const m = s.match(/^(.+?)\s*\(([A-Za-z]{2})\)$/);
     if (m) return `${toTitle(m[1].trim())} (${m[2].toUpperCase()})`;
     return toTitle(s);
@@ -89,7 +88,7 @@ function renderValue(field: string, p?: Politician) {
 }
 
 /* ---------------- optional rows ---------------- */
-/* Keep assets; remove liabilities. Add twitter + created. */
+// Keep assets; remove liabilities. Add twitter + created.
 const OPTIONAL: { key: keyof Politician; label: string }[] = [
   { key: 'age', label: 'Age' },
   { key: 'yearsInPolitics', label: 'Years in Politics' },
@@ -342,7 +341,6 @@ function uniq<T>(arr: T[]) {
   return Array.from(new Set(arr));
 }
 
-
 /* ---------------- main ---------------- */
 export default function CompareTable({ politicians }: { politicians: Politician[] }) {
   const router = useRouter();
@@ -402,15 +400,6 @@ export default function CompareTable({ politicians }: { politicians: Politician[
 
   const activeOptional = OPTIONAL.filter((c) => enabled.has(c.key));
 
-  const getRaw = (p: Politician | undefined, field: string) => {
-    if (!p) return undefined;
-    if (field === 'current_position') return (p as any).current_position ?? (p as any).position;
-    if (field === 'website') return (p as any).website;
-    if (field === 'twitter') return (p as any).twitter ?? (p as any).twitter_profile ?? (p as any).twitter_url ?? (p as any).x;
-    if (field === 'created') return (p as any).Created ?? (p as any).created ?? (p as any).createdTime;
-    return (p as any)[field];
-  };
-
   const shouldShow = (field: string) => {
     const sa = renderValue(field, A);
     const sb = renderValue(field, B);
@@ -432,36 +421,104 @@ export default function CompareTable({ politicians }: { politicians: Politician[
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <caption className="sr-only">Compare Netas</caption>
+
+          {/* Header: photo + name (no A/B letters) */}
           <thead className="sticky top-[64px] z-[150] bg-cream-200/95 backdrop-blur">
-  <tr className="text-left text-ink-600/80">
-    <th scope="col" className="w-[240px] py-2 pr-4">Attribute</th>
+            <tr className="text-left text-ink-600/80">
+              <th scope="col" className="w-[240px] py-2 pr-4">Attribute</th>
+              <th scope="col" className="py-2 pr-4">
+                {A ? (
+                  <div className="flex min-w-0 items-center gap-2">
+                    <AvatarSquare src={A.photo ?? null} alt={A.name} size={28} rounded="md" />
+                    <span className="max-w-[180px] truncate text-ink-700">{A.name}</span>
+                  </div>
+                ) : (
+                  <span className="text-ink-500">Select Neta</span>
+                )}
+              </th>
+              <th scope="col" className="py-2 pr-4">
+                {B ? (
+                  <div className="flex min-w-0 items-center gap-2">
+                    <AvatarSquare src={B.photo ?? null} alt={B.name} size={28} rounded="md" />
+                    <span className="max-w-[180px] truncate text-ink-700">{B.name}</span>
+                  </div>
+                ) : (
+                  <span className="text-ink-500">Select Neta</span>
+                )}
+              </th>
+            </tr>
+          </thead>
 
-    {/* Header for A: avatar + name (no letter) */}
-    <th scope="col" className="py-2 pr-4">
-      {A ? (
-        <div className="flex items-center gap-2 min-w-0">
-          <AvatarSquare src={A.photo ?? null} alt={A.name} size={28} rounded="md" />
-          <span className="truncate max-w-[180px] text-ink-700">{A.name}</span>
-        </div>
-      ) : (
-        <span className="text-ink-500">Select Neta</span>
-      )}
-    </th>
+          <tbody className="[&_tr]:border-t [&_tr]:border-black/10">
+            {/* Identity row (kept, with chips) */}
+            <tr>
+              <th scope="row" className="py-3 pr-4 font-medium">Identity</th>
+              <td className="py-3 pr-4">
+                {A ? (
+                  <div className="flex items-center gap-2">
+                    <AvatarSquare src={A.photo ?? null} alt={A.name} size={40} rounded="lg" />
+                    <div className="min-w-0">
+                      <div className="truncate font-medium">{A.name}</div>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        <span className={`rounded-md px-2 py-0.5 text-[11px] ${partyBadgeClass(A.party)}`}>
+                          {A.party || 'Unknown'}
+                        </span>
+                        {A.constituency && (
+                          <span className="rounded-md bg-cream-200/70 px-2 py-0.5 text-[11px] text-ink-700">
+                            {fmtVal('constituency', A.constituency)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : '—'}
+              </td>
+              <td className="py-3 pr-4">
+                {B ? (
+                  <div className="flex items-center gap-2">
+                    <AvatarSquare src={B.photo ?? null} alt={B.name} size={40} rounded="lg" />
+                    <div className="min-w-0">
+                      <div className="truncate font-medium">{B.name}</div>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        <span className={`rounded-md px-2 py-0.5 text-[11px] ${partyBadgeClass(B.party)}`}>
+                          {B.party || 'Unknown'}
+                        </span>
+                        {B.constituency && (
+                          <span className="rounded-md bg-cream-200/70 px-2 py-0.5 text-[11px] text-ink-700">
+                            {fmtVal('constituency', B.constituency)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : '—'}
+              </td>
+            </tr>
 
-    {/* Header for B: avatar + name (no letter) */}
-    <th scope="col" className="py-2 pr-4">
-      {B ? (
-        <div className="flex items-center gap-2 min-w-0">
-          <AvatarSquare src={B.photo ?? null} alt={B.name} size={28} rounded="md" />
-          <span className="truncate max-w-[180px] text-ink-700">{B.name}</span>
-        </div>
-      ) : (
-        <span className="text-ink-500">Select Neta</span>
-      )}
-    </th>
-  </tr>
-</thead>
+            {/* Always-on rows */}
+            {['party', 'constituency', 'current_position'].map((f) =>
+              shouldShow(f) ? (
+                <tr key={`locked-${f}`} className="odd:bg-cream-100/50">
+                  <th scope="row" className="py-3 pr-4 font-medium">
+                    {f === 'party' ? 'Party' : f === 'constituency' ? 'Constituency' : 'Current Position'}
+                  </th>
+                  <td className="py-3 pr-4">{renderValue(f, A)}</td>
+                  <td className="py-3 pr-4">{renderValue(f, B)}</td>
+                </tr>
+              ) : null
+            )}
 
+            {/* Optional rows (no winner cue) */}
+            {activeOptional.map((c) =>
+              shouldShow(c.key as string) ? (
+                <tr key={`opt-${String(c.key)}`} className="odd:bg-cream-100/50">
+                  <th scope="row" className="py-3 pr-4">{c.label}</th>
+                  <td className="py-3 pr-4">{renderValue(String(c.key), A)}</td>
+                  <td className="py-3 pr-4">{renderValue(String(c.key), B)}</td>
+                </tr>
+              ) : null
+            )}
+          </tbody>
         </table>
       </div>
 
