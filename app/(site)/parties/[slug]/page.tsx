@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { getPartyBySlug, allPartySlugs } from "@/lib/airtable";
 import AvatarSquare from "@/components/AvatarSquare";
 import { pickPartyLogoUrl } from "@/lib/data";
+import { getHomeParties } from '@/lib/data.server';
 
 export const revalidate = Number(process.env.REVALIDATE_SECONDS || 3600);
 
