@@ -2,7 +2,8 @@
 import Link from 'next/link';
 import type { Party } from '@/lib/airtable';
 import AvatarSquare from './AvatarSquare';
-import { pickPartyLogoUrl } from '@/lib/data';
+import { pickPartyLogoUrl } from '@/lib/media';
+
 
 /* UI */
 function ScopePill({ label }: { label?: string }) {
