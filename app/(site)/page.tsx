@@ -8,7 +8,7 @@ import CardPolitician from '@/components/CardPolitician';
 import HeroSearch from '@/components/HeroSearch';
 import { listParties, listPoliticians } from '@/lib/airtable';
 import AvatarSquare from '@/components/AvatarSquare';
-import { pickPartyLogo, proxyImage } from '@/lib/data';
+import { pickPartyLogoUrl } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
 
