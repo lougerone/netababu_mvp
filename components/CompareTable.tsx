@@ -1,4 +1,3 @@
-// app/components/CompareTable.tsx
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -20,7 +19,7 @@ function fmtVal(key: string, val: unknown): string {
     const n = Number(String(val).replace(/[^\d.]/g, ''));
     return Number.isFinite(n) ? `${n}%` : String(val);
   }
-  if (key === 'assets' || key === 'liabilities') {
+  if (key === 'liabilities') {
     const n = Number(String(val).replace(/[^\d.]/g, ''));
     return Number.isFinite(n) ? `₹${INR.format(n)}` : String(val);
   }
@@ -33,32 +32,62 @@ function fmtVal(key: string, val: unknown): string {
 
 function renderWebsite(url?: string | null) {
   if (!url) return '—';
-  const hasScheme = /^https?:\/\//i.test(url);
-  const href = hasScheme ? url : `https://${url}`;
-  const label = href.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const label = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="underline text-saffron-700">
+    <a href={/^https?:\/\//i.test(url) ? url : `https://${url}`} target="_blank" rel="noopener noreferrer" className="underline text-saffron-700">
       {label}
     </a>
   );
 }
 
+function renderTwitter(tw?: string | null) {
+  if (!tw) return '—';
+  let handle = String(tw).trim();
+  // support raw handles and URLs
+  if (/^https?:\/\//i.test(handle)) {
+    try { handle = new URL(handle).pathname.replace(/^\/+/, ''); } catch {}
+  }
+  if (handle.startsWith('@')) handle = handle.slice(1);
+  if (!handle) return '—';
+  const href = `https://x.com/${handle}`;
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="underline text-saffron-700">
+      @{handle}
+    </a>
+  );
+}
+
+function renderCreated(created?: string | Date | null) {
+  if (!created) return '—';
+  const d = new Date(created);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
 function renderValue(field: string, p?: Politician) {
   if (!p) return '—';
-  if (field === 'website') return renderWebsite(p.website ?? null);
-  if (field === 'current_position') return fmtVal(field, p.current_position ?? (p as any).position);
+  if (field === 'website') return renderWebsite((p as any).website ?? null);
+  if (field === 'twitter')
+    return renderTwitter(
+      (p as any).twitter ?? (p as any).twitter_profile ?? (p as any).twitter_url ?? (p as any).x ?? null
+    );
+  if (field === 'current_position') return fmtVal(field, (p as any).current_position ?? (p as any).position);
+  if (field === 'created') return renderCreated((p as any).Created ?? (p as any).created ?? (p as any).createdTime);
   return fmtVal(field, (p as any)[field]);
 }
 
 /* ---------------- optional rows ---------------- */
+// keep "assets", remove "liabilities"
 const OPTIONAL: { key: keyof Politician; label: string }[] = [
   { key: 'age', label: 'Age' },
   { key: 'yearsInPolitics', label: 'Years in Politics' },
   { key: 'attendance', label: 'Parliament Attendance' },
-  { key: 'assets', label: 'Declared Assets' },
-  { key: 'liabilities', label: 'Declared Liabilities' },
+  { key: 'assets', label: 'Declared Assets' },          // ✅ kept
+  // { key: 'liabilities', label: 'Declared Liabilities' }, // ❌ removed
   { key: 'criminalCases', label: 'Criminal Cases' },
   { key: 'website', label: 'Website' },
+  { key: 'twitter' as keyof Politician, label: 'Twitter' },
+  { key: 'created' as keyof Politician, label: 'Last Updated' },
 ];
 
 /* ---------------- party badge ---------------- */
@@ -96,11 +125,9 @@ function useDebounced<T>(value: T, ms = 250) {
 /* ---------------- optional remote suggestions ---------------- */
 async function fetchSuggestions(q: string): Promise<Politician[] | null> {
   if (!q.trim()) return null;
-  const ctrl = new AbortController();
-  const timeout = setTimeout(() => ctrl.abort(), 8000);
   try {
     const u = `/api/search-politicians?q=${encodeURIComponent(q.trim())}`;
-    const r = await fetch(u, { cache: 'no-store', signal: ctrl.signal });
+    const r = await fetch(u, { cache: 'no-store' });
     if (!r.ok) return null;
     const data = await r.json();
     if (Array.isArray(data)) return data as Politician[];
@@ -108,8 +135,6 @@ async function fetchSuggestions(q: string): Promise<Politician[] | null> {
     return null;
   } catch {
     return null;
-  } finally {
-    clearTimeout(timeout);
   }
 }
 
@@ -131,9 +156,6 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
   const ref = useRef<HTMLDivElement>(null);
   useOnClickOutside(ref, () => setOpen(false));
 
-  const inputId = useMemo(() => `cb-${Math.random().toString(36).slice(2)}`, []);
-  const listId = `${inputId}-listbox`;
-
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -144,9 +166,7 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
       const res = await fetchSuggestions(debouncedQ);
       if (!cancelled) setRemote(res);
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [debouncedQ]);
 
   const filtered = useMemo(() => {
@@ -155,7 +175,7 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
       (q.trim()
         ? items.filter((p) => {
             const hay = norm(
-              [p.name, p.party, p.constituency, (p as any).state].filter(Boolean).join(' ')
+              [p.name, p.party, p.constituency, p.state].filter(Boolean).join(' ')
             );
             const needle = norm(q);
             return hay.includes(needle);
@@ -186,9 +206,7 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
 
   return (
     <div ref={ref}>
-      <label htmlFor={inputId} className="block text-sm mb-1">
-        {label}
-      </label>
+      <label className="block text-sm mb-1">{label}</label>
       <div className="relative">
         <svg
           aria-hidden="true"
@@ -204,13 +222,7 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
         </svg>
 
         <input
-          id={inputId}
           type="search"
-          role="combobox"
-          aria-expanded={open}
-          aria-controls={open ? listId : undefined}
-          aria-autocomplete="list"
-          aria-activedescendant={open && filtered[idx] ? `${listId}-${idx}` : undefined}
           className="input-pill input-pill--with-icon w-full h-12 placeholder:text-ink-600/60"
           placeholder="Search by name, party, constituency…"
           value={q}
@@ -246,19 +258,12 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
         )}
 
         {open && (
-          <div
-            id={listId}
-            role="listbox"
-            className="absolute z-[200] mt-1 w-full rounded-xl border border-black/10 bg-white shadow-card max-h-72 overflow-auto"
-          >
+          <div className="absolute z-[200] mt-1 w-full rounded-xl border border-black/10 bg-white shadow-card max-h-72 overflow-auto">
             {filtered.length === 0 ? (
               <div className="px-3 py-2 text-sm text-ink-600/70">No matches</div>
             ) : (
               filtered.map((p, i) => (
                 <button
-                  id={`${listId}-${i}`}
-                  role="option"
-                  aria-selected={i === idx}
                   key={p.id}
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
@@ -342,20 +347,6 @@ function uniq<T>(arr: T[]) {
   return Array.from(new Set(arr));
 }
 
-function numericScore(key: string, val: unknown): number | null {
-  const n = Number(String(val).replace(/[^\d.]/g, ''));
-  return Number.isFinite(n) ? n : null;
-}
-function winnerClass(a: unknown, b: unknown, key: string) {
-  const na = numericScore(key, a);
-  const nb = numericScore(key, b);
-  if (na == null || nb == null || na === nb) return '';
-  // Higher is better for attendance/assets/years; lower is better for criminalCases/liabilities
-  const higherIsBetter = !['criminalCases', 'liabilities'].includes(key);
-  const aWins = higherIsBetter ? na > nb : na < nb;
-  return aWins ? 'ring-1 ring-saffron-500/60 rounded-md' : '';
-}
-
 /* ---------------- main ---------------- */
 export default function CompareTable({ politicians }: { politicians: Politician[] }) {
   const router = useRouter();
@@ -377,7 +368,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
   const [aId, setAId] = useState<string | undefined>(findByKey(initialA)?.id);
   const [bId, setBId] = useState<string | undefined>(findByKey(initialB)?.id);
 
-  // Default attributes (no 'state')
+  // Default attributes
   const [enabled, setEnabled] = useState<Set<keyof Politician>>(() => {
     const fromUrl = (initialFields || '')
       .split(',')
@@ -387,6 +378,8 @@ export default function CompareTable({ politicians }: { politicians: Politician[
     if (valid.size === 0) {
       valid.add('age');
       valid.add('yearsInPolitics');
+      valid.add('twitter' as keyof Politician); // enable Twitter by default
+      valid.add('created' as keyof Politician); // enable Last Updated by default
     }
     return valid;
   });
@@ -399,7 +392,8 @@ export default function CompareTable({ politicians }: { politicians: Politician[
     if (A) params.set('a', toSlugOrId(A));
     if (B) params.set('b', toSlugOrId(B));
     const fields = OPTIONAL.filter((o) => enabled.has(o.key)).map((o) => o.key);
-    if (fields.length) params.set('fields', uniq(fields).join(',')); else params.delete('fields');
+    if (fields.length) params.set('fields', uniq(fields).join(','));
+    else params.delete('fields');
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [A, B, enabled]);
@@ -414,16 +408,22 @@ export default function CompareTable({ politicians }: { politicians: Politician[
   const activeOptional = OPTIONAL.filter((c) => enabled.has(c.key));
 
   const shouldShow = (field: string) => {
-    const va =
-      field === 'current_position'
-        ? (A?.current_position ?? (A as any)?.position)
-        : (A as any)?.[field];
-    const vb =
-      field === 'current_position'
-        ? (B?.current_position ?? (B as any)?.position)
-        : (B as any)?.[field];
-    const sa = fmtVal(field, field === 'website' ? A?.website : va);
-    const sb = fmtVal(field, field === 'website' ? B?.website : vb);
+    const getVal = (p?: Politician | null) => {
+      if (!p) return undefined;
+      if (field === 'current_position') return (p as any).current_position ?? (p as any).position;
+      if (field === 'website') return (p as any).website;
+      if (field === 'twitter') return (p as any).twitter ?? (p as any).twitter_profile ?? (p as any).twitter_url ?? (p as any).x;
+      if (field === 'created') return (p as any).Created ?? (p as any).created ?? (p as any).createdTime;
+      return (p as any)[field];
+    };
+    const sa = field === 'website' ? renderWebsite(getVal(A) as any) :
+              field === 'twitter' ? renderTwitter(getVal(A) as any) :
+              field === 'created' ? renderCreated(getVal(A) as any) :
+              fmtVal(field, getVal(A));
+    const sb = field === 'website' ? renderWebsite(getVal(B) as any) :
+              field === 'twitter' ? renderTwitter(getVal(B) as any) :
+              field === 'created' ? renderCreated(getVal(B) as any) :
+              fmtVal(field, getVal(B));
     return !(sa === '—' && sb === '—');
   };
 
@@ -431,7 +431,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
     <div className="space-y-6">
       {/* Controls */}
       <div className="card p-4">
-        <div className="grid items-start gap-4 md:grid-cols-3">
+        <div className="grid md:grid-cols-3 gap-4 items-start">
           <ComboBox label="Neta A" items={sorted} valueId={aId} onChangeId={setAId} />
           <ComboBox label="Neta B" items={sorted} valueId={bId} onChangeId={setBId} />
           <MultiSelect
@@ -441,42 +441,12 @@ export default function CompareTable({ politicians }: { politicians: Politician[
             onToggle={toggle}
           />
         </div>
-
-        {/* Swap / Copy link */}
-        <div className="mt-3 flex items-center justify-end gap-2 text-xs">
-          <button
-            type="button"
-            className="rounded-lg border border-black/10 px-2 py-1 hover:bg-cream-100 disabled:opacity-50"
-            onClick={() => {
-              if (A && B) {
-                setAId(B.id);
-                setBId(A.id);
-              }
-            }}
-            disabled={!A || !B}
-          >
-            Swap A ↔ B
-          </button>
-          <button
-            type="button"
-            className="rounded-lg border border-black/10 px-2 py-1 hover:bg-cream-100"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(window.location.href);
-              } catch {
-                // no-op
-              }
-            }}
-          >
-            Copy link
-          </button>
-        </div>
       </div>
 
       {/* Comparison table */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="sticky top-[64px] z-[150] bg-cream-200/95 backdrop-blur">
+          <thead className="sticky top-[64px] bg-cream-200/95 backdrop-blur z-[150]">
             <tr className="text-left text-ink-600/80">
               <th className="w-[240px] py-2 pr-4">Attribute</th>
               <th className="py-2 pr-4">A</th>
@@ -492,9 +462,9 @@ export default function CompareTable({ politicians }: { politicians: Politician[
                   <div className="flex items-center gap-2">
                     <AvatarSquare src={A.photo ?? null} alt={A.name} size={40} rounded="lg" />
                     <div className="min-w-0">
-                      <div className="truncate font-medium">{A.name}</div>
+                      <div className="font-medium truncate">{A.name}</div>
                       <div
-                        className={`mt-0.5 inline-block rounded-md px-2 py-0.5 text-[11px] ${partyBadgeClass(
+                        className={`inline-block mt-0.5 px-2 py-0.5 rounded-md text-[11px] ${partyBadgeClass(
                           A.party
                         )}`}
                         title={A.party ?? undefined}
@@ -512,9 +482,9 @@ export default function CompareTable({ politicians }: { politicians: Politician[
                   <div className="flex items-center gap-2">
                     <AvatarSquare src={B.photo ?? null} alt={B.name} size={40} rounded="lg" />
                     <div className="min-w-0">
-                      <div className="truncate font-medium">{B.name}</div>
+                      <div className="font-medium truncate">{B.name}</div>
                       <div
-                        className={`mt-0.5 inline-block rounded-md px-2 py-0.5 text-[11px] ${partyBadgeClass(
+                        className={`inline-block mt-0.5 px-2 py-0.5 rounded-md text-[11px] ${partyBadgeClass(
                           B.party
                         )}`}
                         title={B.party ?? undefined}
@@ -529,12 +499,12 @@ export default function CompareTable({ politicians }: { politicians: Politician[
               </td>
             </tr>
 
-            {/* Always-on rows */}
-            {['constituency', 'current_position'].map((f) =>
+            {/* Always-on rows (added Party) */}
+            {['party', 'constituency', 'current_position'].map((f) =>
               shouldShow(f) ? (
                 <tr key={`locked-${f}`} className="odd:bg-cream-100/50">
                   <td className="py-3 pr-4 font-medium">
-                    {f === 'constituency' ? 'Constituency' : 'Current Position'}
+                    {f === 'party' ? 'Party' : f === 'constituency' ? 'Constituency' : 'Current Position'}
                   </td>
                   <td className="py-3 pr-4">{renderValue(f, A)}</td>
                   <td className="py-3 pr-4">{renderValue(f, B)}</td>
@@ -542,29 +512,13 @@ export default function CompareTable({ politicians }: { politicians: Politician[
               ) : null
             )}
 
-            {/* Optional rows */}
+            {/* Optional rows (includes Twitter & Last Updated; Assets removed) */}
             {activeOptional.map((c) =>
               shouldShow(c.key as string) ? (
                 <tr key={`opt-${String(c.key)}`} className="odd:bg-cream-100/50">
                   <td className="py-3 pr-4">{c.label}</td>
-                  <td
-                    className={`py-3 pr-4 ${winnerClass(
-                      (A as any)?.[c.key],
-                      (B as any)?.[c.key],
-                      String(c.key)
-                    )}`}
-                  >
-                    {renderValue(String(c.key), A)}
-                  </td>
-                  <td
-                    className={`py-3 pr-4 ${winnerClass(
-                      (B as any)?.[c.key],
-                      (A as any)?.[c.key],
-                      String(c.key)
-                    )}`}
-                  >
-                    {renderValue(String(c.key), B)}
-                  </td>
+                  <td className="py-3 pr-4">{renderValue(c.key as string, A)}</td>
+                  <td className="py-3 pr-4">{renderValue(c.key as string, B)}</td>
                 </tr>
               ) : null
             )}
