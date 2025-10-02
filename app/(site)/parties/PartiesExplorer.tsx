@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import AvatarSquare from '@/components/AvatarSquare';
-import { pickPartyLogoUrl } from '@/lib/data';
+import { pickPartyLogoUrl } from '@/lib/media';
 import { getHomeParties } from '@/lib/data.server';
 
 
