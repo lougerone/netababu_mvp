@@ -4,6 +4,8 @@
 import Link from 'next/link';
 import type { Party } from '@/lib/airtable';
 import { useEffect, useMemo, useState } from 'react';
+import AvatarSquare from '@/components/AvatarSquare';
+import { pickPartyLogo, proxyImage } from '@/lib/data';
 
 type Props = { initialParties: Party[]; initialQuery?: string };
 
@@ -344,22 +346,21 @@ export default function PartiesExplorer({ initialParties, initialQuery = '' }: P
               return (
                 <tr key={p.id} className="border-b border-ink-600/10 hover:bg-ink-900/5 transition">
                   <td className={tdBase}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {p.logo ? (
-                      <img
-                        src={p.logo}
-                        alt=""
-                        className="w-10 h-10 rounded-md object-contain bg-white border border-ink-200"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-md grid place-items-center bg-ink-100 text-ink-700 text-xs font-semibold border border-ink-200">
-                        {(p.abbr || p.name || '—')
-                          .toUpperCase()
-                          .replace(/[^A-Z]/g, '')
-                          .slice(0, 4) || '—'}
-                      </div>
-                    )}
-                  </td>
+  {(() => {
+    const url = proxyImage(pickPartyLogo(p as any));
+    return (
+      <AvatarSquare
+        variant="party"
+        src={url}
+        alt={`${p.name ?? 'Party'} logo`}
+        size={40}
+        rounded="rounded-md"
+        label={p.abbr || p.name}
+      />
+    );
+  })()}
+</td>
+
                   <td className={tdBase}>
                     <div className="font-semibold text-ink-800">{p.name}</div>
                     {p.symbolText && <div className="text-xs text-ink-600/80">{p.symbolText}</div>}
