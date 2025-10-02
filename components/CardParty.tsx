@@ -3,6 +3,14 @@ import Link from 'next/link';
 import AvatarSquare from './AvatarSquare';
 import { pickPartyLogoUrl } from '@/lib/media';
 
+// Minimal shape used by this card; avoids importing server-only types.
+type PartyCard = {
+  slug: string;
+  name?: string | null;
+  status?: string | null; // e.g., National / State
+  abbr?: string | null;   // short name
+  [key: string]: any;     // allow extra fields for the pick* helpers
+};
 
 /* UI */
 function ScopePill({ label }: { label?: string }) {
@@ -17,7 +25,11 @@ function ScopePill({ label }: { label?: string }) {
     : isState
     ? 'bg-teal-100 text-teal-700'
     : 'bg-black/10 text-ink-700';
-  return <span className={`${base} ${color}`}>{isNational ? 'National' : isState ? 'State' : label}</span>;
+  return (
+    <span className={`${base} ${color}`}>
+      {isNational ? 'National' : isState ? 'State' : label}
+    </span>
+  );
 }
 
 /* helpers */
@@ -26,7 +38,10 @@ const toList = (v: any): string[] =>
     ? []
     : Array.isArray(v)
     ? v.filter(Boolean).map((x) => String(x).trim())
-    : String(v).split(/[,\n;]/).map((s) => s.trim()).filter(Boolean);
+    : String(v)
+        .split(/[,\n;]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
 
 const pickLeader = (p: any): string | undefined =>
   p.leader || p.leaders || p['party leader'] || p['Leader'] || undefined;
@@ -46,7 +61,8 @@ const pickAlliance = (p: any): string | undefined => {
 };
 
 const pickFounded = (p: any): string | undefined => {
-  const raw = p.founded || p.founding || p.established || p.formed || p['founded year'];
+  const raw =
+    p.founded || p.founding || p.established || p.formed || p['founded year'];
   if (!raw) return undefined;
   const s = String(Array.isArray(raw) ? raw[0] : raw);
   const m = s.match(/\b(18|19|20)\d{2}\b/);
@@ -56,14 +72,20 @@ const pickFounded = (p: any): string | undefined => {
 const pickHQ = (p: any): string | undefined =>
   p.hq || p.headquarters || p['head office'] || p['headquarters city'] || undefined;
 
-export default function CardParty({ party }: { party: Party }) {
+export default function CardParty({ party }: { party: PartyCard }) {
   const scopeRaw =
-    party.status || (party as any).scope || (party as any).level || (party as any).type || '';
+    party.status ||
+    (party as any).scope ||
+    (party as any).level ||
+    (party as any).type ||
+    '';
   const abbr = (party as any).abbr || (party as any).short;
   const titleAbbr = abbr || party.name || '—';
+
   const leader = pickLeader(party as any);
   const states = pickStates(party as any);
-  const stateDisplay = states.length > 1 ? `${states[0]} +${states.length - 1}` : states[0];
+  const stateDisplay =
+    states.length > 1 ? `${states[0]} +${states.length - 1}` : states[0];
 
   // Direct (no-proxy) logo URL
   const logo = pickPartyLogoUrl(party as any);
@@ -72,9 +94,7 @@ export default function CardParty({ party }: { party: Party }) {
   const founded = pickFounded(party as any);
   const hq = pickHQ(party as any);
   const line3 =
-    alliance ? `Alliance ${alliance}`
-    : founded ? `Founded ${founded}`
-    : hq || undefined;
+    alliance ? `Alliance ${alliance}` : founded ? `Founded ${founded}` : hq || undefined;
 
   return (
     <Link
