@@ -25,5 +25,29 @@ export function pickPartyLogo(p: Party): string | undefined {
   );
 }
 
-export const proxyImage = (u?: string) =>
-  u ? `/api/proxy-image?u=${encodeURIComponent(u)}` : undefined;
+export function proxyImage(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  
+  // If it's already a data URI or relative path, return as-is
+  if (url.startsWith('data:') || url.startsWith('/')) return url;
+  
+  // Only proxy allowed domains
+  try {
+    const parsed = new URL(url);
+    const allowedHosts = [
+      'v5.airtableusercontent.com',
+      'dl.airtable.com',
+      'upload.wikimedia.org'
+    ];
+    
+    if (allowedHosts.includes(parsed.hostname)) {
+      return `/api/proxy?u=${encodeURIComponent(url)}`;
+    }
+    
+    // If not an allowed host, return original (might fail CORS but at least tries)
+    return url;
+  } catch {
+    // Invalid URL
+    return undefined;
+  }
+}
