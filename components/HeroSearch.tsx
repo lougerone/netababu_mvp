@@ -109,9 +109,19 @@ export default function HeroSearch({
         <button
   type="submit"
   aria-label="Search"
-  className="btn-primary h-12 px-5 sm:px-6 rounded-xl font-semibold flex items-center justify-center gap-2"
+  title="Search"
+  className="
+    h-12 w-auto min-w-[48px]
+    px-4 sm:px-6
+    rounded-2xl
+    bg-saffron-500 text-white
+    shadow-md
+    hover:bg-saffron-600 active:bg-saffron-700
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/40
+    flex items-center justify-center gap-2
+  "
 >
-  {/* Mobile: icon only */}
+  {/* mobile: icon only (keeps the orange pill) */}
   <svg
     className="h-5 w-5 sm:hidden"
     viewBox="0 0 20 20"
@@ -125,9 +135,10 @@ export default function HeroSearch({
     />
   </svg>
 
-  {/* ≥ sm: show text (and optionally an icon) */}
+  {/* ≥ sm: show text label (optional keep icon too by removing sm:hidden above) */}
   <span className="hidden sm:inline">Search</span>
 </button>
+
 
       </div>
 
