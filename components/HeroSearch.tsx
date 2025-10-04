@@ -105,29 +105,34 @@ export default function HeroSearch({
           )}
         </div>
 
-        {/* BUTTON PILL (same height as input) */}
-        <button
-  type="submit"
-  aria-label="Search"
+       <button
+  onClick={() => submit()}
   className="
-    h-12 min-w-[48px] px-4 sm:px-6 rounded-2xl
-    bg-saffron-600 text-white
-    shadow-[0_2px_6px_rgba(0,0,0,0.06),_0_10px_24px_rgba(255,145,0,0.28)]
-    transition-shadow
-    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30
+    h-12 px-6 rounded-full
+    bg-saffron-500 text-white font-medium
+    shadow-[0_4px_16px_rgba(0,0,0,0.08)]
+    hover:bg-saffron-400 transition
+    whitespace-nowrap
     flex items-center justify-center gap-2
   "
 >
   {/* mobile: icon pill */}
-  <svg className="h-5 w-5 sm:hidden" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-    <path fillRule="evenodd" d="M13.5 12a6 6 0 1 0-1.5 1.5l3.75 3.75a1 1 0 0 0 1.5-1.5L13.5 12Zm-5.5 1a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z" clipRule="evenodd" />
+  <svg
+    className="h-5 w-5 sm:hidden"
+    viewBox="0 0 20 20"
+    fill="currentColor"
+    aria-hidden="true"
+  >
+    <path
+      fillRule="evenodd"
+      d="M13.5 12a6 6 0 1 0-1.5 1.5l3.75 3.75a1 1 0 0 0 1.5-1.5L13.5 12Zm-5.5 1a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"
+      clipRule="evenodd"
+    />
   </svg>
 
   {/* ≥ sm: text label */}
   <span className="hidden sm:inline">Search</span>
 </button>
-
-
 
       </div>
 
