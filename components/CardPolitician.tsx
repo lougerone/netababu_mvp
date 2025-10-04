@@ -2,6 +2,44 @@
 import Link from 'next/link';
 import AvatarSquare from './AvatarSquare';
 
+// components/CardPolitician.tsx
+// …imports unchanged
+
+type Props = {
+  p: Politician;
+  selectMode?: boolean;
+  selected?: boolean;
+  onSelectToggle?: (slug: string) => void;
+  /** Control card background to match the original theme */
+  surfaceClassName?: string; // <- NEW
+};
+
+export default function CardPolitician({
+  p,
+  selectMode = false,
+  selected = false,
+  onSelectToggle,
+  surfaceClassName = 'bg-white', // <- original surface (swap if your old token was different)
+}: Props) {
+  // …abbr/state unchanged
+
+  const CardInner = (
+    <div
+      className={[
+        'relative card card-compact p-4 block rounded-xl border transition-colors',
+        'border-black/10 hover:border-black/20',
+        surfaceClassName, // <- uses original color again
+      ].join(' ')}
+    >
+      {/* selection btn + content unchanged */}
+      {/* … */}
+    </div>
+  );
+
+  // …link vs group wrapper unchanged
+}
+
+
 export type Politician = {
   id: string;
   slug: string;
