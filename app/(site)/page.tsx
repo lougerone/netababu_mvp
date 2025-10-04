@@ -209,15 +209,7 @@ export default async function HomePage() {
     className="object-contain object-top opacity-35 [filter:contrast(.9)_saturate(.9)]"
     draggable={false}
   />
-
-  {/* Left & right vignettes */}
-  <div className="pointer-events-none absolute inset-y-0 left-0 w-40 bg-gradient-to-r from-cream-200 via-cream-200/70 to-transparent" />
-  <div className="pointer-events-none absolute inset-y-0 right-0 w-40 bg-gradient-to-l from-cream-200 via-cream-200/70 to-transparent" />
-
-  {/* (Optional) top/bottom vignettes */}
-  <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-cream-200 via-cream-200/60 to-transparent" />
-  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-cream-200 via-cream-200/60 to-transparent" />
-</div>
+   </div>
           {/* Centered headline + search */}
           <div className="relative mx-auto max-w-4xl px-4 pt-6 text-center md:pt-8 lg:pt-10">
             <div className="h-kicker text-shadow-cream">India • Politics • Data</div>
