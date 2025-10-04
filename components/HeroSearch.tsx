@@ -109,35 +109,24 @@ export default function HeroSearch({
         <button
   type="submit"
   aria-label="Search"
-  title="Search"
   className="
-    h-12 w-auto min-w-[48px]
-    px-4 sm:px-6
-    rounded-2xl
-    bg-saffron-500 text-white
-    shadow-md
-    hover:bg-saffron-600 active:bg-saffron-700
-    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/40
+    h-12 min-w-[48px] px-4 sm:px-6 rounded-2xl
+    bg-saffron-600 text-white
+    shadow-[0_2px_6px_rgba(0,0,0,0.06),_0_10px_24px_rgba(255,145,0,0.28)]
+    transition-shadow
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-600/30
     flex items-center justify-center gap-2
   "
 >
-  {/* mobile: icon only (keeps the orange pill) */}
-  <svg
-    className="h-5 w-5 sm:hidden"
-    viewBox="0 0 20 20"
-    fill="currentColor"
-    aria-hidden="true"
-  >
-    <path
-      fillRule="evenodd"
-      d="M13.5 12a6 6 0 1 0-1.5 1.5l3.75 3.75a1 1 0 0 0 1.5-1.5L13.5 12Zm-5.5 1a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"
-      clipRule="evenodd"
-    />
+  {/* mobile: icon pill */}
+  <svg className="h-5 w-5 sm:hidden" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+    <path fillRule="evenodd" d="M13.5 12a6 6 0 1 0-1.5 1.5l3.75 3.75a1 1 0 0 0 1.5-1.5L13.5 12Zm-5.5 1a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z" clipRule="evenodd" />
   </svg>
 
-  {/* ≥ sm: show text label (optional keep icon too by removing sm:hidden above) */}
+  {/* ≥ sm: text label */}
   <span className="hidden sm:inline">Search</span>
 </button>
+
 
 
       </div>
