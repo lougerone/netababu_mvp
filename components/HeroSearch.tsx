@@ -107,17 +107,28 @@ export default function HeroSearch({
 
         {/* BUTTON PILL (same height as input) */}
         <button
-          onClick={() => submit()}
-          className="
-            h-12 px-6 rounded-full
-            bg-saffron-500 text-white font-medium
-            shadow-[0_4px_16px_rgba(0,0,0,0.08)]
-            hover:bg-saffron-400 transition
-            whitespace-nowrap
-          "
-        >
-          Search
-        </button>
+  type="submit"
+  aria-label="Search"
+  className="btn-primary h-12 px-5 sm:px-6 rounded-xl font-semibold flex items-center justify-center gap-2"
+>
+  {/* Mobile: icon only */}
+  <svg
+    className="h-5 w-5 sm:hidden"
+    viewBox="0 0 20 20"
+    fill="currentColor"
+    aria-hidden="true"
+  >
+    <path
+      fillRule="evenodd"
+      d="M13.5 12a6 6 0 1 0-1.5 1.5l3.75 3.75a1 1 0 0 0 1.5-1.5L13.5 12Zm-5.5 1a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"
+      clipRule="evenodd"
+    />
+  </svg>
+
+  {/* ≥ sm: show text (and optionally an icon) */}
+  <span className="hidden sm:inline">Search</span>
+</button>
+
       </div>
 
       {/* Popular row */}
