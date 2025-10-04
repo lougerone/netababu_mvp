@@ -194,121 +194,75 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* ───────────────────────── Hero ───────────────────────── */}
-      <main className="space-y-12 pt-10">
-        <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
-          {/* Background image with SVG feather mask (true transparency on all sides) */}
-<div className="absolute inset-0 z-0 overflow-hidden">
-  {/* 1) Define the mask once (hidden SVG) */}
-  <svg width="0" height="0" className="absolute" aria-hidden>
-    <defs>
-      {/* White = visible, Black = hidden */}
-      <linearGradient id="nbFadeX" x1="0" x2="1" y1="0" y2="0">
-        {/* widen/narrow the solid middle by adjusting 12% / 88% */}
-        <stop offset="0%"   stopColor="black" />
-        <stop offset="12%"  stopColor="white" />
-        <stop offset="88%"  stopColor="white" />
-        <stop offset="100%" stopColor="black" />
-      </linearGradient>
-
-      <linearGradient id="nbFadeY" x1="0" x2="0" y1="0" y2="1">
-        {/* top/bottom feather */}
-        <stop offset="0%"   stopColor="black" />
-        <stop offset="10%"  stopColor="white" />
-        <stop offset="90%"  stopColor="white" />
-        <stop offset="100%" stopColor="black" />
-      </linearGradient>
-
-      {/* Soft feather via blur */}
-      <filter id="nbFeather" filterUnits="objectBoundingBox">
-        {/* increase/decrease stdDeviation for softer/harder edge (0.02–0.08 are good ranges) */}
-        <feGaussianBlur stdDeviation="0.04" />
-      </filter>
-
-      {/* The actual mask (objectBoundingBox makes 0..1 coordinates) */}
-      <mask id="nbHeroMask" maskUnits="objectBoundingBox">
-        {/* Combine X and Y fades by drawing both, then blur for buttery edges */}
-        <g filter="url(#nbFeather)">
-          <rect x="0" y="0" width="1" height="1" fill="url(#nbFadeX)" />
-          <rect x="0" y="0" width="1" height="1" fill="url(#nbFadeY)" />
-        </g>
-      </mask>
-    </defs>
-  </svg>
-
-  {/* 2) Apply the mask to a wrapper and render the image inside */}
-  <div
-    className="absolute inset-0"
-    style={{
-      // Apply the SVG mask (works in modern browsers)
-      mask: 'url(#nbHeroMask)',
-      WebkitMask: 'url(#nbHeroMask)',
-    }}
-  >
-    <Image
-      src="/hero/hero-2560w.webp"
-      alt="Watercolor collage of Indian political figures — Netababu"
-      fill
-      priority
-      sizes="100vw"
-      className="object-contain object-top opacity-35 [filter:contrast(.9)_saturate(.9)]"
-      draggable={false}
+      {/* ───────────────────────── Hero (no image) ───────────────────────── */}
+<main className="space-y-8 pt-8 md:space-y-10 md:pt-10">
+  <section className="relative isolate overflow-visible">
+    {/* Soft cream backdrop (all-sides) */}
+    <div
+      className="pointer-events-none absolute inset-0 -z-10"
+      style={{
+        background:
+          'radial-gradient(120% 90% at 50% 40%, rgba(255,247,237,0) 35%, rgba(255,247,237,0.7) 70%, #fff7ed 100%)',
+      }}
     />
-  </div>
-</div>
 
-          {/* Centered headline + search */}
-          <div className="relative mx-auto max-w-4xl px-4 pt-6 text-center md:pt-8 lg:pt-10">
-            <div className="h-kicker text-shadow-cream">India • Politics • Data</div>
+    {/* Centered headline + search */}
+    <div className="relative mx-auto max-w-4xl px-4 text-center">
+      <div className="h-kicker text-shadow-cream">India • Politics • Data</div>
 
-            <h1 className="text-shadow-cream whitespace-nowrap text-[clamp(22px,4.5vw,42px)] font-semibold leading-tight tracking-tight text-ink-700">
-              Netas, parties, drama — all in one place.
-            </h1>
+      <h1 className="text-shadow-cream text-[clamp(22px,4.5vw,42px)] font-semibold leading-tight tracking-tight text-ink-700">
+        Netas, parties, drama — all in one place.
+      </h1>
 
-            <div className="text-shadow-cream mt-1 text-xl font-semibold text-saffron-600 md:text-2xl">
-              नेताजी, पार्टियाँ और इंफो — एक ही जगह।
-            </div>
+      <div className="text-shadow-cream mt-1 text-xl font-semibold text-saffron-600 md:text-2xl">
+        नेताजी, पार्टियाँ और इंफो — एक ही जगह
+      </div>
 
-            <HeroSearch />
-          </div>
+      <div className="mt-4 md:mt-5">
+        <HeroSearch />
+      </div>
+    </div>
 
-          {/* Explore cards anchored to hero bottom */}
-          <div className="absolute inset-x-0 bottom-6 z-10 sm:bottom-10 md:bottom-14">
-            <div className="mx-auto max-w-6xl px-4">
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="card p-5">
-                  <h3 className="flex items-center gap-2 text-lg font-medium">
-                    <span className="text-2xl">🏳️</span> Explore by Party
-                  </h3>
-                  <p className="mt-1 mb-3 text-sm text-ink-600/80">Browse active &amp; latent parties.</p>
-                  <Link href="/parties" className="font-medium text-saffron-600">
-                    View all →
-                  </Link>
-                </div>
+    {/* Explore / Compare (now directly under the search) */}
+    <div className="mx-auto mt-8 w-full max-w-6xl px-4 md:mt-10">
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="card p-5">
+          <h3 className="flex items-center gap-2 text-lg font-medium">
+            <span className="text-2xl">🏳️</span> Explore by Party
+          </h3>
+          <p className="mt-1 mb-3 text-sm text-ink-600/80">
+            Browse active &amp; latent parties.
+          </p>
+          <Link href="/parties" className="font-medium text-saffron-600">
+            View all →
+          </Link>
+        </div>
 
-                <div className="card p-5">
-                  <h3 className="flex items-center gap-2 text-lg font-medium">
-                    <span className="text-2xl">📍</span> Explore by State
-                  </h3>
-                  <p className="mt-1 mb-3 text-sm text-ink-600/80">Filter politicians by state.</p>
-                  <Link href="/politicians" className="font-medium text-saffron-600">
-                    View all →
-                  </Link>
-                </div>
+        <div className="card p-5">
+          <h3 className="flex items-center gap-2 text-lg font-medium">
+            <span className="text-2xl">📍</span> Explore by State
+          </h3>
+          <p className="mt-1 mb-3 text-sm text-ink-600/80">Filter politicians by state.</p>
+          <Link href="/politicians" className="font-medium text-saffron-600">
+            View all →
+          </Link>
+        </div>
 
-                <div className="card p-5">
-                  <h3 className="flex items-center gap-2 text-lg font-medium">
-                    <span className="text-2xl">⚔️</span> Compare Netas
-                  </h3>
-                  <p className="mt-1 mb-3 text-sm text-ink-600/80">Head-to-head netas → spicy facts.</p>
-                  <Link href="/compare" className="font-medium text-saffron-600">
-                    Compare →
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <div className="card p-5">
+          <h3 className="flex items-center gap-2 text-lg font-medium">
+            <span className="text-2xl">⚔️</span> Compare Netas
+          </h3>
+          <p className="mt-1 mb-3 text-sm text-ink-600/80">
+            Head-to-head netas → spicy facts.
+          </p>
+          <Link href="/compare" className="font-medium text-saffron-600">
+            Compare →
+          </Link>
+        </div>
+      </div>
+    </div>
+  </section>
+
 
         {/* ───────────────────────── Featured ───────────────────────── */}
         <div className="mx-auto max-w-6xl space-y-12 px-4">
