@@ -197,19 +197,66 @@ export default async function HomePage() {
       {/* ───────────────────────── Hero ───────────────────────── */}
       <main className="space-y-12 pt-10">
         <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
-          {/* Background image + vignette (behind content only) */}
+          {/* Background image with SVG feather mask (true transparency on all sides) */}
 <div className="absolute inset-0 z-0 overflow-hidden">
-  {/* Your Image */}
-  <Image
-    src="/hero/hero-2560w.webp"
-    alt="Watercolor collage of Indian political figures — Netababu"
-    fill
-    priority
-    sizes="100vw"
-    className="object-contain object-top opacity-35 [filter:contrast(.9)_saturate(.9)]"
-    draggable={false}
-  />
-   </div>
+  {/* 1) Define the mask once (hidden SVG) */}
+  <svg width="0" height="0" className="absolute" aria-hidden>
+    <defs>
+      {/* White = visible, Black = hidden */}
+      <linearGradient id="nbFadeX" x1="0" x2="1" y1="0" y2="0">
+        {/* widen/narrow the solid middle by adjusting 12% / 88% */}
+        <stop offset="0%"   stopColor="black" />
+        <stop offset="12%"  stopColor="white" />
+        <stop offset="88%"  stopColor="white" />
+        <stop offset="100%" stopColor="black" />
+      </linearGradient>
+
+      <linearGradient id="nbFadeY" x1="0" x2="0" y1="0" y2="1">
+        {/* top/bottom feather */}
+        <stop offset="0%"   stopColor="black" />
+        <stop offset="10%"  stopColor="white" />
+        <stop offset="90%"  stopColor="white" />
+        <stop offset="100%" stopColor="black" />
+      </linearGradient>
+
+      {/* Soft feather via blur */}
+      <filter id="nbFeather" filterUnits="objectBoundingBox">
+        {/* increase/decrease stdDeviation for softer/harder edge (0.02–0.08 are good ranges) */}
+        <feGaussianBlur stdDeviation="0.04" />
+      </filter>
+
+      {/* The actual mask (objectBoundingBox makes 0..1 coordinates) */}
+      <mask id="nbHeroMask" maskUnits="objectBoundingBox">
+        {/* Combine X and Y fades by drawing both, then blur for buttery edges */}
+        <g filter="url(#nbFeather)">
+          <rect x="0" y="0" width="1" height="1" fill="url(#nbFadeX)" />
+          <rect x="0" y="0" width="1" height="1" fill="url(#nbFadeY)" />
+        </g>
+      </mask>
+    </defs>
+  </svg>
+
+  {/* 2) Apply the mask to a wrapper and render the image inside */}
+  <div
+    className="absolute inset-0"
+    style={{
+      // Apply the SVG mask (works in modern browsers)
+      mask: 'url(#nbHeroMask)',
+      WebkitMask: 'url(#nbHeroMask)',
+    }}
+  >
+    <Image
+      src="/hero/hero-2560w.webp"
+      alt="Watercolor collage of Indian political figures — Netababu"
+      fill
+      priority
+      sizes="100vw"
+      className="object-contain object-top opacity-35 [filter:contrast(.9)_saturate(.9)]"
+      draggable={false}
+    />
+  </div>
+</div>
+
           {/* Centered headline + search */}
           <div className="relative mx-auto max-w-4xl px-4 pt-6 text-center md:pt-8 lg:pt-10">
             <div className="h-kicker text-shadow-cream">India • Politics • Data</div>
