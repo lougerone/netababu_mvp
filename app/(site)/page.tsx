@@ -199,7 +199,7 @@ export default async function HomePage() {
         <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
           {/* Background image + vignette (behind content only) */}
           <div className="absolute inset-0 z-0 overflow-hidden">
-  {/* Artwork (kept faint) */}
+  {/* Artwork with soft edge mask + lighter/less contrast */}
   <Image
     src="/hero/hero-2560w.webp"
     alt="Watercolor collage of Indian political figures — Netababu"
@@ -208,21 +208,32 @@ export default async function HomePage() {
     sizes="100vw"
     className={[
       'object-contain object-top',
-      'opacity-28',
-      '[filter:contrast(.9)_saturate(.9)]',
+      'opacity-30',
+      '[filter:contrast(.9)_saturate(.9)_blur(.3px)]',
+      '[mask-image:radial-gradient(120%_90%_at_50%_45%,_#000_58%,_transparent_85%)]',
     ].join(' ')}
+    style={{
+      WebkitMaskImage:
+        'radial-gradient(120% 90% at 50% 45%, #000 58%, transparent 85%)',
+    }}
   />
 
-  {/* One overlay: true all-sides radial fade into cream */}
+  {/* Radial vignette to cream (smoothly removes edges) */}
   <div
     className="pointer-events-none absolute inset-0"
     style={{
-      // transparent in the center → progressively cream near edges (all sides)
       background:
-        'radial-gradient(120% 95% at 50% 45%, rgba(255,247,237,0) 42%, rgba(255,247,237,0.55) 68%, rgba(255,247,237,0.8) 82%, #fff7ed 96%)',
+        'radial-gradient(120% 100% at 50% 50%, rgba(255,247,237,0) 55%, rgba(255,247,237,0.75) 82%, #fff7ed 100%)',
     }}
   />
+
+  {/* Subtle top/bottom linear fades */}
+  <div className="pointer-events-none absolute inset-0">
+    <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-cream-200/70 via-cream-200/40 to-transparent" />
+    <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-cream-200/70 via-cream-200/40 to-transparent" />
+  </div>
 </div>
+
 
 
           {/* Centered headline + search */}
