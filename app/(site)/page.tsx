@@ -199,49 +199,25 @@ export default async function HomePage() {
         <section className="relative isolate flex h-[55vh] items-start justify-center overflow-hidden md:h-[65vh] lg:h-[75vh]">
           {/* Background image + vignette (behind content only) */}
 <div className="absolute inset-0 z-0 overflow-hidden">
-  {/* Artwork with stronger side feather + lighter/less contrast */}
+  {/* Your Image */}
   <Image
     src="/hero/hero-2560w.webp"
     alt="Watercolor collage of Indian political figures — Netababu"
     fill
     priority
     sizes="100vw"
-    className={[
-      'object-contain object-top',
-      'opacity-30',
-      '[filter:contrast(.9)_saturate(.9)_blur(.3px)]',
-      // tighter ellipse horizontally → more fade on left/right
-      '[mask-image:radial-gradient(100%_85%_at_50%_45%,_#000_52%,_transparent_80%)]',
-    ].join(' ')}
-    style={{
-      WebkitMaskImage:
-        'radial-gradient(100% 85% at 50% 45%, #000 52%, transparent 80%)',
-    }}
+    className="object-contain object-top opacity-35 [filter:contrast(.9)_saturate(.9)]"
+    draggable={false}
   />
 
-  {/* All-sides radial vignette to cream (slightly stronger at edges) */}
-  <div
-    className="pointer-events-none absolute inset-0"
-    style={{
-      background:
-        'radial-gradient(110% 95% at 50% 45%, rgba(255,247,237,0) 48%, rgba(255,247,237,0.65) 72%, rgba(255,247,237,0.85) 86%, #fff7ed 98%)',
-    }}
-  />
+  {/* Left & right vignettes */}
+  <div className="pointer-events-none absolute inset-y-0 left-0 w-40 bg-gradient-to-r from-cream-200 via-cream-200/70 to-transparent" />
+  <div className="pointer-events-none absolute inset-y-0 right-0 w-40 bg-gradient-to-l from-cream-200 via-cream-200/70 to-transparent" />
 
-  {/* Extra left/right linear fades (subtle; adjust w- values or opacities) */}
-  <div className="pointer-events-none absolute inset-y-0 left-0 w-28 bg-gradient-to-r from-cream-200/80 via-cream-200/40 to-transparent" />
-  <div className="pointer-events-none absolute inset-y-0 right-0 w-28 bg-gradient-to-l from-cream-200/80 via-cream-200/40 to-transparent" />
-
-  {/* Subtle top/bottom linear fades */}
-  <div className="pointer-events-none absolute inset-0">
-    <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-cream-200/70 via-cream-200/40 to-transparent" />
-    <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-cream-200/70 via-cream-200/40 to-transparent" />
-  </div>
+  {/* (Optional) top/bottom vignettes */}
+  <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-cream-200 via-cream-200/60 to-transparent" />
+  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-cream-200 via-cream-200/60 to-transparent" />
 </div>
-
-
-
-
           {/* Centered headline + search */}
           <div className="relative mx-auto max-w-4xl px-4 pt-6 text-center md:pt-8 lg:pt-10">
             <div className="h-kicker text-shadow-cream">India • Politics • Data</div>
