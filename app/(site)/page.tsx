@@ -251,7 +251,7 @@ export default async function HomePage() {
             </h1>
 
             <div className="text-shadow-cream mt-1 text-xl font-semibold text-saffron-600 md:text-2xl">
-              नेताजी, पार्टियाँ और इंфो — एक ही जगह
+              नेताजी, पार्टियाँ और इंफो — एक ही जगह।
             </div>
 
             <HeroSearch />
