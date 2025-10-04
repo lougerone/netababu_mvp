@@ -2,44 +2,6 @@
 import Link from 'next/link';
 import AvatarSquare from './AvatarSquare';
 
-// components/CardPolitician.tsx
-// …imports unchanged
-
-type Props = {
-  p: Politician;
-  selectMode?: boolean;
-  selected?: boolean;
-  onSelectToggle?: (slug: string) => void;
-  /** Control card background to match the original theme */
-  surfaceClassName?: string; // <- NEW
-};
-
-export default function CardPolitician({
-  p,
-  selectMode = false,
-  selected = false,
-  onSelectToggle,
-  surfaceClassName = 'bg-white', // <- original surface (swap if your old token was different)
-}: Props) {
-  // …abbr/state unchanged
-
-  const CardInner = (
-    <div
-      className={[
-        'relative card card-compact p-4 block rounded-xl border transition-colors',
-        'border-black/10 hover:border-black/20',
-        surfaceClassName, // <- uses original color again
-      ].join(' ')}
-    >
-      {/* selection btn + content unchanged */}
-      {/* … */}
-    </div>
-  );
-
-  // …link vs group wrapper unchanged
-}
-
-
 export type Politician = {
   id: string;
   slug: string;
@@ -54,9 +16,15 @@ export type Politician = {
 function partyAbbr(raw: string | null | undefined): string {
   if (!raw) return '';
   const s = String(raw).trim();
+
+  // Prefer parentheses: e.g., "Bharatiya Janata Party (BJP)" -> "BJP"
   const m = s.match(/\(([A-Za-z0-9]{2,6})\)/);
   if (m) return m[1].toUpperCase();
+
+  // Already short alphanumeric token (<=5)
   if (/^[A-Za-z0-9]{1,5}$/.test(s)) return s.toUpperCase();
+
+  // Build from initial letters (ignore filler words)
   const ignore = new Set(['party', 'of', 'the', 'and', 'india', 'indian']);
   const letters = s
     .split(/[\s-]+/)
@@ -65,7 +33,10 @@ function partyAbbr(raw: string | null | undefined): string {
     .map((w) => w[0])
     .join('')
     .toUpperCase();
+
   if (letters.length >= 2 && letters.length <= 6) return letters.slice(0, 5);
+
+  // Fallback
   return s.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 5);
 }
 
@@ -88,8 +59,9 @@ export default function CardPolitician({
   const abbr = partyAbbr(p.party);
   const state = p.state ? String(p.state) : '';
 
+  // 🔙 original themed surface (no forced bg/border)
   const CardInner = (
-    <div className="relative card card-compact p-4 block border border-black/10 rounded-xl hover:border-black/20 transition-colors">
+    <div className="relative card card-compact p-4 block">
       {/* Selection checkbox */}
       {selectMode && (
         <button
@@ -109,12 +81,10 @@ export default function CardPolitician({
           ].join(' ')}
         >
           {selected ? (
-            // check icon
             <svg viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor">
               <path d="M16.707 5.293a1 1 0 0 1 0 1.414l-7.5 7.5a1 1 0 0 1-1.414 0l-3-3A1 1 0 1 1 6.293 10.793L8.5 13l6.793-6.793a1 1 0 0 1 1.414 0Z" />
             </svg>
           ) : (
-            // plus icon
             <svg viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor">
               <path d="M9 3a1 1 0 1 1 2 0v6h6a1 1 0 1 1 0 2h-6v6a1 1 0 1 1-2 0v-6H3a1 1 0 1 1 0-2h6V3Z" />
             </svg>
@@ -133,11 +103,16 @@ export default function CardPolitician({
         />
 
         <div className="min-w-0 flex-1">
+          {/* Row 1: Name */}
           <div className="font-semibold text-ink-800 truncate leading-5">{p.name}</div>
+
+          {/* Row 2: Party ABBR • State */}
           <div className="text-xs text-ink-600/80 truncate">
             {abbr}
             {state ? ` • ${state}` : ''}
           </div>
+
+          {/* Row 3: Current position (if any) */}
           {p.current_position && (
             <div className="mt-0.5 text-xs text-ink-600 truncate">{p.current_position}</div>
           )}
@@ -151,7 +126,7 @@ export default function CardPolitician({
     </div>
   );
 
-  // Keep default behavior as a navigational card
+  // Default: navigational card
   return selectMode ? (
     <div role="group" aria-label={`${p.name} card (selectable)`}>{CardInner}</div>
   ) : (
