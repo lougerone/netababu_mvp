@@ -194,43 +194,45 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* ───────────────────────── Hero (no image) ───────────────────────── */}
-<main className="space-y-8 pt-8 md:space-y-10 md:pt-10">
+      {/* ───────────────────────── Hero (mobile-first, no image) ───────────────────────── */}
+<main className="space-y-8 pt-6 sm:pt-8 md:space-y-10 md:pt-10">
   <section className="relative isolate overflow-visible">
-    {/* Soft cream backdrop (all-sides) */}
+    {/* soft backdrop only (no art) */}
     <div
       className="pointer-events-none absolute inset-0 -z-10"
       style={{
         background:
-          'radial-gradient(120% 90% at 50% 40%, rgba(255,247,237,0) 35%, rgba(255,247,237,0.7) 70%, #fff7ed 100%)',
+          'radial-gradient(120% 90% at 50% 40%, rgba(255,247,237,0) 30%, rgba(255,247,237,0.7) 68%, #fff7ed 100%)',
       }}
     />
 
-    {/* Centered headline + search */}
-    <div className="relative mx-auto max-w-4xl px-4 text-center">
+    {/* Headline + Search */}
+    <div className="relative mx-auto w-full max-w-4xl px-3 sm:px-4 text-center">
       <div className="h-kicker text-shadow-cream">India • Politics • Data</div>
 
-      <h1 className="text-shadow-cream text-[clamp(22px,4.5vw,42px)] font-semibold leading-tight tracking-tight text-ink-700">
+      {/* slightly smaller on very small screens */}
+      <h1 className="text-shadow-cream text-[clamp(20px,6vw,36px)] sm:text-[clamp(22px,4.5vw,42px)] font-semibold leading-tight tracking-tight text-ink-700">
         Netas, parties, drama — all in one place.
       </h1>
 
-      <div className="text-shadow-cream mt-1 text-xl font-semibold text-saffron-600 md:text-2xl">
+      <div className="text-shadow-cream mt-1 text-[17px] font-semibold text-saffron-600 sm:text-xl md:text-2xl">
         नेताजी, पार्टियाँ और इंफो — एक ही जगह
       </div>
 
-      <div className="mt-4 md:mt-5">
+      {/* Search bar */}
+      <div className="mt-4 sm:mt-5">
         <HeroSearch />
       </div>
     </div>
 
-    {/* Explore / Compare (now directly under the search) */}
-    <div className="mx-auto mt-8 w-full max-w-6xl px-4 md:mt-10">
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="card p-5">
-          <h3 className="flex items-center gap-2 text-lg font-medium">
-            <span className="text-2xl">🏳️</span> Explore by Party
+    {/* Explore / Compare — tucked right under the search */}
+    <div className="mx-auto mt-6 w-full max-w-6xl px-3 sm:px-4 md:mt-8">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
+        <div className="card p-4 md:p-5">
+          <h3 className="flex items-center gap-2 text-base sm:text-lg font-medium">
+            <span className="text-xl sm:text-2xl">🏳️</span> Explore by Party
           </h3>
-          <p className="mt-1 mb-3 text-sm text-ink-600/80">
+          <p className="mt-1 mb-3 text-[13px] sm:text-sm text-ink-600/80">
             Browse active &amp; latent parties.
           </p>
           <Link href="/parties" className="font-medium text-saffron-600">
@@ -238,21 +240,23 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <div className="card p-5">
-          <h3 className="flex items-center gap-2 text-lg font-medium">
-            <span className="text-2xl">📍</span> Explore by State
+        <div className="card p-4 md:p-5">
+          <h3 className="flex items-center gap-2 text-base sm:text-lg font-medium">
+            <span className="text-xl sm:text-2xl">📍</span> Explore by State
           </h3>
-          <p className="mt-1 mb-3 text-sm text-ink-600/80">Filter politicians by state.</p>
+          <p className="mt-1 mb-3 text-[13px] sm:text-sm text-ink-600/80">
+            Filter politicians by state.
+          </p>
           <Link href="/politicians" className="font-medium text-saffron-600">
             View all →
           </Link>
         </div>
 
-        <div className="card p-5">
-          <h3 className="flex items-center gap-2 text-lg font-medium">
-            <span className="text-2xl">⚔️</span> Compare Netas
+        <div className="card p-4 md:p-5">
+          <h3 className="flex items-center gap-2 text-base sm:text-lg font-medium">
+            <span className="text-xl sm:text-2xl">⚔️</span> Compare Netas
           </h3>
-          <p className="mt-1 mb-3 text-sm text-ink-600/80">
+          <p className="mt-1 mb-3 text-[13px] sm:text-sm text-ink-600/80">
             Head-to-head netas → spicy facts.
           </p>
           <Link href="/compare" className="font-medium text-saffron-600">
