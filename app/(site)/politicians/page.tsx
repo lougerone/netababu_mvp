@@ -1,85 +1,25 @@
 // app/(site)/politicians/page.tsx
-import Link from 'next/link';
-import Image from 'next/image';
-import type { Politician } from '@/lib/airtable';
 import { listPoliticians } from '@/lib/airtable';
+import PoliticiansExplorer from '@/components/PoliticiansExplorer';
+import type { Politician } from '@/components/CardPolitician';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PoliticiansPage() {
-  try {
-    const politicians: Politician[] = await listPoliticians();
+  const politicians = (await listPoliticians()) as unknown as Politician[];
 
-    return (
-      <main className="mx-auto max-w-6xl p-6">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Politicians</h1>
-          <p className="text-black/60">
-            Browse profiles of politicians and their key information
-          </p>
-        </header>
+  return (
+    <main className="mx-auto max-w-6xl p-6">
+      <header className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Politicians</h1>
+        <p className="text-black/60">Browse, filter, and compare leaders</p>
+      </header>
 
-        {politicians.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-black/60">No politicians found.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {politicians.map((p) => (
-              <Link
-                key={p.slug}
-                href={`/politicians/${p.slug}`}
-                prefetch={false}
-                className="block p-4 border border-black/10 rounded-lg hover:border-black/20 transition-colors"
-                aria-label={`Open ${p.name} profile`}
-              >
-                <div className="flex items-start gap-3">
-                  {p.photo ? (
-                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-black/5 flex-shrink-0">
-                      <Image
-                        src={p.photo}
-                        alt={p.name || 'Politician photo'}
-                        width={64}
-                        height={64}
-                        className="object-cover w-full h-full"
-                        sizes="(max-width: 1024px) 64px, 64px"
-                        priority={false}
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-16 h-16 rounded-lg bg-black/10 flex-shrink-0" />
-                  )}
-
-                  <div className="min-w-0 flex-1">
-                    <h2 className="font-semibold text-lg truncate">{p.name}</h2>
-
-                    {/* CSV/Airtable field is `position` */}
-                    {p.position && (
-                      <p className="text-sm text-black/60 truncate">{p.position}</p>
-                    )}
-
-                    <p className="text-sm text-black/60 truncate">{p.party}</p>
-
-                    {p.constituency && (
-                      <p className="text-xs text-black/50 truncate">{p.constituency}</p>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </main>
-    );
-  } catch (error) {
-    console.error('Error loading politicians:', error);
-    return (
-      <main className="mx-auto max-w-3xl p-6">
-        <h1 className="text-2xl font-bold mb-4">Politicians</h1>
-        <p className="text-red-600">
-          Unable to load politicians data. Please try again later.
-        </p>
-      </main>
-    );
-  }
+      {(!politicians || politicians.length === 0) ? (
+        <div className="text-center py-16 text-black/60">No politicians found.</div>
+      ) : (
+        <PoliticiansExplorer initial={politicians} />
+      )}
+    </main>
+  );
 }
