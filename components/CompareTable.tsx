@@ -515,7 +515,10 @@ export default function CompareTable({ politicians }: { politicians: Politician[
         </table>
       </div>
 
-      <div className="text-xs text-ink-600/70">— means not available.</div>
+      <div className="text-xs text-ink-600/70">
+  — means not available. All data is compiled from publicly available (open) sources and is provided for representation purposes only.
+</div>
+
     </div>
   );
 }
