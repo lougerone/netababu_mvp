@@ -94,7 +94,7 @@ function renderValue(field: string, p?: Politician) {
 }
 
 /* ---------------- optional rows ---------------- */
-// Show these via “Add attributes”
+// Show these via “Add attributes” (Constituency is a pinned row, so not listed here)
 const OPTIONAL: { key: keyof Politician; label: string }[] = [
   { key: 'age', label: 'Age' },
   { key: 'yearsInPolitics', label: 'Years in Politics' },
@@ -104,20 +104,7 @@ const OPTIONAL: { key: keyof Politician; label: string }[] = [
   { key: 'website', label: 'Website' },
   { key: 'twitter' as keyof Politician, label: 'Twitter' },
   { key: 'created' as keyof Politician, label: 'Last Updated' },
-  // (Name/Photo/Slug are omitted here: name+photo already shown in the header; slug is internal)
 ];
-
-/* ---------------- party badge (kept for future use) ---------------- */
-const PARTY_COLORS: Record<string, string> = {
-  'Bharatiya Janata Party': 'bg-[#FFCC00] text-black',
-  'Indian National Congress': 'bg-[#138808] text-white',
-  'Aam Aadmi Party': 'bg-[#1E90FF] text-white',
-  'Trinamool Congress': 'bg-[#228B22] text-white',
-};
-function partyBadgeClass(party?: string | null) {
-  if (!party) return 'bg-cream-300 text-ink-700';
-  return PARTY_COLORS[party] || 'bg-cream-300 text-ink-700';
-}
 
 /* ---------------- click outside + debounce ---------------- */
 function useOnClickOutside(ref: React.RefObject<HTMLElement>, fn: () => void) {
@@ -305,7 +292,7 @@ function ComboBox({ label, items, valueId, onChangeId }: ComboProps) {
   );
 }
 
-/* ---------------- multi-select (no 'state') ---------------- */
+/* ---------------- multi-select ---------------- */
 type MultiProps = {
   label: string;
   options: { key: keyof Politician; label: string }[];
@@ -383,20 +370,13 @@ export default function CompareTable({ politicians }: { politicians: Politician[
   const [aId, setAId] = useState<string | undefined>(findByKey(initialA)?.id);
   const [bId, setBId] = useState<string | undefined>(findByKey(initialB)?.id);
 
-  // Default attributes
+  // Default attributes (only always-on rows are shown; others off unless in URL)
   const [enabled, setEnabled] = useState<Set<keyof Politician>>(() => {
     const fromUrl = (initialFields || '')
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean) as (keyof Politician)[];
-    const valid = new Set(fromUrl.filter((k) => OPTIONAL.some((o) => o.key === k)));
-    if (valid.size === 0) {
-      valid.add('age');
-      valid.add('yearsInPolitics');
-      valid.add('twitter' as keyof Politician);
-      valid.add('created' as keyof Politician);
-    }
-    return valid;
+    return new Set(fromUrl.filter((k) => OPTIONAL.some((o) => o.key === k)));
   });
 
   const A = useMemo(() => sorted.find((p) => p.id === aId), [sorted, aId]);
@@ -444,10 +424,9 @@ export default function CompareTable({ politicians }: { politicians: Politician[
         <table className="w-full text-sm">
           <caption className="sr-only">Compare Netas</caption>
 
-          {/* Sticky header that fully contains the big avatars and aligns baselines */}
-<thead className="sticky top-[112px] md:top-[72px] z-[150] bg-cream-200/95 backdrop-blur border-b border-black/10">
+          {/* Sticky header — no overlap */}
+          <thead className="sticky top-0 z-[150] bg-cream-200/95 backdrop-blur border-b border-black/10">
             <tr className="text-left text-ink-600/80">
-              {/* Attribute header centered */}
               <th scope="col" className="w-[240px] px-4 py-4 text-center align-bottom">
                 Attribute
               </th>
@@ -483,14 +462,14 @@ export default function CompareTable({ politicians }: { politicians: Politician[
           </thead>
 
           <tbody className="[&_tr]:border-t [&_tr]:border-black/10">
-            {/* Constituency — always first and always shown */}
+            {/* Constituency — pinned first row */}
             <tr className="odd:bg-cream-100/50">
-  <th scope="row" className="px-4 py-3 pt-4 font-medium">Constituency</th>
-              <td className="px-4 py-3 pt-3.5">{renderValue('constituency', A)}</td>
-              <td className="px-4 py-3 pt-3.5">{renderValue('constituency', B)}</td>
+              <th scope="row" className="px-4 py-3 font-medium">Constituency</th>
+              <td className="px-4 py-3">{renderValue('constituency', A)}</td>
+              <td className="px-4 py-3">{renderValue('constituency', B)}</td>
             </tr>
 
-            {/* Always-on rows (do NOT include 'constituency' again) */}
+            {/* Always-on rows */}
             {['current_position', 'party'].map((f) =>
               shouldShow(f) ? (
                 <tr key={`locked-${f}`} className="odd:bg-cream-100/50">
@@ -518,9 +497,8 @@ export default function CompareTable({ politicians }: { politicians: Politician[
       </div>
 
       <div className="text-xs text-ink-600/70">
-  — means not available. All data is compiled from publicly available (open) sources and is provided for representation purposes only.
-</div>
-
+        — means not available. All data is compiled from publicly available (open) sources and is provided for representation purposes only.
+      </div>
     </div>
   );
 }
