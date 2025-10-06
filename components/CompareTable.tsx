@@ -94,15 +94,17 @@ function renderValue(field: string, p?: Politician) {
 }
 
 /* ---------------- optional rows ---------------- */
-// No "Parliament Attendance"
+// Show these via “Add attributes”
 const OPTIONAL: { key: keyof Politician; label: string }[] = [
   { key: 'age', label: 'Age' },
   { key: 'yearsInPolitics', label: 'Years in Politics' },
+  { key: 'parliamentAttendance' as keyof Politician, label: '% Parliament Attendance' },
   { key: 'assets', label: 'Declared Assets' },
   { key: 'criminalCases', label: 'Criminal Cases' },
   { key: 'website', label: 'Website' },
   { key: 'twitter' as keyof Politician, label: 'Twitter' },
   { key: 'created' as keyof Politician, label: 'Last Updated' },
+  // (Name/Photo/Slug are omitted here: name+photo already shown in the header; slug is internal)
 ];
 
 /* ---------------- party badge (kept for future use) ---------------- */
