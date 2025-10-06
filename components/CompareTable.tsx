@@ -443,12 +443,16 @@ export default function CompareTable({ politicians }: { politicians: Politician[
           <caption className="sr-only">Compare Netas</caption>
 
         {/* Sticky header that fully contains the big avatars and aligns baselines */}
-          <thead className="sticky top-[64px] z-[150] bg-cream-200/95 backdrop-blur">
-            <tr className="text-left text-ink-600/80">
-              {/* Attribute header centered */}
-              <th scope="col" className="w-[240px] px-4 py-4 text-center align-bottom">
-                Attribute
-              </th>
+          // --- in <thead> ---
+<thead className="
+  sticky 
+  top-[96px] md:top-[64px]      /* more room on small screens */
+  z-[150] 
+  bg-cream-200/95 
+  backdrop-blur 
+  border-b border-black/10      /* clear separation from first row */
+">
+
 
               {/* A */}
               <th scope="col" className="px-4 py-4 align-bottom">
