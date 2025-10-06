@@ -100,7 +100,7 @@ const OPTIONAL: { key: keyof Politician; label: string }[] = [
   { key: 'yearsInPolitics', label: 'Years in Politics' },
   { key: 'parliamentAttendance' as keyof Politician, label: '% Parliament Attendance' },
   { key: 'assets', label: 'Declared Assets' },
-  { key: 'criminalCases', label: 'Criminal Cases' },
+  { key: 'criminalCases', label: 'Cases' },
   { key: 'website', label: 'Website' },
   { key: 'twitter' as keyof Politician, label: 'Twitter' },
   { key: 'created' as keyof Politician, label: 'Last Updated' },
