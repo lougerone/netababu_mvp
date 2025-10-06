@@ -442,22 +442,18 @@ export default function CompareTable({ politicians }: { politicians: Politician[
         <table className="w-full text-sm">
           <caption className="sr-only">Compare Netas</caption>
 
-        {/* Sticky header that fully contains the big avatars and aligns baselines */}
-          // --- in <thead> ---
-<thead className="
-  sticky 
-  top-[96px] md:top-[64px]      /* more room on small screens */
-  z-[150] 
-  bg-cream-200/95 
-  backdrop-blur 
-  border-b border-black/10      /* clear separation from first row */
-">
-
+          {/* Sticky header that fully contains the big avatars and aligns baselines */}
+          <thead className="sticky top-[96px] md:top-[64px] z-[150] bg-cream-200/95 backdrop-blur border-b border-black/10">
+            <tr className="text-left text-ink-600/80">
+              {/* Attribute header centered */}
+              <th scope="col" className="w-[240px] px-4 py-4 text-center align-bottom">
+                Attribute
+              </th>
 
               {/* A */}
               <th scope="col" className="px-4 py-4 align-bottom">
                 {A ? (
-                  <div className="flex min-w-0 items-end gap-3 min-h-[88px]">
+                  <div className="flex min-w-0 items-end gap-3 min-h-[72px]">
                     <AvatarSquare src={A.photo ?? null} alt={A.name} size={72} rounded="lg" />
                     <span className="max-w-[240px] truncate font-semibold text-ink-700 leading-tight">
                       {A.name}
@@ -471,7 +467,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
               {/* B */}
               <th scope="col" className="px-4 py-4 align-bottom">
                 {B ? (
-                  <div className="flex min-w-0 items-end gap-3 min-h-[88px]">
+                  <div className="flex min-w-0 items-end gap-3 min-h-[72px]">
                     <AvatarSquare src={B.photo ?? null} alt={B.name} size={72} rounded="lg" />
                     <span className="max-w-[240px] truncate font-semibold text-ink-700 leading-tight">
                       {B.name}
@@ -487,9 +483,9 @@ export default function CompareTable({ politicians }: { politicians: Politician[
           <tbody className="[&_tr]:border-t [&_tr]:border-black/10">
             {/* Constituency — always first and always shown */}
             <tr className="odd:bg-cream-100/50">
-              <th scope="row" className="px-4 py-3 font-medium">Constituency</th>
-              <td className="px-4 py-3">{renderValue('constituency', A)}</td>
-              <td className="px-4 py-3">{renderValue('constituency', B)}</td>
+              <th scope="row" className="px-4 py-3 pt-3.5 font-medium">Constituency</th>
+              <td className="px-4 py-3 pt-3.5">{renderValue('constituency', A)}</td>
+              <td className="px-4 py-3 pt-3.5">{renderValue('constituency', B)}</td>
             </tr>
 
             {/* Always-on rows (do NOT include 'constituency' again) */}
