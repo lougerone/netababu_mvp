@@ -445,7 +445,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
           <caption className="sr-only">Compare Netas</caption>
 
           {/* Sticky header that fully contains the big avatars and aligns baselines */}
-          <thead className="sticky top-[96px] md:top-[64px] z-[150] bg-cream-200/95 backdrop-blur border-b border-black/10">
+<thead className="sticky top-[112px] md:top-[72px] z-[150] bg-cream-200/95 backdrop-blur border-b border-black/10">
             <tr className="text-left text-ink-600/80">
               {/* Attribute header centered */}
               <th scope="col" className="w-[240px] px-4 py-4 text-center align-bottom">
@@ -485,7 +485,7 @@ export default function CompareTable({ politicians }: { politicians: Politician[
           <tbody className="[&_tr]:border-t [&_tr]:border-black/10">
             {/* Constituency — always first and always shown */}
             <tr className="odd:bg-cream-100/50">
-              <th scope="row" className="px-4 py-3 pt-3.5 font-medium">Constituency</th>
+  <th scope="row" className="px-4 py-3 pt-4 font-medium">Constituency</th>
               <td className="px-4 py-3 pt-3.5">{renderValue('constituency', A)}</td>
               <td className="px-4 py-3 pt-3.5">{renderValue('constituency', B)}</td>
             </tr>
