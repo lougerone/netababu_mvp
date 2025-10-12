@@ -16,7 +16,7 @@ const items: Item[] = [
 ];
 
 const TWITTER_URL =
-  process.env.NEXT_PUBLIC_TWITTER_URL || 'https://x.com/netababu';
+  process.env.NEXT_PUBLIC_TWITTER_URL || 'https://x.com/netababu_';
 
 function XIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
