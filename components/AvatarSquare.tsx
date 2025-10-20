@@ -4,67 +4,70 @@
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
 
+/** Edit this list if you allow more hosts in next.config.js */
+const ALLOWED_HOSTS = new Set<string>([
+  'v5.airtableusercontent.com',
+  'dl.airtable.com',
+  'upload.wikimedia.org',
+  // add any others you’ve whitelisted in next.config images.remotePatterns
+]);
+
+function isAllowedSrc(src?: string | null): string | undefined {
+  if (!src) return undefined;
+  if (src.startsWith('/')) return src;        // public asset
+  if (src.startsWith('data:')) return src;    // data URI
+  try {
+    const u = new URL(src);
+    return ALLOWED_HOSTS.has(u.hostname) ? src : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 type Props = {
   src?: string | null;
   alt?: string;
-  /** Square size in px (default 64) */
-  size?: number;
-  /** Tailwind rounded class, e.g. "rounded-lg" (default "rounded-lg") */
-  rounded?: string;
-  /** Optional extra className for the root */
-  className?: string;
-  /** Small text to derive initials/abbr (falls back to `alt`) */
-  label?: string | null;
-  /** Visual preset */
+  size?: number;                 // px
+  rounded?: string;              // e.g. "rounded-lg"
   variant?: 'person' | 'party';
-  /** Force Next/Image unoptimized (e.g., for proxied URLs) */
-  unoptimized?: boolean;
+  label?: string | null;
+  className?: string;
 };
 
 export default function AvatarSquare({
   src,
   alt = '',
-  size = 64,
+  size = 96,
   rounded = 'rounded-lg',
-  className = '',
+  variant = 'party',
   label,
-  variant = 'person',
-  unoptimized,
+  className = '',
 }: Props) {
   const [broken, setBroken] = useState(false);
 
-  // decide colors and ring based on variant
+  const safeSrc = useMemo(() => isAllowedSrc(src), [src]);
   const { bg, fg, ring } = useMemo(() => palette(variant), [variant]);
-
-  // pick a seed string to compute initials/abbr
   const seed = (label || alt || '').trim();
 
-  // when no src or broken → render text (initials/abbr)
+  // If no allowed src or it broke -> render text
   const text = useMemo(() => {
-    if (src && !broken) return '';
+    if (safeSrc && !broken) return '';
     return variant === 'party' ? abbrFromLabel(seed) : initialsFromName(seed);
-  }, [src, broken, variant, seed]);
+  }, [safeSrc, broken, variant, seed]);
 
-  // dynamic font sizing based on text length and variant
   const fontPx = useMemo(() => {
     const len = text.length || 1;
     if (variant === 'party') {
-      // party abbr tends to be 2–5 letters
       if (len <= 2) return Math.round(size * 0.40);
       if (len === 3) return Math.round(size * 0.34);
       if (len === 4) return Math.round(size * 0.30);
       return Math.round(size * 0.26);
     } else {
-      // person initials typically 1–3 chars
       if (len === 1) return Math.round(size * 0.44);
       if (len === 2) return Math.round(size * 0.38);
       return Math.round(size * 0.32);
     }
   }, [text, variant, size]);
-
-  // only treat as “public-ish” path if it’s absolute http(s) or starts with /
-  const safeSrc =
-    src && (/^https?:\/\//i.test(src) || src.startsWith('/')) ? src : undefined;
 
   return (
     <div
@@ -87,16 +90,9 @@ export default function AvatarSquare({
           alt={alt}
           fill
           sizes={`${size}px`}
-          // party logos: keep white bg & contain; people: cover
-          className={
-            variant === 'party'
-              ? 'object-contain object-center bg-white p-1'
-              : 'object-cover object-center'
-          }
+          className={variant === 'party' ? 'object-contain object-center bg-white p-1' : 'object-cover object-center'}
           draggable={false}
           onError={() => setBroken(true)}
-          unoptimized={!!unoptimized}
-          priority={false}
         />
       ) : text ? (
         <span
@@ -106,12 +102,8 @@ export default function AvatarSquare({
             fontSize: fontPx,
             letterSpacing:
               variant === 'party'
-                ? text.length >= 4
-                  ? 0.4
-                  : 0.25
-                : text.length > 2
-                ? 0.1
-                : 0.2,
+                ? (text.length >= 4 ? 0.4 : 0.25)
+                : (text.length > 2 ? 0.1 : 0.2),
             fontFamily:
               'ui-rounded, "SF Pro Rounded", "Segoe UI Rounded", "Helvetica Rounded", "Arial Rounded MT", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
           }}
@@ -126,72 +118,40 @@ export default function AvatarSquare({
   );
 }
 
-/* ------------------------------ helpers ------------------------------ */
+/* ---------------- helpers ---------------- */
 
 function palette(variant: 'person' | 'party') {
   if (variant === 'party') {
-    // Netababu-adjacent saffron/ink vibes with good contrast
-    return {
-      bg: '#FFF4E6', // soft saffron
-      fg: '#2A2A2A', // ink
-      ring: 'rgba(0,0,0,0.08)',
-    };
+    return { bg: '#FFF4E6', fg: '#232323', ring: 'rgba(0,0,0,0.08)' }; // saffronish
   }
-  // neutral gray for people
-  return {
-    bg: '#F3F4F6',
-    fg: '#1F2937',
-    ring: 'rgba(0,0,0,0.06)',
-  };
+  return { bg: '#F3F4F6', fg: '#1F2937', ring: 'rgba(0,0,0,0.06)' };     // neutral
 }
 
-/** "Bharatiya Janata Party" -> "BJP"; "Shiv Sena (UBT)" -> "SS(UBT)"; otherwise take up to 5 alnum chars */
 function abbrFromLabel(s: string): string {
   if (!s) return '—';
   const known: Record<string, string> = {
-    'bharatiya janata party': 'BJP',
-    bjp: 'BJP',
-    'indian national congress': 'INC',
-    inc: 'INC',
-    'shiv sena (ubt)': 'SS(UBT)',
-    'shiv sena ubt': 'SS(UBT)',
-    'shiv sena': 'SS',
-    ss: 'SS',
-    'trinamool congress': 'TMC',
-    tmc: 'TMC',
-    'aam aadmi party': 'AAP',
-    aap: 'AAP',
-    rjd: 'RJD',
-    'rashtriya janata dal': 'RJD',
-    jdu: 'JDU',
-    'janata dal (united)': 'JDU',
+    'bharatiya janata party': 'BJP', bjp: 'BJP',
+    'indian national congress': 'INC', inc: 'INC',
+    'shiv sena (ubt)': 'SS(UBT)', 'shiv sena ubt': 'SS(UBT)', 'shiv sena': 'SS', ss: 'SS',
+    'trinamool congress': 'TMC', tmc: 'TMC',
+    'aam aadmi party': 'AAP', aap: 'AAP',
+    'rashtriya janata dal': 'RJD', rjd: 'RJD',
+    'janata dal (united)': 'JDU', jdu: 'JDU',
   };
   const key = s.toLowerCase().replace(/\s+/g, ' ').trim();
   if (known[key]) return known[key];
-  // fallback: extract letters/numbers, cap at 5 chars
   const raw = (s.match(/[A-Za-z0-9]/g) || []).join('').toUpperCase();
   return raw.slice(0, 5) || '—';
 }
 
-/** "Narendra Damodardas Modi" -> "NDM"; "Sonia Gandhi" -> "SG" */
 function initialsFromName(s: string): string {
   if (!s) return '—';
-  const parts = s
-    .replace(/\s+/g, ' ')
-    .trim()
-    .split(' ')
-    .filter(Boolean);
+  const parts = s.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
   if (parts.length === 1) {
-    const word = parts[0];
-    // take first 1–2 letters (supports non-Latin too)
-    const chars = [...word];
+    const chars = [...parts[0]];
     return (chars[0] || '—').toUpperCase() + (chars[1] ? chars[1].toUpperCase() : '');
   }
-  // take first letter of up to first 3 words
-  return parts
-    .slice(0, 3)
-    .map(w => (w[0] || '').toUpperCase())
-    .join('') || '—';
+  return parts.slice(0, 3).map(w => (w[0] || '').toUpperCase()).join('') || '—';
 }
 
 function FallbackIcon({
@@ -203,41 +163,19 @@ function FallbackIcon({
   size: number;
   color: string;
 }) {
-  const stroke = 'rgba(0,0,0,0.25)';
-  if (variant === 'party') {
-    // simple shield/flag mark
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        width={Math.round(size * 0.5)}
-        height={Math.round(size * 0.5)}
-        aria-hidden
-      >
-        <path
-          d="M4 5.5l8-3 8 3V12c0 4.418-3.582 7-8 9-4.418-2-8-4.582-8-9V5.5z"
-          fill={color}
-          stroke={stroke}
-          strokeWidth="1"
-        />
-      </svg>
-    );
-  }
-  // person bust icon
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={Math.round(size * 0.5)}
-      height={Math.round(size * 0.5)}
-      aria-hidden
-    >
-      <circle cx="12" cy="8" r="4" fill={color} stroke={stroke} strokeWidth="1" />
-      <path
-        d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6"
-        fill="none"
-        stroke={stroke}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
+  const wh = Math.round(size * 0.6);
+  return variant === 'party' ? (
+    <svg width={wh} height={wh} viewBox="0 0 24 24" aria-hidden>
+      <path d="M3 20h18v2H3z" fill={color}/>
+      <path d="M5 16h14v2H5z" fill={color}/>
+      <path d="M7 12h10v2H7z" fill={color}/>
+      <path d="M6 12 12 7l6 5H6z" fill={color}/>
+      <circle cx="12" cy="5" r="1.6" fill={color}/>
+    </svg>
+  ) : (
+    <svg width={wh} height={wh} viewBox="0 0 24 24" aria-hidden>
+      <circle cx="12" cy="8" r="4" fill={color}/>
+      <path d="M4 20c0-4.2 3.8-7 8-7s8 2.8 8 7v1H4z" fill={color}/>
     </svg>
   );
 }
