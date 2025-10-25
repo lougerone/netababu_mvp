@@ -129,20 +129,25 @@ function palette(variant: 'person' | 'party') {
 
 function abbrFromLabel(s: string): string {
   if (!s) return '—';
-  const known: Record<string, string> = {
-    'bharatiya janata party': 'BJP', bjp: 'BJP',
-    'indian national congress': 'INC', inc: 'INC',
-    'shiv sena (ubt)': 'SS(UBT)', 'shiv sena ubt': 'SS(UBT)', 'shiv sena': 'SS', ss: 'SS',
-    'trinamool congress': 'TMC', tmc: 'TMC',
-    'aam aadmi party': 'AAP', aap: 'AAP',
-    'rashtriya janata dal': 'RJD', rjd: 'RJD',
-    'janata dal (united)': 'JDU', jdu: 'JDU',
-  };
-  const key = s.toLowerCase().replace(/\s+/g, ' ').trim();
-  if (known[key]) return known[key];
-  const raw = (s.match(/[A-Za-z0-9]/g) || []).join('').toUpperCase();
-  return raw.slice(0, 5) || '—';
+
+  // Prefer the part before '(' (e.g., "NCP(SP)" -> "NCP")
+  const beforeParen = s.toUpperCase().split('(')[0];
+
+  // Keep letters only
+  let letters = beforeParen.replace(/[^A-Z]/g, '');
+
+  // If we somehow lost everything, fall back to all letters from the string
+  if (!letters) {
+    letters = (s.match(/[A-Za-z]/g) || []).join('').toUpperCase();
+  }
+
+  // Force exactly 3 characters (truncate or top up from the rest of the letters)
+  if (letters.length >= 3) return letters.slice(0, 3);
+
+  const more = (s.match(/[A-Za-z]/g) || []).join('').toUpperCase();
+  return (letters + more).slice(0, 3) || '—';
 }
+
 
 function initialsFromName(s: string): string {
   if (!s) return '—';
