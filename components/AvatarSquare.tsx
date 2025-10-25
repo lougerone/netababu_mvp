@@ -129,23 +129,32 @@ function palette(variant: 'person' | 'party') {
 
 function abbrFromLabel(s: string): string {
   if (!s) return '—';
+  const upper = s.toUpperCase();
 
-  // Prefer the part before '(' (e.g., "NCP(SP)" -> "NCP")
-  const beforeParen = s.toUpperCase().split('(')[0];
+  const m = upper.match(/^([^()]+)\(([^()]*)\)/); // e.g., "SS(UBT)"
+  const outer = (m ? m[1] : upper).replace(/[^A-Z]/g, ''); // before "(" or whole
+  const inner = (m ? m[2] : '').replace(/[^A-Z]/g, '');    // inside "()"
 
-  // Keep letters only
-  let letters = beforeParen.replace(/[^A-Z]/g, '');
+  // If we already have 3+ from the outer, just use them.
+  if (outer.length >= 3) return outer.slice(0, 3);
 
-  // If we somehow lost everything, fall back to all letters from the string
-  if (!letters) {
-    letters = (s.match(/[A-Za-z]/g) || []).join('').toUpperCase();
+  // Otherwise, pad from inner first (this makes SS(UBT) -> SSU)
+  let out = outer;
+  for (const ch of inner) {
+    if (out.length >= 3) break;
+    out += ch;
   }
 
-  // Force exactly 3 characters (truncate or top up from the rest of the letters)
-  if (letters.length >= 3) return letters.slice(0, 3);
+  // If still short, pad from any remaining letters in the full string.
+  if (out.length < 3) {
+    const all = upper.replace(/[^A-Z]/g, '');
+    for (const ch of all) {
+      if (out.length >= 3) break;
+      if (!out.includes(ch) || true) out += ch; // just take next letters
+    }
+  }
 
-  const more = (s.match(/[A-Za-z]/g) || []).join('').toUpperCase();
-  return (letters + more).slice(0, 3) || '—';
+  return out.slice(0, 3) || '—';
 }
 
 
