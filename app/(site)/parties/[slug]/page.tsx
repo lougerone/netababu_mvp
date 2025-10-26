@@ -1,13 +1,13 @@
 // app/parties/[slug]/page.tsx
 import type { ReactNode } from "react";
-import { getPartyBySlug, allPartySlugs } from "@/lib/airtable";
+import { getPartyBySlug } from "@/lib/airtable";
 import AvatarSquare from "@/components/AvatarSquare";
 import { pickPartyLogoUrl } from "@/lib/data";
-import { getHomeParties } from '@/lib/data.server';
+import { getHomeParties } from "@/lib/data.server";
 
-export const revalidate = Number(process.env.REVALIDATE_SECONDS || 3600);
-export const runtime = 'nodejs';
+export const runtime = "nodejs"; // disable Edge so SSG/ISR works
 export const revalidate = Number(process.env.REVALIDATE_SECONDS || 600);
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   const slugs = await allPartySlugs();
