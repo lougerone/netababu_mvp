@@ -1,17 +1,17 @@
-// app/parties/[slug]/page.tsx
+// app/(site)/parties/[slug]/page.tsx
 import type { ReactNode } from "react";
 import { getPartyBySlug } from "@/lib/airtable";
 import AvatarSquare from "@/components/AvatarSquare";
 import { pickPartyLogoUrl } from "@/lib/data";
 import { getHomeParties } from "@/lib/data.server";
 
-export const runtime = "nodejs"; // disable Edge so SSG/ISR works
+export const runtime = "nodejs";
 export const revalidate = Number(process.env.REVALIDATE_SECONDS || 600);
 export const dynamicParams = true;
 
+// Stop hitting Airtable at build:
 export async function generateStaticParams() {
-  const slugs = await allPartySlugs();
-  return slugs.slice(0, 2000).map((slug) => ({ slug }));
+  return []; // prebuild none; render on demand
 }
 
 type ExtParty = Record<string, any> & {
