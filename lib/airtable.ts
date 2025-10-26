@@ -188,8 +188,8 @@ export async function airtableFetch(path: string, qs: Record<string, any> = {}) 
   const res = await schedule(() =>
     fetch(url.toString(), {
       headers: { Authorization: `Bearer ${TOKEN}` },
-      cache: 'no-store',
-      next: { revalidate: 0 },
+      cache: 'no-store', // IMPORTANT: do not also set next.revalidate here
+      // next: { revalidate: 0 }, // ❌ remove to avoid Next warning
     })
   );
   if (!res.ok) throw new Error('Airtable fetch failed');
@@ -213,8 +213,9 @@ async function atFetch(
   const res = await schedule(() =>
     fetch(url, {
       headers: { Authorization: `Bearer ${TOKEN}` },
-      cache: noCache ? 'no-store' : 'force-cache',
-      next: { revalidate: noCache ? 0 : Number(process.env.REVALIDATE_SECONDS || 3600) },
+      ...(noCache
+        ? { cache: 'no-store' as const }                                  // no next.revalidate here
+        : { cache: 'force-cache' as const, next: { revalidate: Number(process.env.REVALIDATE_SECONDS || 3600) } }),
     })
   );
 
