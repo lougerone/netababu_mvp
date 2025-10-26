@@ -1,79 +1,79 @@
 // app/api/search/route.ts
-import { NextResponse } from 'next/server';
-import { listPoliticians, listParties } from '@/lib/airtable';
+import { NextResponse } from "next/server";
+import { listPoliticians, listParties } from "@/lib/airtable";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic"; // don't prerender at build
+export const runtime = "nodejs";
 
-const normalize = (s = '') =>
-  s
+// --- tiny in-memory cache for burst control ---
+const _cache = new Map<string, { exp: number; data: any }>();
+const TTL_MS = Number(process.env.SEARCH_TTL_MS || 60_000);
+
+function normalize(s = "") {
+  return s
     .toLowerCase()
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .replace(/\s+/g, ' ')
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/\s+/g, " ")
     .trim();
+}
+function getC(key: string) {
+  const hit = _cache.get(key);
+  if (hit && hit.exp > Date.now()) return hit.data;
+  if (hit) _cache.delete(key);
+  return null;
+}
+function setC(key: string, data: any) {
+  _cache.set(key, { exp: Date.now() + TTL_MS, data });
+}
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const qRaw = (searchParams.get('q') || '').trim();
-  const full = searchParams.get('full') === '1'; // ?full=1 returns larger sets if you want
+  const qRaw = (searchParams.get("q") || "").trim();
+  const full = searchParams.get("full") === "1";
   if (!qRaw) return NextResponse.json({ results: [], counts: { politicians: 0, parties: 0 } });
+
+  const key = `q:${qRaw}:${full ? "1" : "0"}`;
+  const cached = getC(key);
+  if (cached) return NextResponse.json(cached, { headers: { "Cache-Control": "public, max-age=30" } });
 
   const q = normalize(qRaw);
 
-  // Pull BIG lists so single letters work. If your list* helpers support pagination, use it.
-  // Otherwise set a high limit like 1000.
+  // Pull larger slices; lib/airtable has its own TTL cache too.
   const [pol, par] = await Promise.all([
-    listPoliticians({ limit: 1000 }), // increase this if needed
-    listParties({ limit: 1000 }),
+    listPoliticians({ limit: full ? 2000 : 1000 }),
+    listParties({ limit: full ? 2000 : 1000 }),
   ]);
 
-  const matchPol = pol.filter((p) => {
-    const hay = [
-      p.name,
-      p.party,
-      (p as any).constituency,
-      (p as any).aka,
-      (p as any).aliases,
-      (p as any).state,
-    ]
+  const matchPol = pol.filter((p: any) => {
+    const hay = [p.name, p.party, p.constituency, p.aka, p.aliases, p.state]
       .filter(Boolean)
       .map(String)
       .map(normalize)
-      .join(' • ');
+      .join(" • ");
     return hay.includes(q);
   });
 
-  const matchPar = par.filter((p) => {
-    const hay = [
-      p.name,
-      (p as any).abbr,
-      (p as any).aliases,
-      (p as any).bloc,
-    ]
+  const matchPar = par.filter((p: any) => {
+    const hay = [p.name, p.abbr, p.aliases, p.bloc]
       .filter(Boolean)
       .map(String)
       .map(normalize)
-      .join(' • ');
+      .join(" • ");
     return hay.includes(q);
   });
 
-  // Cap what we *return* to the typeahead for speed; use counts for “See all”
   const capPol = full ? matchPol : matchPol.slice(0, 20);
   const capPar = full ? matchPar : matchPar.slice(0, 20);
 
-  const polHits = capPol.map((p) => ({
-    type: 'politician' as const,
-    name: p.name,
-    slug: p.slug,
-  }));
-  const parHits = capPar.map((p) => ({
-    type: 'party' as const,
-    name: p.name,
-    slug: p.slug,
-  }));
+  const polHits = capPol.map((p: any) => ({ type: "politician" as const, name: p.name, slug: p.slug }));
+  const parHits = capPar.map((p: any) => ({ type: "party" as const, name: p.name, slug: p.slug }));
 
-  return NextResponse.json({
+  const result = {
     results: [...polHits, ...parHits],
     counts: { politicians: matchPol.length, parties: matchPar.length },
-  });
+  };
+
+  setC(key, result);
+  return NextResponse.json(result, { headers: { "Cache-Control": "public, max-age=30" } });
 }
