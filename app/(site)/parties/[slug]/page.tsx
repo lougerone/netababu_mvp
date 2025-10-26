@@ -6,6 +6,8 @@ import { pickPartyLogoUrl } from "@/lib/data";
 import { getHomeParties } from '@/lib/data.server';
 
 export const revalidate = Number(process.env.REVALIDATE_SECONDS || 3600);
+export const runtime = 'nodejs';
+export const revalidate = Number(process.env.REVALIDATE_SECONDS || 600);
 
 export async function generateStaticParams() {
   const slugs = await allPartySlugs();
