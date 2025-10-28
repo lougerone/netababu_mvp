@@ -3,20 +3,22 @@ import { unstable_noStore as noStore } from 'next/cache';
 
 /* ------------------------------ ENV & Consts ------------------------------ */
 
-const AIRTABLE_API = 'https://api.airtable.com/v0';
-const BASE_ID = process.env.AIRTABLE_BASE_ID!;
-const TOKEN = process.env.AIRTABLE_TOKEN!;
+// Stackby config
+const STACKBY_BASE_URL = (process.env.STACKBY_BASE_URL || 'https://stackby.com/api').replace(/\/+$/, '');
+const STACKBY_API_VERSION = process.env.STACKBY_API_VERSION || 'v0'; // or 'betav1'
+const STACKBY_STACK_ID = process.env.STACKBY_STACK_ID!;
+const STACKBY_API_KEY = process.env.STACKBY_API_KEY!;
 
+// Table names (unchanged)
 const T_POL = process.env.AIRTABLE_TABLE_POLITICIANS || 'Politicians';
 const T_PAR = process.env.AIRTABLE_TABLE_PARTIES || 'Parties';
 
-// Cache/ISR knobs
-const DEFAULT_TTL = Number(process.env.AIRTABLE_TTL_SECONDS || 600); // 10m cache
+// Cache/ISR knobs (unchanged)
+const DEFAULT_TTL = Number(process.env.AIRTABLE_TTL_SECONDS || 600);
 const MAX_CACHE_ITEMS = 200;
 const MAX_CONCURRENCY = Number(process.env.AIRTABLE_MAX_CONCURRENCY || 3);
 
 /* ----------------------------- Guard: server only ------------------------- */
-
 if (typeof window !== 'undefined') {
   throw new Error('Do not import lib/airtable.ts from Client Components. Use it only on the server.');
 }
@@ -97,8 +99,8 @@ export type Politician = {
   liabilities?: string | null;
   criminalCases?: number | string | null;
   website?: string | null;
-  twitter?: string | null;     // NEW
-  createdAt?: string | null;   // NEW
+  twitter?: string | null;
+  createdAt?: string | null;
 };
 
 export type Party = {
@@ -124,9 +126,9 @@ const memCache = new Map<string, CacheVal<any>>();
 function cacheKey(table: string, params: Record<string, any>) {
   const stable: Record<string, any> = {};
   Object.keys(params).sort().forEach((k) => {
-    if (k !== 'offset') stable[k] = params[k]; // ignore iterator tokens
+    if (k !== 'offset') stable[k] = params[k];
   });
-  return `at:${table}:${JSON.stringify(stable)}`;
+  return `sb:${table}:${JSON.stringify(stable)}`;
 }
 
 function getCache<T>(key: string): T | null {
@@ -141,7 +143,6 @@ function getCache<T>(key: string): T | null {
 
 function setCache<T>(key: string, data: T, ttlSec = DEFAULT_TTL) {
   if (memCache.size > MAX_CACHE_ITEMS) {
-    // simple prune of ~20 oldest
     const it = memCache.keys();
     for (let i = 0; i < 20; i++) {
       const n = it.next();
@@ -176,51 +177,123 @@ function schedule<T>(fn: () => Promise<T>): Promise<T> {
   });
 }
 
-/* ---------------------------- Low-level fetchers -------------------------- */
+/* ---------------------------- Stackby low-level --------------------------- */
 
-// Thin generic passthrough (kept for compatibility). This does NOT cache.
-// Prefer the helpers below for list/get operations.
-export async function airtableFetch(path: string, qs: Record<string, any> = {}) {
-  noStore(); // server-only function; avoid page cache here
-  const url = new URL(`${AIRTABLE_API}/${BASE_ID}/${path}`);
-  Object.entries(qs).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+/**
+ * Normalize a Stackby row to Airtable-like { id, createdTime, fields }.
+ * Stackby rows are usually plain objects with their column names as keys.
+ * We try common id/created keys and move the rest into fields.
+ */
+function normalizeRowsToAirtableShape(rows: any[]): AirtableRecord[] {
+  return (rows || []).map((r: any) => {
+    const id = r.rowId ?? r.id ?? r._id ?? r._rid ?? cryptoRandomId();
+    const created =
+      r.Created ??
+      r.created ??
+      r.createdTime ??
+      r.created_at ??
+      r._created ??
+      new Date().toISOString();
+
+    // Remove likely meta keys and keep the rest as fields
+    const { rowId, id: _id, _id: __id, _rid, createdTime, created_at, Created, created, _created, ...fields } = r || {};
+    return { id: String(id), createdTime: String(created), fields: fields || {} };
+  });
+}
+
+function cryptoRandomId() {
+  // non-crypto fallback ok for server; just to have a stable-ish id if none present
+  return 'row_' + Math.random().toString(36).slice(2, 10);
+}
+
+/**
+ * Map Airtable-ish query params to Stackby:
+ * - view (same)
+ * - pageSize (same)
+ * - offset (Stackby expects numeric offset; we pass through if numeric, else drop)
+ * - filterByFormula -> filter (Stackby formulas like equal(), toContains(), etc.)
+ * - sort from either:
+ *    a) sort[0][field]=X & sort[0][direction]=asc/desc (Airtable style) OR
+ *    b) sort=[{field:"X",direction:"asc"}] (JSON)
+ */
+function mapParamsToStackby(qs: Record<string, any> = {}): Record<string, string> {
+  const out: Record<string, string> = {};
+
+  // view / pageSize
+  if (qs.view != null) out.view = String(qs.view);
+  if (qs.pageSize != null) out.pageSize = String(qs.pageSize);
+
+  // offset: accept numbers or numeric-strings; ignore opaque tokens
+  if (qs.offset != null && /^\d+$/.test(String(qs.offset))) out.offset = String(qs.offset);
+
+  // filter mapping
+  if (qs.filter != null) out.filter = String(qs.filter);
+  else if (qs.filterByFormula != null) out.filter = String(qs.filterByFormula);
+
+  // sort mapping
+  if (qs.sort && Array.isArray(qs.sort)) {
+    try {
+      out.sort = JSON.stringify(qs.sort);
+    } catch {}
+  } else {
+    // Gather Airtable-style sort[0][field]
+    const sortSpec: Array<{ field: string; direction?: 'asc' | 'desc' }> = [];
+    const re = /^sort\[(\d+)\]\[(field|direction)\]$/;
+    const tmp: Record<string, { field?: string; direction?: 'asc' | 'desc' }> = {};
+    for (const [k, v] of Object.entries(qs)) {
+      const m = k.match(re);
+      if (!m) continue;
+      const idx = m[1];
+      const prop = m[2];
+      tmp[idx] = tmp[idx] || {};
+      if (prop === 'field') tmp[idx].field = String(v);
+      else tmp[idx].direction = String(v).toLowerCase() === 'desc' ? 'desc' : 'asc';
+    }
+    const maxIdx = Object.keys(tmp).map((x) => parseInt(x, 10)).filter((n) => !Number.isNaN(n)).sort((a, b) => a - b);
+    for (const i of maxIdx) {
+      const s = tmp[String(i)];
+      if (s?.field) sortSpec.push({ field: s.field, direction: s.direction || 'asc' });
+    }
+    if (sortSpec.length) out.sort = JSON.stringify(sortSpec);
+  }
+
+  // passthrough any explicit Stackby options people might add (latest, etc.)
+  const passthroughKeys = ['latest', 'select', 'where'];
+  for (const k of passthroughKeys) if (qs[k] != null) out[k] = String(qs[k]);
+
+  // default page size if none provided
+  if (!out.pageSize) out.pageSize = '100';
+  return out;
+}
+
+async function stackbyRowList(
+  table: string,
+  params: Record<string, any> = {},
+  { noCache = true }: { noCache?: boolean } = {}
+) {
+  noStore();
+  const q = mapParamsToStackby(params);
+  const url = new URL(
+    `${STACKBY_BASE_URL}/${STACKBY_API_VERSION}/rowlist/${encodeURIComponent(STACKBY_STACK_ID)}/${encodeURIComponent(
+      String(table)
+    )}`
+  );
+  Object.entries(q).forEach(([k, v]) => url.searchParams.set(k, String(v)));
 
   const res = await schedule(() =>
     fetch(url.toString(), {
-      headers: { Authorization: `Bearer ${TOKEN}` },
-      cache: 'no-store', // IMPORTANT: do not also set next.revalidate here
-      // next: { revalidate: 0 }, // ❌ remove to avoid Next warning
-    })
-  );
-  if (!res.ok) throw new Error('Airtable fetch failed');
-  return res.json();
-}
-
-async function atFetch(
-  table: string,
-  params: Record<string, string | undefined> = {},
-  { noCache = true }: { noCache?: boolean } = {}
-): Promise<AirtablePage> {
-  // Do not page-cache individual iterator pages
-  noStore();
-
-  const search = new URLSearchParams();
-  for (const [k, v] of Object.entries(params)) if (v != null) search.set(k, v);
-  if (!search.has('pageSize')) search.set('pageSize', '100');
-
-  const url = `${AIRTABLE_API}/${BASE_ID}/${encodeURIComponent(table)}?${search.toString()}`;
-
-  const res = await schedule(() =>
-    fetch(url, {
-      headers: { Authorization: `Bearer ${TOKEN}` },
+      headers: {
+        'x-api-key': STACKBY_API_KEY,
+        'Content-Type': 'application/json',
+      },
       ...(noCache
-        ? { cache: 'no-store' as const }                                  // no next.revalidate here
+        ? { cache: 'no-store' as const }
         : { cache: 'force-cache' as const, next: { revalidate: Number(process.env.REVALIDATE_SECONDS || 3600) } }),
     })
   );
 
   const text = await res.text();
-  let json: any;
+  let json: any = {};
   try {
     json = text ? JSON.parse(text) : {};
   } catch {
@@ -228,15 +301,37 @@ async function atFetch(
   }
 
   if (!res.ok) {
-    const msg = json?.error?.type || res.statusText || 'Unknown Airtable error';
-    throw new Error(`Airtable error ${res.status}: ${msg}`);
+    const msg = json?.error || res.statusText || 'Stackby error';
+    throw new Error(`Stackby error ${res.status}: ${msg}`);
   }
-  return json as AirtablePage;
+
+  // Common shapes: { rows: [...] , totalCount?, offset? } OR just an array
+  const rows = Array.isArray(json) ? json : json.rows ?? json.data ?? json.records ?? [];
+  const records = normalizeRowsToAirtableShape(rows);
+
+  const page: AirtablePage = { records };
+  if (json.offset != null) page.offset = String(json.offset);
+  if (json.nextOffset != null) page.offset = String(json.nextOffset);
+  return page;
 }
 
-function isIteratorError(e: unknown) {
-  const s = String(e ?? '');
-  return s.includes('LIST_RECORDS_ITERATOR_NOT_AVAILABLE');
+/* ---------------------------- Compatibility API --------------------------- */
+
+// Thin generic passthrough (kept for compatibility). This does NOT cache.
+// Prefer the helpers below for list/get operations.
+export async function airtableFetch(path: string, qs: Record<string, any> = {}) {
+  // In previous code, `path` was a table name (e.g., 'Parties') or 'Table/view'.
+  // Here we treat it as table. Views should be passed via qs.view.
+  noStore();
+  return stackbyRowList(path, qs, { noCache: true });
+}
+
+async function atFetch(
+  table: string,
+  params: Record<string, string | undefined> = {},
+  { noCache = true }: { noCache?: boolean } = {}
+): Promise<AirtablePage> {
+  return stackbyRowList(table, params, { noCache });
 }
 
 async function atFetchAll(
@@ -247,23 +342,13 @@ async function atFetchAll(
   noStore();
   const results: AirtableRecord[] = [];
   let offset: string | undefined;
-  let restarted = false;
 
   while (true) {
-    try {
-      const page = await atFetch(table, { ...params, ...(offset ? { offset } : {}) }, { noCache: true });
-      results.push(...page.records);
-      if (Number.isFinite(max) && results.length >= max) break;
-      offset = page.offset;
-      if (!offset) break;
-    } catch (e) {
-      if (!restarted && isIteratorError(e)) {
-        offset = undefined;
-        restarted = true;
-        continue;
-      }
-      throw e;
-    }
+    const page = await atFetch(table, { ...params, ...(offset ? { offset } : {}) }, { noCache: true });
+    results.push(...page.records);
+    if (Number.isFinite(max) && results.length >= max) break;
+    offset = page.offset;
+    if (!offset) break;
   }
   return Number.isFinite(max) ? results.slice(0, max) : results;
 }
@@ -455,15 +540,13 @@ export async function listPoliticians(
   if (qSafe) {
     const q = qSafe.replace(/"/g, '\\"');
     try {
+      // Stackby: use `filter` instead of Airtable's filterByFormula
       remoteRecords = await cachedAll(
         T_POL,
         {
           pageSize: '100',
-          filterByFormula: `OR(
-            SEARCH("${q}", {Name}),
-            SEARCH("${q}", {Party}),
-            SEARCH("${q}", {Constituency})
-          )`,
+          // OR( toContains({Name},"q"), toContains({Party},"q"), toContains({Constituency},"q") )
+          filter: `toContains({Name},"${q}") or toContains({Party},"${q}") or toContains({Constituency},"${q}")`,
         },
         max === Infinity ? Infinity : Math.max(max, 100)
       );
@@ -472,7 +555,7 @@ export async function listPoliticians(
         T_POL,
         {
           pageSize: '100',
-          filterByFormula: `OR(SEARCH("${q}", {Name}), SEARCH("${q}", {Party}))`,
+          filter: `toContains({Name},"${q}") or toContains({Party},"${q}")`,
         },
         max === Infinity ? Infinity : Math.max(max, 100)
       );
@@ -525,12 +608,7 @@ export async function listParties(
         T_PAR,
         {
           pageSize: '100',
-          filterByFormula: `OR(
-            SEARCH("${q}", {Name}),
-            SEARCH("${q}", {Abbreviation}),
-            SEARCH("${q}", {Leaders}),
-            SEARCH("${q}", {State})
-          )`,
+          filter: `toContains({Name},"${q}") or toContains({Abbreviation},"${q}") or toContains({Leaders},"${q}") or toContains({State},"${q}")`,
         },
         max === Infinity ? Infinity : Math.max(max, 100)
       );
@@ -539,7 +617,7 @@ export async function listParties(
         T_PAR,
         {
           pageSize: '100',
-          filterByFormula: `OR(SEARCH("${q}", {Name}), SEARCH("${q}", {Abbreviation}))`,
+          filter: `toContains({Name},"${q}") or toContains({Abbreviation},"${q}")`,
         },
         max === Infinity ? Infinity : Math.max(max, 100)
       );
@@ -570,7 +648,7 @@ export async function listParties(
   return Number.isFinite(max) ? mapped.slice(0, Number(max)) : mapped;
 }
 
-// Popular / recent
+// Popular / recent (unchanged logic; data now from Stackby)
 export async function listTopPartiesBySeats(limit = 6): Promise<Party[]> {
   const records = await cachedAll(T_PAR, { pageSize: '100' });
   const mapped = records.map(mapParty);
@@ -620,15 +698,19 @@ export async function listRecentParties(limit = 4): Promise<Party[]> {
 export async function listRecentPoliticians(limit = 4): Promise<Politician[]> {
   const view = process.env.AIRTABLE_POLITICIANS_VIEW || 'Grid view';
   const createdField = process.env.AIRTABLE_POLITICIANS_CREATED_FIELD || 'Created';
+
+  // Try server-side sorting via Stackby sort param
   try {
     const data = await atFetch(T_POL, {
       view,
       pageSize: String(Math.min(Math.max(limit, 1), 100)),
-      [`sort[0][field]`]: createdField,
-      [`sort[0][direction]`]: 'desc',
+      // Convert Airtable-style sort to Stackby JSON sort
+      sort: JSON.stringify([{ field: createdField, direction: 'desc' as const }]),
     });
     if (data.records?.length) return data.records.slice(0, limit).map(mapPolitician);
   } catch {}
+
+  // Fallback: fetch & sort locally by createdTime
   const page = await cachedAll(T_POL, { view, pageSize: '100' });
   return page
     .slice()
@@ -643,8 +725,11 @@ export async function getPoliticianBySlug(slug: string): Promise<Politician | nu
   const s = slug.toLowerCase().replace(/"/g, '\\"');
   try {
     const data = await atFetch(T_POL, {
-      filterByFormula: `OR(LOWER({slug}) = "${s}", LOWER({Slug}) = "${s}")`,
-      maxRecords: '1',
+      // equal(lower({slug}),"s") is not standard in Stackby, so we match both
+      // If you have a lower() func, switch to: lower({slug}) = "s" style.
+      // Here: simple equality on either {slug} or {Slug}
+      filter: `equal({slug},"${s}") or equal({Slug},"${s}")`,
+      pageSize: '1',
     });
     const rec = data.records?.[0];
     if (rec) return mapPolitician(rec);
@@ -658,8 +743,8 @@ export async function getPartyBySlug(slug: string): Promise<Party | null> {
   const s = slug.toLowerCase().replace(/"/g, '\\"');
   try {
     const data = await atFetch(T_PAR, {
-      filterByFormula: `OR(LOWER({slug}) = "${s}", LOWER({Slug}) = "${s}")`,
-      maxRecords: '1',
+      filter: `equal({slug},"${s}") or equal({Slug},"${s}")`,
+      pageSize: '1',
     });
     if (data.records?.[0]) return mapParty(data.records[0]);
   } catch {}
@@ -669,12 +754,10 @@ export async function getPartyBySlug(slug: string): Promise<Party | null> {
 }
 
 export async function getPolitician(slugOrId: string): Promise<Politician | null> {
+  // We don't have Airtable-style 'rec...' direct row GET in Stackby.
+  // If a 'rec' id is passed, fall back to slug lookup.
   if (slugOrId.startsWith('rec')) {
-    const url = `${AIRTABLE_API}/${BASE_ID}/${encodeURIComponent(T_POL)}/${slugOrId}`;
-    const res = await schedule(() => fetch(url, { headers: { Authorization: `Bearer ${TOKEN}` } }));
-    if (!res.ok) return null;
-    const data = (await res.json()) as AirtableRecord;
-    return mapPolitician(data);
+    return getPoliticianBySlug(slugOrId);
   }
   return getPoliticianBySlug(slugOrId);
 }
