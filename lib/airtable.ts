@@ -5,7 +5,7 @@ import { unstable_noStore as noStore } from 'next/cache';
 
 // Stackby config
 const STACKBY_BASE_URL = (process.env.STACKBY_BASE_URL || 'https://stackby.com/api').replace(/\/+$/, '');
-const STACKBY_API_VERSION = process.env.STACKBY_API_VERSION || 'v1'; // or 'betav1'
+const STACKBY_API_VERSION = process.env.STACKBY_API_VERSION || 'v1';
 const STACKBY_STACK_ID = process.env.STACKBY_STACK_ID!;
 const STACKBY_API_KEY = process.env.STACKBY_API_KEY!;
 
@@ -181,15 +181,12 @@ function schedule<T>(fn: () => Promise<T>): Promise<T> {
 
 /**
  * Normalize a Stackby row to Airtable-like { id, createdTime, fields }.
- * Stackby rows are usually plain objects with their column names as keys.
- * We try common id/created keys and move the rest into fields.
+ * Supports v1 rows under r.data, legacy rows under r.cells, or already-flat rows.
  */
 function normalizeRowsToAirtableShape(rows: any[]): AirtableRecord[] {
   return (rows || []).map((r: any) => {
-    const id =
-      r?.rowId ?? r?.id ?? r?._id ?? r?._rid ?? 'row_' + Math.random().toString(36).slice(2, 10);
+    const id = r?.rowId ?? r?.id ?? r?._id ?? r?._rid ?? 'row_' + Math.random().toString(36).slice(2, 10);
 
-    // Stackby v1 puts fields under r.data; older responses under r.cells; sometimes it's already flat
     const payload = r?.data ?? r?.cells ?? r;
 
     let fields: Record<string, any> = {};
@@ -204,7 +201,6 @@ function normalizeRowsToAirtableShape(rows: any[]): AirtableRecord[] {
       fields = { ...payload };
     }
 
-    // created time best-effort
     const createdTime =
       r?.Created ?? r?.created ?? r?.createdTime ?? r?.created_at ?? r?._created ?? new Date().toISOString();
 
@@ -221,11 +217,9 @@ function cryptoRandomId() {
  * Map Airtable-ish query params to Stackby:
  * - view (same)
  * - pageSize (same)
- * - offset (Stackby expects numeric offset; we pass through if numeric, else drop)
- * - filterByFormula -> filter (Stackby formulas like equal(), toContains(), etc.)
- * - sort from either:
- *    a) sort[0][field]=X & sort[0][direction]=asc/desc (Airtable style) OR
- *    b) sort=[{field:"X",direction:"asc"}] (JSON)
+ * - offset (numeric only)
+ * - filterByFormula -> filter
+ * - sort[] or sort JSON
  */
 function mapParamsToStackby(qs: Record<string, any> = {}): Record<string, string> {
   const out: Record<string, string> = {};
@@ -283,17 +277,25 @@ async function stackbyRowList(
   { noCache = true }: { noCache?: boolean } = {}
 ) {
   noStore();
+
   const q = mapParamsToStackby(params);
+
   const url = new URL(
     `${STACKBY_BASE_URL}/${STACKBY_API_VERSION}/rowlist/${encodeURIComponent(STACKBY_STACK_ID)}/${encodeURIComponent(
       String(table)
     )}`
   );
+
+  // Add/keep latest=true by default
+  if (!('latest' in q)) url.searchParams.set('latest', 'true');
+
   Object.entries(q).forEach(([k, v]) => url.searchParams.set(k, String(v)));
 
   const res = await schedule(() =>
     fetch(url.toString(), {
       headers: {
+        // Both, to be maximally compatible with docs & gateways
+        'api-key': STACKBY_API_KEY,
         'x-api-key': STACKBY_API_KEY,
         'Content-Type': 'application/json',
       },
@@ -715,7 +717,6 @@ export async function listRecentPoliticians(limit = 4): Promise<Politician[]> {
     const data = await atFetch(T_POL, {
       view,
       pageSize: String(Math.min(Math.max(limit, 1), 100)),
-      // Convert Airtable-style sort to Stackby JSON sort
       sort: JSON.stringify([{ field: createdField, direction: 'desc' as const }]),
     });
     if (data.records?.length) return data.records.slice(0, limit).map(mapPolitician);
@@ -736,9 +737,6 @@ export async function getPoliticianBySlug(slug: string): Promise<Politician | nu
   const s = slug.toLowerCase().replace(/"/g, '\\"');
   try {
     const data = await atFetch(T_POL, {
-      // equal(lower({slug}),"s") is not standard in Stackby, so we match both
-      // If you have a lower() func, switch to: lower({slug}) = "s" style.
-      // Here: simple equality on either {slug} or {Slug}
       filter: `equal({slug},"${s}") or equal({Slug},"${s}")`,
       pageSize: '1',
     });
@@ -765,8 +763,6 @@ export async function getPartyBySlug(slug: string): Promise<Party | null> {
 }
 
 export async function getPolitician(slugOrId: string): Promise<Politician | null> {
-  // We don't have Airtable-style 'rec...' direct row GET in Stackby.
-  // If a 'rec' id is passed, fall back to slug lookup.
   if (slugOrId.startsWith('rec')) {
     return getPoliticianBySlug(slugOrId);
   }
