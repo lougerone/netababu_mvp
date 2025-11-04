@@ -6,11 +6,12 @@ import { useMemo, useState } from 'react';
 
 /** Edit this list if you allow more hosts in next.config.js */
 const ALLOWED_HOSTS = new Set<string>([
-  'v5.airtableusercontent.com',
-  'dl.airtable.com',
   'upload.wikimedia.org',
-  // add any others you’ve whitelisted in next.config images.remotePatterns
+  's3.amazonaws.com',        // allow AWS S3 buckets
+  'stackby.com',             // or any other Stackby CDN hostname
+  // add more as needed
 ]);
+
 
 function isAllowedSrc(src?: string | null): string | undefined {
   if (!src) return undefined;
