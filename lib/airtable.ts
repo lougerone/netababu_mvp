@@ -186,32 +186,29 @@ function schedule<T>(fn: () => Promise<T>): Promise<T> {
  */
 function normalizeRowsToAirtableShape(rows: any[]): AirtableRecord[] {
   return (rows || []).map((r: any) => {
-    const id = r.rowId ?? r.id ?? r._id ?? r._rid ?? cryptoRandomId();
+    const id =
+      r?.rowId ?? r?.id ?? r?._id ?? r?._rid ?? 'row_' + Math.random().toString(36).slice(2, 10);
 
-    // renamed to avoid collision with destructured `created` below
-    const createdTimeStr =
-      r.Created ??
-      r.created ??
-      r.createdTime ??
-      r.created_at ??
-      r._created ??
-      new Date().toISOString();
+    // Stackby v1 puts fields under r.data; older responses under r.cells; sometimes it's already flat
+    const payload = r?.data ?? r?.cells ?? r;
 
-    // Remove likely meta keys and keep the rest as fields
-    const {
-      rowId,
-      id: _id,
-      _id: __id,
-      _rid,
-      createdTime,
-      created_at,
-      Created,
-      created: _createdField, // alias so name doesn't clash
-      _created,
-      ...fields
-    } = r || {};
+    let fields: Record<string, any> = {};
+    if (Array.isArray(payload)) {
+      // Array-of-cells shape: [{ name/column, value }, ...]
+      for (const c of payload) {
+        const key = c?.name ?? c?.column;
+        if (key) fields[key] = c?.value ?? '';
+      }
+    } else if (payload && typeof payload === 'object') {
+      // Object-of-fields shape: { Name: "...", slug: "...", ... }
+      fields = { ...payload };
+    }
 
-    return { id: String(id), createdTime: String(createdTimeStr), fields: fields || {} };
+    // created time best-effort
+    const createdTime =
+      r?.Created ?? r?.created ?? r?.createdTime ?? r?.created_at ?? r?._created ?? new Date().toISOString();
+
+    return { id: String(id), createdTime: String(createdTime), fields };
   });
 }
 
