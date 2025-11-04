@@ -17,15 +17,15 @@ function partyAbbr(raw: string | null | undefined): string {
   if (!raw) return '';
   const s = String(raw).trim();
 
-  // Prefer parentheses: e.g., "Bharatiya Janata Party (BJP)" -> "BJP"
+  // Return explicit acronyms in parentheses (e.g., “(BJP)”)
   const m = s.match(/\(([A-Za-z0-9]{2,6})\)/);
   if (m) return m[1].toUpperCase();
 
-  // Already short alphanumeric token (<=5)
+  // Already a short code (≤ 5 characters)
   if (/^[A-Za-z0-9]{1,5}$/.test(s)) return s.toUpperCase();
 
-  // Build from initial letters (ignore filler words)
-  const ignore = new Set(['party', 'of', 'the', 'and', 'india', 'indian']);
+  // Build from initial letters. Only skip very common filler words.
+  const ignore = new Set(['of', 'the', 'and']);
   const letters = s
     .split(/[\s-]+/)
     .filter(Boolean)
@@ -36,9 +36,10 @@ function partyAbbr(raw: string | null | undefined): string {
 
   if (letters.length >= 2 && letters.length <= 6) return letters.slice(0, 5);
 
-  // Fallback
+  // Fallback: strip non‑alphanumeric characters and return first 5 chars
   return s.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 5);
 }
+
 
 type Props = {
   p: Politician;
