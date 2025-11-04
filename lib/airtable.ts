@@ -5,7 +5,7 @@ import { unstable_noStore as noStore } from 'next/cache';
 
 // Stackby config
 const STACKBY_BASE_URL = (process.env.STACKBY_BASE_URL || 'https://stackby.com/api').replace(/\/+$/, '');
-const STACKBY_API_VERSION = process.env.STACKBY_API_VERSION || 'v1'; // or 'betav1'
+const STACKBY_API_VERSION = process.env.STACKBY_API_VERSION || 'v0'; // or 'betav1'
 const STACKBY_STACK_ID = process.env.STACKBY_STACK_ID!;
 const STACKBY_API_KEY = process.env.STACKBY_API_KEY!;
 
