@@ -187,7 +187,9 @@ function schedule<T>(fn: () => Promise<T>): Promise<T> {
 function normalizeRowsToAirtableShape(rows: any[]): AirtableRecord[] {
   return (rows || []).map((r: any) => {
     const id = r.rowId ?? r.id ?? r._id ?? r._rid ?? cryptoRandomId();
-    const created =
+
+    // renamed to avoid collision with destructured `created` below
+    const createdTimeStr =
       r.Created ??
       r.created ??
       r.createdTime ??
@@ -196,8 +198,20 @@ function normalizeRowsToAirtableShape(rows: any[]): AirtableRecord[] {
       new Date().toISOString();
 
     // Remove likely meta keys and keep the rest as fields
-    const { rowId, id: _id, _id: __id, _rid, createdTime, created_at, Created, created, _created, ...fields } = r || {};
-    return { id: String(id), createdTime: String(created), fields: fields || {} };
+    const {
+      rowId,
+      id: _id,
+      _id: __id,
+      _rid,
+      createdTime,
+      created_at,
+      Created,
+      created: _createdField, // alias so name doesn't clash
+      _created,
+      ...fields
+    } = r || {};
+
+    return { id: String(id), createdTime: String(createdTimeStr), fields: fields || {} };
   });
 }
 
@@ -350,7 +364,7 @@ async function atFetchAll(
     offset = page.offset;
     if (!offset) break;
   }
-  return Number.isFinite(max) ? results.slice(0, max) : results;
+  return Number.isFinite(max) ? results.slice(0, Number(max)) : results;
 }
 
 /* ------------------------- Cached aggregation helper ---------------------- */
