@@ -6,12 +6,31 @@ import { useMemo, useState } from 'react';
 
 /** Edit this list if you allow more hosts in next.config.js */
 const ALLOWED_HOSTS = new Set<string>([
+  // keep if you still show wiki logos
   'upload.wikimedia.org',
-  's3.amazonaws.com',        // allow AWS S3 buckets
-  'stackby.com',             // or any other Stackby CDN hostname
-  // add more as needed
+  'images.wikimedia.org',
+  // direct hosts
+  's3.amazonaws.com',
+  'stackby.com',
 ]);
 
+/** Optional suffix matches for wildcard hosts */
+const ALLOWED_SUFFIXES = ['.amazonaws.com', '.stackby.com'];
+
+function isAllowedSrc(src?: string | null): string | undefined {
+  if (!src) return undefined;
+  if (src.startsWith('/')) return src;        // public asset or your /proxy-image route
+  if (src.startsWith('data:')) return src;    // data URI
+  try {
+    const u = new URL(src);
+    const h = u.hostname;
+    if (ALLOWED_HOSTS.has(h)) return src;
+    if (ALLOWED_SUFFIXES.some(sfx => h.endsWith(sfx))) return src;
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 function isAllowedSrc(src?: string | null): string | undefined {
   if (!src) return undefined;
