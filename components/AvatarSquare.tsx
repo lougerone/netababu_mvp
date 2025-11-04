@@ -32,18 +32,6 @@ function isAllowedSrc(src?: string | null): string | undefined {
   }
 }
 
-function isAllowedSrc(src?: string | null): string | undefined {
-  if (!src) return undefined;
-  if (src.startsWith('/')) return src;        // public asset
-  if (src.startsWith('data:')) return src;    // data URI
-  try {
-    const u = new URL(src);
-    return ALLOWED_HOSTS.has(u.hostname) ? src : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 type Props = {
   src?: string | null;
   alt?: string;
