@@ -29,8 +29,20 @@ type ExtParty = Record<string, any> & {
   details?: string | null;
 };
 
+// app/(site)/parties/[slug]/page.tsx
+
 export default async function PartyPage({ params }: { params: { slug: string } }) {
-  const p = (await getPartyBySlug(params.slug)) as ExtParty | null;
+  const raw = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
+  const slug = decodeURIComponent(raw);
+
+  let p: ExtParty | null = null;
+  try {
+    p = (await getPartyBySlug(slug)) as ExtParty | null;
+  } catch (err: any) {
+    console.error('getPartyBySlug failed', { slug, err: err?.message });
+    return <div className="mx-auto max-w-3xl p-6">Error loading party.</div>;
+  }
+
   if (!p) return <div className="mx-auto max-w-3xl p-6">Not found.</div>;
 
   // Direct (no-proxy) logo URL
