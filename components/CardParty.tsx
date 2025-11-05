@@ -1,7 +1,7 @@
 // components/CardParty.tsx
 import Link from 'next/link';
-import AvatarSquare from './AvatarSquare'; // client child is ok
-import { pickPartyLogoUrl } from '@/lib/data'; // safe now (server side)
+import AvatarSquare from './AvatarSquare';
+import { pickPartyLogoUrl, partyBadgeLabel } from '@/lib/media';
 
 type PartyCard = {
   id: string;
@@ -10,16 +10,14 @@ type PartyCard = {
   abbr?: string | null;
   status?: string | null;
   founded?: string | null;
-  leaders?: string[];
-  logo?: string | null;
+  leaders?: string[];     // array of names
+  logo?: string | null;   // direct URL if already mapped
 };
 
 export default function CardParty({ party }: { party: PartyCard }) {
-  const abbr = party.abbr ?? '';
-  const titleAbbr = abbr || (party.name ? party.name.slice(0, 3).toUpperCase() : '');
-
-  // Prefer mapped logo; fallback via helper
+  // Prefer mapped logo; fallback via helper that reads common Airtable fields
   const logo = party.logo ?? pickPartyLogoUrl(party as any) ?? undefined;
+  const label = partyBadgeLabel(party as any); // ticker/abbr or name fallback
 
   const leadersText =
     Array.isArray(party.leaders) && party.leaders.length
@@ -29,7 +27,7 @@ export default function CardParty({ party }: { party: PartyCard }) {
   return (
     <Link
       href={`/parties/${encodeURIComponent(party.slug)}`}
-      aria-label={`Open ${party.name || titleAbbr} party page`}
+      aria-label={`Open ${party.name || label} party page`}
       className="card card-compact p-4 block h-full hover:shadow-lg transition-shadow overflow-hidden"
       title={party.name || ''}
     >
@@ -40,8 +38,9 @@ export default function CardParty({ party }: { party: PartyCard }) {
           alt={party.name ?? 'Party'}
           size={64}
           rounded="rounded-xl"
-          label={abbr || party.name}
+          label={label}
         />
+
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold leading-snug truncate">{party.name}</h3>
@@ -51,6 +50,7 @@ export default function CardParty({ party }: { party: PartyCard }) {
               </span>
             )}
           </div>
+
           <div className="mt-0.5 text-sm text-black/70 truncate">{leadersText || '—'}</div>
           <div className="mt-0.5 text-xs text-black/50">{party.founded ? `Founded ${party.founded}` : ''}</div>
         </div>
