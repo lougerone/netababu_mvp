@@ -6,6 +6,7 @@ module.exports = {
       { protocol: 'https', hostname: 'dl.airtable.com' },
       { protocol: 'https', hostname: 'upload.wikimedia.org' },
       { protocol: 'https', hostname: 'images.wikimedia.org' },
+      { protocol: 'https', hostname: '*.airtableusercontent.com' },
       // if you use a proxy route returning absolute URLs, you can keep using /api/img which bypasses this
     ],
   },
