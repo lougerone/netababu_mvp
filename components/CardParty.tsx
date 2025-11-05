@@ -10,14 +10,13 @@ type PartyCard = {
   abbr?: string | null;
   status?: string | null;
   founded?: string | null;
-  leaders?: string[];     // array of names
-  logo?: string | null;   // direct URL if already mapped
+  leaders?: string[];
+  logo?: any; // can be attachment array or string — we normalize via helper
 };
 
 export default function CardParty({ party }: { party: PartyCard }) {
-  // Prefer mapped logo; fallback via helper that reads common Airtable fields
-  const logo = party.logo ?? pickPartyLogoUrl(party as any) ?? undefined;
-  const label = partyBadgeLabel(party as any); // ticker/abbr or name fallback
+  const label = partyBadgeLabel(party as any);
+  const logo = pickPartyLogoUrl(party as any) ?? undefined; // ✅ only a string URL reaches AvatarSquare
 
   const leadersText =
     Array.isArray(party.leaders) && party.leaders.length
@@ -40,7 +39,6 @@ export default function CardParty({ party }: { party: PartyCard }) {
           rounded="rounded-xl"
           label={label}
         />
-
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold leading-snug truncate">{party.name}</h3>
@@ -50,7 +48,6 @@ export default function CardParty({ party }: { party: PartyCard }) {
               </span>
             )}
           </div>
-
           <div className="mt-0.5 text-sm text-black/70 truncate">{leadersText || '—'}</div>
           <div className="mt-0.5 text-xs text-black/50">{party.founded ? `Founded ${party.founded}` : ''}</div>
         </div>
