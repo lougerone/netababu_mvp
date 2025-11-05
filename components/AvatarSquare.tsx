@@ -12,20 +12,13 @@ const ALLOWED_HOSTS = new Set<string>([
   'images.wikimedia.org',
 ]);
 
-/** Allowed wildcard suffixes (covers any future subdomain) */
-const ALLOWED_SUFFIXES = ['.airtableusercontent.com'];
-
-/** Accept local assets & your proxy route */
 function isAllowedSrc(src?: string | null): string | undefined {
   if (!src) return undefined;
-  if (src.startsWith('/')) return src;            // public/ or your own /api/img proxy
-  if (src.startsWith('data:')) return src;        // data URI
+  if (src.startsWith('/')) return src;        // public asset
+  if (src.startsWith('data:')) return src;    // data URI
   try {
     const u = new URL(src);
-    const h = u.hostname;
-    if (ALLOWED_HOSTS.has(h)) return src;
-    if (ALLOWED_SUFFIXES.some((sfx) => h.endsWith(sfx))) return src;
-    return undefined;
+    return ALLOWED_HOSTS.has(u.hostname) ? src : undefined;
   } catch {
     return undefined;
   }
@@ -56,7 +49,7 @@ export default function AvatarSquare({
   const { bg, fg, ring } = useMemo(() => palette(variant), [variant]);
   const seed = (label || alt || '').trim();
 
-  // If no allowed src or it broke -> render text fallback
+  // If no allowed src or it broke -> render text
   const text = useMemo(() => {
     if (safeSrc && !broken) return '';
     return variant === 'party' ? abbrFromLabel(seed) : initialsFromName(seed);
@@ -138,22 +131,52 @@ function palette(variant: 'person' | 'party') {
   return { bg: '#F3F4F6', fg: '#1F2937', ring: 'rgba(0,0,0,0.06)' };     // neutral
 }
 
-/** SS(UBT) -> SSU (outer first, then pad from inner) */
+/**
+ * Party abbreviation rule:
+ * - Keep letters from before "(".
+ * - If fewer than 3, pad from inside the parentheses first.
+ * - If still short, pad from the remaining letters of the whole string.
+ * - Always return exactly 3 letters (or "—" if impossible).
+ * Examples: "SS(UBT) -> SSU", "NCP(SP) -> NCP", "LJP(RV) -> LJP"
+ */
 function abbrFromLabel(s: string): string {
   if (!s) return '—';
   const upper = s.toUpperCase();
+
+  // Known canonical 3-letter tickers can short-circuit here if you like:
+  const known: Record<string, string> = {
+    'BHARATIYA JANATA PARTY': 'BJP',
+    BJP: 'BJP',
+    'INDIAN NATIONAL CONGRESS': 'INC',
+    INC: 'INC',
+    'TRINAMOOL CONGRESS': 'TMC',
+    TMC: 'TMC',
+    'AAM AADMI PARTY': 'AAP',
+    AAP: 'AAP',
+    'RASHTRIYA JANATA DAL': 'RJD',
+    RJD: 'RJD',
+    'JANATA DAL (UNITED)': 'JDU',
+    JDU: 'JDU',
+  };
+  const key = upper.replace(/\s+/g, ' ').trim();
+  if (known[key]) return known[key];
+
   const m = upper.match(/^([^()]+)\(([^()]*)\)/); // e.g., "SS(UBT)"
-  const outer = (m ? m[1] : upper).replace(/[^A-Z]/g, '');
-  const inner = (m ? m[2] : '').replace(/[^A-Z]/g, '');
+  const outer = (m ? m[1] : upper).replace(/[^A-Z]/g, ''); // before "(" or whole
+  const inner = (m ? m[2] : '').replace(/[^A-Z]/g, '');    // inside "()"
 
-  if (outer.length >= 3) return outer.slice(0, 3);
+  // Start with outer letters
+  let out = outer.slice(0, 3);
 
-  let out = outer;
-  for (const ch of inner) {
-    if (out.length >= 3) break;
-    out += ch;
+  // If not enough, pad from inner
+  if (out.length < 3 && inner) {
+    for (const ch of inner) {
+      if (out.length >= 3) break;
+      out += ch;
+    }
   }
 
+  // If still not enough, pad from all letters in the string
   if (out.length < 3) {
     const all = upper.replace(/[^A-Z]/g, '');
     for (const ch of all) {
@@ -161,7 +184,9 @@ function abbrFromLabel(s: string): string {
       out += ch;
     }
   }
-  return out.slice(0, 3) || '—';
+
+  out = out.slice(0, 3);
+  return out || '—';
 }
 
 function initialsFromName(s: string): string {
@@ -171,7 +196,7 @@ function initialsFromName(s: string): string {
     const chars = [...parts[0]];
     return (chars[0] || '—').toUpperCase() + (chars[1] ? chars[1].toUpperCase() : '');
   }
-  return parts.slice(0, 3).map((w) => (w[0] || '').toUpperCase()).join('') || '—';
+  return parts.slice(0, 3).map(w => (w[0] || '').toUpperCase()).join('') || '—';
 }
 
 function FallbackIcon({
@@ -186,16 +211,16 @@ function FallbackIcon({
   const wh = Math.round(size * 0.6);
   return variant === 'party' ? (
     <svg width={wh} height={wh} viewBox="0 0 24 24" aria-hidden>
-      <path d="M3 20h18v2H3z" fill={color}/>
-      <path d="M5 16h14v2H5z" fill={color}/>
-      <path d="M7 12h10v2H7z" fill={color}/>
-      <path d="M6 12 12 7l6 5H6z" fill={color}/>
-      <circle cx="12" cy="5" r="1.6" fill={color}/>
+      <path d="M3 20h18v2H3z" fill={color} />
+      <path d="M5 16h14v2H5z" fill={color} />
+      <path d="M7 12h10v2H7z" fill={color} />
+      <path d="M6 12 12 7l6 5H6z" fill={color} />
+      <circle cx="12" cy="5" r="1.6" fill={color} />
     </svg>
   ) : (
     <svg width={wh} height={wh} viewBox="0 0 24 24" aria-hidden>
-      <circle cx="12" cy="8" r="4" fill={color}/>
-      <path d="M4 20c0-4.2 3.8-7 8-7s8 2.8 8 7v1H4z" fill={color}/>
+      <circle cx="12" cy="8" r="4" fill={color} />
+      <path d="M4 20c0-4.2 3.8-7 8-7s8 2.8 8 7v1H4z" fill={color} />
     </svg>
   );
 }
