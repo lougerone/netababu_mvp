@@ -307,9 +307,9 @@ function mapParty(r: AirtableRecord): Party {
   const details = (f['Details'] as string) ?? null;
 
   const slug =
-    tickerExact ??
+    (tickerExact ??
     firstNonEmpty(f, ['slug', 'Slug']) ??
-    toSlug(name) ||
+    toSlug(name)) ||
     r.id;
 
   return {
