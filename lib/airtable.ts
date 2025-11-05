@@ -50,8 +50,25 @@ const TOKEN = process.env.AIRTABLE_TOKEN!;
 const T_POL = process.env.AIRTABLE_TABLE_POLITICIANS || 'Politicians';
 const T_PAR = process.env.AIRTABLE_TABLE_PARTIES || 'Parties';
 
+// canonical slug for your own derived fields
 const toSlug = (s = '') =>
   s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+// lite slug for lookup fallback (drops symbols, spaces→dash)
+function slugifyLite(s: string) {
+  return s
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[^\w\s-]/g, '') // drop (),[],&,.,/,etc
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+// escape for Airtable **single-quoted** formula strings
+function escapeAirtableString(s: string) {
+  return s.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
 
 function toText(v: any): string | undefined {
   if (v == null) return undefined;
@@ -180,7 +197,7 @@ export type Politician = {
 
 export type Party = {
   id: string;
-  slug: string;   // == Ticker (exact)
+  slug: string;   // == Ticker (exact) OR clean slug you set
   name: string;
   abbr?: string;  // == Ticker (exact)
   state?: string | null;
@@ -242,7 +259,7 @@ function stateFromConstituency(c?: string): string | undefined {
   return m?.[1];
 }
 
-// >>> KEY: slug mirrors Ticker exactly; abbr mirrors Ticker too.
+// >>> KEY: slug mirrors Ticker exactly; abbr mirrors Ticker too (if present).
 function mapParty(r: AirtableRecord): Party {
   const f = r.fields || {};
 
@@ -308,16 +325,16 @@ function mapParty(r: AirtableRecord): Party {
 
   const slug =
     (tickerExact ??
-    firstNonEmpty(f, ['slug', 'Slug']) ??
-    toSlug(name)) ||
+      firstNonEmpty(f, ['slug', 'Slug']) ??
+      toSlug(name)) ||
     r.id;
 
   return {
     ...f,
     id: r.id,
-    slug,              // e.g., "SS(UBT)"
+    slug,              // e.g., "SS(UBT)" or "ncp-sp" depending on your data
     name,
-    abbr: tickerExact, // keep abbr identical to ticker
+    abbr: tickerExact, // keep abbr identical to ticker if present
     state,
     status,
     founded,
@@ -512,44 +529,71 @@ export async function listTopPartiesBySeats(limit = 6): Promise<Party[]> {
   return ranked;
 }
 
+/* ------------------------- Slug + ID getters ------------------------------ */
+
 export async function getPoliticianBySlug(slug: string): Promise<Politician | null> {
-  const s = slug.toLowerCase().replace(/"/g, '\\"');
+  const s0 = slug.toLowerCase();
+  const v0 = escapeAirtableString(s0);
+
   try {
     const data = await atFetch(T_POL, {
-      filterByFormula: `OR(LOWER({slug}) = "${s}", LOWER({Slug}) = "${s}")`,
+      filterByFormula: `OR(LOWER({slug}) = '${v0}', LOWER({Slug}) = '${v0}')`,
       maxRecords: '1',
     });
     const rec = data.records?.[0];
     if (rec) return mapPolitician(rec);
   } catch {}
+
+  // last resort scan
   const all = await atFetchAll(T_POL, { pageSize: '100' });
-  const rec = all.find((r) => (mapPolitician(r).slug || '').toLowerCase() === s);
+  const rec = all.find((r) => (mapPolitician(r).slug || '').toLowerCase() === s0);
   return rec ? mapPolitician(rec) : null;
 }
 
-// >>> updated to match by Ticker OR slug
+// >>> robust: matches by Ticker/slug (exact), then slugified fallback, then scan
 export async function getPartyBySlug(slug: string): Promise<Party | null> {
-  const s = slug.toLowerCase().replace(/"/g, '\\"');
+  const s0 = slug.toLowerCase();
+  const s1 = slugifyLite(s0);
+  const v0 = escapeAirtableString(s0);
+  const v1 = escapeAirtableString(s1);
 
+  // pass 1: exact case-insensitive
   try {
     const data = await atFetch(T_PAR, {
       filterByFormula: `OR(
-        LOWER({Ticker}) = "${s}",
-        LOWER({ticker}) = "${s}",
-        LOWER({slug}) = "${s}",
-        LOWER({Slug}) = "${s}"
+        LOWER({Ticker}) = '${v0}',
+        LOWER({ticker}) = '${v0}',
+        LOWER({slug})   = '${v0}',
+        LOWER({Slug})   = '${v0}'
       )`,
       maxRecords: '1',
     });
     if (data.records?.[0]) return mapParty(data.records[0]);
   } catch {}
 
+  // pass 2: slugified variant (handles "NCP(SP)" -> "ncp-sp" if your table stores clean slugs)
+  try {
+    if (s1 && s1 !== s0) {
+      const data = await atFetch(T_PAR, {
+        filterByFormula: `OR(
+          LOWER({Ticker}) = '${v1}',
+          LOWER({ticker}) = '${v1}',
+          LOWER({slug})   = '${v1}',
+          LOWER({Slug})   = '${v1}'
+        )`,
+        maxRecords: '1',
+      });
+      if (data.records?.[0]) return mapParty(data.records[0]);
+    }
+  } catch {}
+
+  // last resort scan
   const all = await atFetchAll(T_PAR, { pageSize: '100' });
   const rec = all.find((r) => {
     const p = mapParty(r);
     const a = (p.slug || '').toLowerCase();
     const b = (p.abbr || '').toLowerCase();
-    return a === s || b === s;
+    return a === s0 || a === s1 || b === s0 || b === s1;
   });
   return rec ? mapParty(rec) : null;
 }
