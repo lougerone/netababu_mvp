@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import AvatarSquare from './AvatarSquare';
 import { pickPartyLogoUrl, partyBadgeLabel } from '@/lib/media';
-console.debug('party logo →', party.slug, pickPartyLogoUrl(party));
 
 type PartyCard = {
   id: string;
@@ -12,12 +11,18 @@ type PartyCard = {
   status?: string | null;
   founded?: string | null;
   leaders?: string[];
-  logo?: any; // can be attachment array or string — we normalize via helper
+  logo?: any; // attachment array or string — we normalize via helper
 };
 
 export default function CardParty({ party }: { party: PartyCard }) {
   const label = partyBadgeLabel(party as any);
-  const logo = pickPartyLogoUrl(party as any) ?? undefined; // ✅ only a string URL reaches AvatarSquare
+  const logo = pickPartyLogoUrl(party as any) ?? undefined; // only string URLs reach AvatarSquare
+
+  // DEV: see what we’re passing to the image
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.debug('CardParty logo →', party.slug, logo);
+  }
 
   const leadersText =
     Array.isArray(party.leaders) && party.leaders.length
@@ -53,6 +58,11 @@ export default function CardParty({ party }: { party: PartyCard }) {
           <div className="mt-0.5 text-xs text-black/50">{party.founded ? `Founded ${party.founded}` : ''}</div>
         </div>
       </div>
+
+      {/* Optional: quick visual probe in dev if a logo is missing */}
+      {process.env.NODE_ENV === 'development' && !logo && (
+        <code className="mt-2 block text-xs text-red-600">No logo URL for {party.slug}</code>
+      )}
     </Link>
   );
 }
