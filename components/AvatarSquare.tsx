@@ -31,6 +31,25 @@ function isAllowedSrc(src?: string | null): string | undefined {
   }
 }
 
+/** Heuristic: treat logos as PNGs -> center/contain */
+function isLikelyPng(src?: string | null): boolean {
+  if (!src) return false;
+  try {
+    const u = new URL(src);
+    const p = u.pathname.toLowerCase();
+    const qs = u.search.toLowerCase();
+    return (
+      p.endsWith('.png') ||
+      qs.includes('format=png') ||
+      qs.includes('ext=png') ||
+      qs.includes('png=1')
+    );
+  } catch {
+    // if it's a relative path with .png
+    return /\.png(\?|#|$)/i.test(src);
+  }
+}
+
 type Props = {
   src?: string | null;
   alt?: string;
@@ -56,11 +75,14 @@ export default function AvatarSquare({
   const { bg, fg, ring } = useMemo(() => palette(variant), [variant]);
   const seed = (label || alt || '').trim();
 
+  const hasImg = !!(safeSrc && !broken);
+  const png = hasImg ? isLikelyPng(safeSrc!) : false;
+
   // If no allowed src or it broke -> render text
   const text = useMemo(() => {
-    if (safeSrc && !broken) return '';
+    if (hasImg) return '';
     return variant === 'party' ? abbrFromLabel(seed) : initialsFromName(seed);
-  }, [safeSrc, broken, variant, seed]);
+  }, [hasImg, variant, seed]);
 
   const fontPx = useMemo(() => {
     const len = text.length || 1;
@@ -76,8 +98,6 @@ export default function AvatarSquare({
     }
   }, [text, variant, size]);
 
-  const hasImg = !!(safeSrc && !broken);
-
   return (
     <div
       className={[
@@ -88,7 +108,7 @@ export default function AvatarSquare({
       style={{
         width: size,
         height: size,
-        // White when image is present (nice for transparent PNGs), otherwise palette bg for text/fallback
+        // White for images (helps transparent PNGs), palette bg for text/fallbacks
         background: hasImg ? '#ffffff' : bg,
         boxShadow: `inset 0 0 0 1px ${ring}`,
       }}
@@ -100,9 +120,11 @@ export default function AvatarSquare({
           alt={alt}
           fill
           sizes={`${size}px`}
-          className="object-cover object-center" // <-- fill & crop
+          // PNG logos: centered & contained (no crop). Others: cover & crop a bit.
+          className={png ? 'object-contain object-center' : 'object-cover object-center'}
           draggable={false}
           onError={() => setBroken(true)}
+          // no padding; centering handles logos cleanly
         />
       ) : text ? (
         <span
