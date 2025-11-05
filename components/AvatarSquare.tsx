@@ -4,28 +4,27 @@
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
 
-/** Edit this list if you allow more hosts in next.config.js */
+/** Allowed direct hosts (Airtable + Wiki) */
 const ALLOWED_HOSTS = new Set<string>([
-  // keep if you still show wiki logos
+  'v5.airtableusercontent.com',
+  'dl.airtable.com',
   'upload.wikimedia.org',
   'images.wikimedia.org',
-  // direct hosts
-  's3.amazonaws.com',
-  'stackby.com',
 ]);
 
-/** Optional suffix matches for wildcard hosts */
-const ALLOWED_SUFFIXES = ['.amazonaws.com', '.stackby.com'];
+/** Allowed wildcard suffixes (covers any future subdomain) */
+const ALLOWED_SUFFIXES = ['.airtableusercontent.com'];
 
+/** Accept local assets & your proxy route */
 function isAllowedSrc(src?: string | null): string | undefined {
   if (!src) return undefined;
-  if (src.startsWith('/')) return src;        // public asset or your /proxy-image route
-  if (src.startsWith('data:')) return src;    // data URI
+  if (src.startsWith('/')) return src;            // public/ or your own /api/img proxy
+  if (src.startsWith('data:')) return src;        // data URI
   try {
     const u = new URL(src);
     const h = u.hostname;
     if (ALLOWED_HOSTS.has(h)) return src;
-    if (ALLOWED_SUFFIXES.some(sfx => h.endsWith(sfx))) return src;
+    if (ALLOWED_SUFFIXES.some((sfx) => h.endsWith(sfx))) return src;
     return undefined;
   } catch {
     return undefined;
@@ -57,7 +56,7 @@ export default function AvatarSquare({
   const { bg, fg, ring } = useMemo(() => palette(variant), [variant]);
   const seed = (label || alt || '').trim();
 
-  // If no allowed src or it broke -> render text
+  // If no allowed src or it broke -> render text fallback
   const text = useMemo(() => {
     if (safeSrc && !broken) return '';
     return variant === 'party' ? abbrFromLabel(seed) : initialsFromName(seed);
@@ -98,7 +97,11 @@ export default function AvatarSquare({
           alt={alt}
           fill
           sizes={`${size}px`}
-          className={variant === 'party' ? 'object-contain object-center bg-white p-1' : 'object-cover object-center'}
+          className={
+            variant === 'party'
+              ? 'object-contain object-center bg-white p-1'
+              : 'object-cover object-center'
+          }
           draggable={false}
           onError={() => setBroken(true)}
         />
@@ -135,36 +138,31 @@ function palette(variant: 'person' | 'party') {
   return { bg: '#F3F4F6', fg: '#1F2937', ring: 'rgba(0,0,0,0.06)' };     // neutral
 }
 
+/** SS(UBT) -> SSU (outer first, then pad from inner) */
 function abbrFromLabel(s: string): string {
   if (!s) return '—';
   const upper = s.toUpperCase();
-
   const m = upper.match(/^([^()]+)\(([^()]*)\)/); // e.g., "SS(UBT)"
-  const outer = (m ? m[1] : upper).replace(/[^A-Z]/g, ''); // before "(" or whole
-  const inner = (m ? m[2] : '').replace(/[^A-Z]/g, '');    // inside "()"
+  const outer = (m ? m[1] : upper).replace(/[^A-Z]/g, '');
+  const inner = (m ? m[2] : '').replace(/[^A-Z]/g, '');
 
-  // If we already have 3+ from the outer, just use them.
   if (outer.length >= 3) return outer.slice(0, 3);
 
-  // Otherwise, pad from inner first (this makes SS(UBT) -> SSU)
   let out = outer;
   for (const ch of inner) {
     if (out.length >= 3) break;
     out += ch;
   }
 
-  // If still short, pad from any remaining letters in the full string.
   if (out.length < 3) {
     const all = upper.replace(/[^A-Z]/g, '');
     for (const ch of all) {
       if (out.length >= 3) break;
-      if (!out.includes(ch) || true) out += ch; // just take next letters
+      out += ch;
     }
   }
-
   return out.slice(0, 3) || '—';
 }
-
 
 function initialsFromName(s: string): string {
   if (!s) return '—';
@@ -173,7 +171,7 @@ function initialsFromName(s: string): string {
     const chars = [...parts[0]];
     return (chars[0] || '—').toUpperCase() + (chars[1] ? chars[1].toUpperCase() : '');
   }
-  return parts.slice(0, 3).map(w => (w[0] || '').toUpperCase()).join('') || '—';
+  return parts.slice(0, 3).map((w) => (w[0] || '').toUpperCase()).join('') || '—';
 }
 
 function FallbackIcon({
