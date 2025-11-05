@@ -76,32 +76,31 @@ export default function AvatarSquare({
     }
   }, [text, variant, size]);
 
+  const hasImg = !!(safeSrc && !broken);
+
   return (
     <div
       className={[
-        'relative inline-flex shrink-0 items-center justify-center overflow-hidden ring-1',
+        'relative inline-flex shrink-0 items-center justify-center overflow-hidden ring-1 bg-white',
         rounded,
         className,
       ].join(' ')}
       style={{
         width: size,
         height: size,
-        background: bg,
+        // White when image is present (nice for transparent PNGs), otherwise palette bg for text/fallback
+        background: hasImg ? '#ffffff' : bg,
         boxShadow: `inset 0 0 0 1px ${ring}`,
       }}
       aria-label={alt}
     >
-      {safeSrc && !broken ? (
+      {hasImg ? (
         <Image
-          src={safeSrc}
+          src={safeSrc!}
           alt={alt}
           fill
           sizes={`${size}px`}
-          className={
-            variant === 'party'
-              ? 'object-contain object-center bg-white p-1'
-              : 'object-cover object-center'
-          }
+          className="object-cover object-center" // <-- fill & crop
           draggable={false}
           onError={() => setBroken(true)}
         />
@@ -154,7 +153,6 @@ function abbrFromLabel(s: string): string {
   if (!s) return '—';
   const upper = s.toUpperCase();
 
-  // Known canonical 3-letter tickers can short-circuit here if you like:
   const known: Record<string, string> = {
     'BHARATIYA JANATA PARTY': 'BJP',
     BJP: 'BJP',
