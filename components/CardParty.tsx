@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import AvatarSquare from './AvatarSquare';
 import { pickPartyLogoUrl, partyBadgeLabel } from '@/lib/media';
+console.debug('party logo →', party.slug, pickPartyLogoUrl(party));
 
 type PartyCard = {
   id: string;
