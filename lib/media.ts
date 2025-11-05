@@ -1,5 +1,6 @@
 // lib/media.ts
 // no 'server-only' here; remains client-safe
+export { pickPoliticianPhotoUrl, pickPartyLogoUrl, partyBadgeLabel } from './data';
 
 // allow-listed URL schemes for string inputs
 const ALLOWED_SCHEMES = /^(https?:\/\/|data:|\/)/i;
