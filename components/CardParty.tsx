@@ -1,153 +1,71 @@
 // components/CardParty.tsx
+'use client';
+
 import Link from 'next/link';
 import AvatarSquare from './AvatarSquare';
-import { pickPartyLogoUrl } from '@/lib/media';
+import { pickPartyLogoUrl } from '@/lib/data';
 
-// Minimal shape used by this card; avoids importing server-only types.
 type PartyCard = {
-  slug: string;
-  name?: string | null;
-  status?: string | null; // e.g., National / State
-  abbr?: string | null;   // short name
-  [key: string]: any;     // allow extra fields for the pick* helpers
+  id: string;
+  slug: string;          // URL slug (encode when linking)
+  name: string;
+  abbr?: string | null;  // ticker/short name
+  status?: string | null; // National/State/— etc.
+  founded?: string | null;
+  leaders?: string[];    // array of names
+  logo?: string | null;  // direct URL if already mapped
 };
-
-/* UI */
-function ScopePill({ label }: { label?: string }) {
-  if (!label) return null;
-  const s = String(label).toLowerCase();
-  const isNational = s.includes('national');
-  const isState = s.includes('state');
-  const base =
-    'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap';
-  const color = isNational
-    ? 'bg-purple-100 text-purple-700'
-    : isState
-    ? 'bg-teal-100 text-teal-700'
-    : 'bg-black/10 text-ink-700';
-  return (
-    <span className={`${base} ${color}`}>
-      {isNational ? 'National' : isState ? 'State' : label}
-    </span>
-  );
-}
-
-/* helpers */
-const toList = (v: any): string[] =>
-  !v
-    ? []
-    : Array.isArray(v)
-    ? v.filter(Boolean).map((x) => String(x).trim())
-    : String(v)
-        .split(/[,\n;]/)
-        .map((s) => s.trim())
-        .filter(Boolean);
-
-const pickLeader = (p: any): string | undefined =>
-  p.leader || p.leaders || p['party leader'] || p['Leader'] || undefined;
-
-const pickStates = (p: any): string[] => {
-  for (const cand of [p.states, p.state, p['active states'], p.region, p.regions]) {
-    const arr = toList(cand);
-    if (arr.length) return arr;
-  }
-  return [];
-};
-
-// 3rd-row selectors (Alliance → Founded → HQ)
-const pickAlliance = (p: any): string | undefined => {
-  const arr = toList(p.alliance || p.alliances || p.coalition || p['alliance(s)']);
-  return arr[0];
-};
-
-const pickFounded = (p: any): string | undefined => {
-  const raw =
-    p.founded || p.founding || p.established || p.formed || p['founded year'];
-  if (!raw) return undefined;
-  const s = String(Array.isArray(raw) ? raw[0] : raw);
-  const m = s.match(/\b(18|19|20)\d{2}\b/);
-  return m ? m[0] : s;
-};
-
-const pickHQ = (p: any): string | undefined =>
-  p.hq || p.headquarters || p['head office'] || p['headquarters city'] || undefined;
 
 export default function CardParty({ party }: { party: PartyCard }) {
-  const scopeRaw =
-    party.status ||
-    (party as any).scope ||
-    (party as any).level ||
-    (party as any).type ||
-    '';
-  const abbr = (party as any).abbr || (party as any).short;
-  const titleAbbr = abbr || party.name || '—';
+  const abbr = party.abbr ?? '';
+  const titleAbbr = abbr || (party.name ? party.name.slice(0, 3).toUpperCase() : '');
 
-  const leader = pickLeader(party as any);
-  const states = pickStates(party as any);
-  const stateDisplay =
-    states.length > 1 ? `${states[0]} +${states.length - 1}` : states[0];
+  // Prefer mapped `logo`, then pick from fields/attachments
+  const logo =
+    (party as any).logo ??
+    pickPartyLogoUrl(party as any) ??
+    undefined;
 
-  // Direct (no-proxy) logo URL
-  const logo = pickPartyLogoUrl(party as any);
-
-  const alliance = pickAlliance(party as any);
-  const founded = pickFounded(party as any);
-  const hq = pickHQ(party as any);
-  const line3 =
-    alliance ? `Alliance ${alliance}` : founded ? `Founded ${founded}` : hq || undefined;
+  const leadersText =
+    Array.isArray(party.leaders) && party.leaders.length
+      ? `Led by ${party.leaders[0]}${party.leaders.length > 1 ? ' +' + (party.leaders.length - 1) : ''}`
+      : '';
 
   return (
     <Link
-      href={`/parties/${party.slug}`}
+      href={`/parties/${encodeURIComponent(party.slug)}`}
       aria-label={`Open ${party.name || titleAbbr} party page`}
       className="card card-compact p-4 block h-full hover:shadow-lg transition-shadow overflow-hidden"
-      title={party.name || ''} // full name on hover
+      title={party.name || ''}
     >
-      {/* Column layout with bottom row pinned and increased min-height */}
-      <div className="flex h-full flex-col min-h-[148px] min-w-0">
-        {/* TOP */}
-        <div className="flex items-start gap-3 min-w-0">
-          <AvatarSquare
-            variant="party"
-            src={logo}
-            alt={party.name ?? 'Party'}
-            size={64}
-            rounded="rounded-xl"
-            label={abbr || party.name}
-          />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-2 min-w-0">
-              <div className="text-[15px] font-semibold text-ink-800 truncate leading-5">
-                {titleAbbr}
-              </div>
-              <ScopePill label={scopeRaw || undefined} />
-            </div>
+      <div className="flex items-start gap-3">
+        <AvatarSquare
+          variant="party"
+          src={logo}
+          alt={party.name ?? 'Party'}
+          size={64}
+          rounded="rounded-xl"
+          label={abbr || party.name}
+        />
 
-            {/* 2nd row */}
-            {leader && (
-              <div className="mt-0.5 text-xs text-ink-600 truncate">
-                {`Led by ${leader}`}
-              </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold leading-snug truncate">{party.name}</h3>
+            {!!party.status && (
+              <span className="shrink-0 text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                {party.status}
+              </span>
             )}
+          </div>
 
-            {/* 3rd row (Alliance → Founded → HQ) */}
-            {line3 && (
-              <div className="mt-0.5 text-xs text-ink-600 truncate">
-                {line3}
-              </div>
-            )}
+          <div className="mt-0.5 text-sm text-black/70 truncate">
+            {leadersText || '—'}
+          </div>
+
+          <div className="mt-0.5 text-xs text-black/50">
+            {party.founded ? `Founded ${party.founded}` : ''}
           </div>
         </div>
-
-        {/* BOTTOM - Active in states (pinned to bottom) */}
-        {states.length > 0 && (
-          <div
-            className="mt-auto pt-3 text-xs text-ink-500 truncate min-w-0"
-            title={states.join(', ')}
-          >
-            {`Active in ${stateDisplay}`}
-          </div>
-        )}
       </div>
     </Link>
   );
