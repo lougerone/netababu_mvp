@@ -1,30 +1,25 @@
 // components/CardParty.tsx
-'use client';
-
 import Link from 'next/link';
-import AvatarSquare from './AvatarSquare';
-import { pickPartyLogoUrl } from '@/lib/data';
+import AvatarSquare from './AvatarSquare'; // client child is ok
+import { pickPartyLogoUrl } from '@/lib/data'; // safe now (server side)
 
 type PartyCard = {
   id: string;
-  slug: string;          // URL slug (encode when linking)
+  slug: string;
   name: string;
-  abbr?: string | null;  // ticker/short name
-  status?: string | null; // National/State/— etc.
+  abbr?: string | null;
+  status?: string | null;
   founded?: string | null;
-  leaders?: string[];    // array of names
-  logo?: string | null;  // direct URL if already mapped
+  leaders?: string[];
+  logo?: string | null;
 };
 
 export default function CardParty({ party }: { party: PartyCard }) {
   const abbr = party.abbr ?? '';
   const titleAbbr = abbr || (party.name ? party.name.slice(0, 3).toUpperCase() : '');
 
-  // Prefer mapped `logo`, then pick from fields/attachments
-  const logo =
-    (party as any).logo ??
-    pickPartyLogoUrl(party as any) ??
-    undefined;
+  // Prefer mapped logo; fallback via helper
+  const logo = party.logo ?? pickPartyLogoUrl(party as any) ?? undefined;
 
   const leadersText =
     Array.isArray(party.leaders) && party.leaders.length
@@ -47,7 +42,6 @@ export default function CardParty({ party }: { party: PartyCard }) {
           rounded="rounded-xl"
           label={abbr || party.name}
         />
-
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold leading-snug truncate">{party.name}</h3>
@@ -57,14 +51,8 @@ export default function CardParty({ party }: { party: PartyCard }) {
               </span>
             )}
           </div>
-
-          <div className="mt-0.5 text-sm text-black/70 truncate">
-            {leadersText || '—'}
-          </div>
-
-          <div className="mt-0.5 text-xs text-black/50">
-            {party.founded ? `Founded ${party.founded}` : ''}
-          </div>
+          <div className="mt-0.5 text-sm text-black/70 truncate">{leadersText || '—'}</div>
+          <div className="mt-0.5 text-xs text-black/50">{party.founded ? `Founded ${party.founded}` : ''}</div>
         </div>
       </div>
     </Link>
