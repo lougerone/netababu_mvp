@@ -1,18 +1,11 @@
 // app/(site)/parties/[slug]/page.tsx
 import type { ReactNode } from "react";
+import { notFound } from "next/navigation";
 import { getPartyBySlug } from "@/lib/airtable";
 import AvatarSquare from "@/components/AvatarSquare";
 import { pickPartyLogoUrl } from "@/lib/data";
-import { getHomeParties } from "@/lib/data.server";
 
-export const runtime = "nodejs";
-export const revalidate = Number(process.env.REVALIDATE_SECONDS || 600);
-export const dynamicParams = true;
-
-// Stop hitting Airtable at build:
-export async function generateStaticParams() {
-  return []; // prebuild none; render on demand
-}
+export const dynamic = "force-dynamic"; // match politicians page behavior
 
 type ExtParty = Record<string, any> & {
   id: string;
@@ -29,21 +22,21 @@ type ExtParty = Record<string, any> & {
   details?: string | null;
 };
 
-// app/(site)/parties/[slug]/page.tsx
-
 export default async function PartyPage({ params }: { params: { slug: string } }) {
-  const raw = Array.isArray(params.slug) ? params.slug.join('/') : params.slug;
+  // Robust decode for special chars like NCP(SP)
+  const raw = Array.isArray(params.slug) ? params.slug.join("/") : params.slug;
   const slug = decodeURIComponent(raw);
 
   let p: ExtParty | null = null;
   try {
     p = (await getPartyBySlug(slug)) as ExtParty | null;
-  } catch (err: any) {
-    console.error('getPartyBySlug failed', { slug, err: err?.message });
-    return <div className="mx-auto max-w-3xl p-6">Error loading party.</div>;
+  } catch (err) {
+    console.error("getPartyBySlug failed", { slug, err });
+    // Proper 404 rather than soft "Not found"
+    notFound();
   }
 
-  if (!p) return <div className="mx-auto max-w-3xl p-6">Not found.</div>;
+  if (!p) notFound();
 
   // Direct (no-proxy) logo URL
   const logo = pickPartyLogoUrl(p as any);
@@ -62,7 +55,12 @@ export default async function PartyPage({ params }: { params: { slug: string } }
             {v.map((a: any, i: number) => (
               <li key={i}>
                 {"url" in a ? (
-                  <a className="underline hover:no-underline" href={a.url} target="_blank" rel="noopener noreferrer">
+                  <a
+                    className="underline hover:no-underline"
+                    href={a.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     {a.filename || a.name || `File ${i + 1}`}
                   </a>
                 ) : (
@@ -83,7 +81,12 @@ export default async function PartyPage({ params }: { params: { slug: string } }
       if ("url" in v) {
         const a = v as any;
         return (
-          <a className="underline hover:no-underline" href={a.url} target="_blank" rel="noopener noreferrer">
+          <a
+            className="underline hover:no-underline"
+            href={a.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             {a.filename || a.url}
           </a>
         );
@@ -100,25 +103,65 @@ export default async function PartyPage({ params }: { params: { slug: string } }
   // fields to hide from the generic table (already shown or noisy)
   const EXCLUDE = new Set<string>([
     // technical
-    "id", "createdTime", "Created", "slug", "Slug",
+    "id",
+    "createdTime",
+    "Created",
+    "slug",
+    "Slug",
     // already surfaced/normalized
-    "name","Name","Party","Party Name","party_name",
-    "Logo","logo","Symbol","Emblem","Image","Attachments",
-    "abbr","Abbreviation","Short Name","Acronym","ticker","Ticker",
-    "status","Recognition","Type",
-    "state","State","State Name","Home State","Region",
-    "founded","Founded","Date of Establishment","Year Founded","Established","Formed","Year","D.",
-    "leaders","Leader","Leaders","Key Leader(s)",
-    "seats","Lok Sabha Seats","Lok Sabha Seats (2024)","Lok Sabha Seats (20)",
-    "symbolText","Attachment Summary","Symbol Name",
-    "details","Details",
+    "name",
+    "Name",
+    "Party",
+    "Party Name",
+    "party_name",
+    "Logo",
+    "logo",
+    "Symbol",
+    "Emblem",
+    "Image",
+    "Attachments",
+    "abbr",
+    "Abbreviation",
+    "Short Name",
+    "Acronym",
+    "ticker",
+    "Ticker",
+    "status",
+    "Recognition",
+    "Type",
+    "state",
+    "State",
+    "State Name",
+    "Home State",
+    "Region",
+    "founded",
+    "Founded",
+    "Date of Establishment",
+    "Year Founded",
+    "Established",
+    "Formed",
+    "Year",
+    "D.",
+    "leaders",
+    "Leader",
+    "Leaders",
+    "Key Leader(s)",
+    "seats",
+    "Lok Sabha Seats",
+    "Lok Sabha Seats (2024)",
+    "Lok Sabha Seats (20)",
+    "symbolText",
+    "Attachment Summary",
+    "Symbol Name",
+    "details",
+    "Details",
   ]);
 
   const allEntries = Object.entries(p)
     .filter(([k, v]) => !EXCLUDE.has(k) && !isEmpty(v) && typeof v !== "function")
     .sort(([a], [b]) => a.localeCompare(b));
 
-  const rajyaSeats = p["Rajya Sabha Seats"];
+  const rajyaSeats = (p as any)["Rajya Sabha Seats"];
 
   return (
     <main className="mx-auto max-w-3xl p-6 space-y-8">
