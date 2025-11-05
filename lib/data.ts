@@ -1,113 +1,71 @@
 // lib/data.ts
-import type { Party } from '@/lib/airtable';
-import { listRecentParties } from '@/lib/airtable';
+// Pure, client-safe helpers. No server imports.
 
-/** Fetch the latest 4 parties for the homepage */
-export async function getHomeParties(): Promise<Party[]> {
-  return listRecentParties(4);
+type MaybeAttach =
+  | { url?: string; filename?: string; type?: string; [k: string]: any }
+  | string
+  | null
+  | undefined;
+
+type RecordLike = Record<string, any>;
+
+/** Return first https URL from a value that might be an attachment array or a string URL */
+function firstUrl(val: MaybeAttach | MaybeAttach[]): string | undefined {
+  if (!val) return undefined;
+
+  // Array of attachments/strings
+  if (Array.isArray(val)) {
+    for (const item of val) {
+      const u =
+        typeof item === 'string'
+          ? item
+          : item && typeof item === 'object' && item.url
+          ? String(item.url)
+          : undefined;
+      if (u && /^https?:\/\//i.test(u)) return u;
+    }
+    return undefined;
+  }
+
+  // Single attachment or string
+  if (typeof val === 'string') return /^https?:\/\//i.test(val) ? val : undefined;
+  if (val && typeof val === 'object' && val.url && /^https?:\/\//i.test(val.url)) {
+    return String(val.url);
+  }
+  return undefined;
 }
 
-/* ──────────────────────────────
-   Attachment / URL helpers
-   ────────────────────────────── */
-
-/** Safely extract a URL string from:
- *  - a plain string URL
- *  - an Airtable attachment array/object with { url, thumbnails }
- */
-export const firstUrl = (v: any): string | undefined => {
-  if (!v) return;
-  if (typeof v === 'string') {
-    const s = v.trim();
-    // accept only actual URLs/paths
-    if (/^https?:\/\//i.test(s) || s.startsWith('data:') || s.startsWith('/')) return s;
-    return undefined; // reject plain words like "Lotus"
-  }
-  if (Array.isArray(v)) {
-    const a = v[0];
-    return a?.url || a?.thumbnails?.full?.url || a?.thumbnails?.large?.url || undefined;
-  }
-  if (typeof v === 'object') {
-    return v.url || v.thumbnails?.full?.url || v.thumbnails?.large?.url || undefined;
-  }
-};
-
-
-/** Pick a party logo URL from common fields (no proxy).  
- * Prefer a stable text URL (wiki/CDN/your domain); fall back to attachments.
- */
-export function pickPartyLogoUrl(p: Party | Record<string, any>): string | undefined {
-  const any = p as Record<string, any>;
+/** Pick best photo for a politician-like object */
+export function pickPoliticianPhotoUrl(p: RecordLike): string | undefined {
   return (
-    // preferred stable text/url fields you can maintain
-    firstUrl(any.logo_url) ||
-    firstUrl(any['logo url']) ||
-    firstUrl(any.logoUrl) ||
-    firstUrl(any.cdn_logo) ||
-    firstUrl(any.logo_cdn) ||
-    // fallbacks: Airtable attachments (may expire)
-    firstUrl(any.logo) ||
-    firstUrl(any.symbol) ||
-    firstUrl(any.image) ||
-    firstUrl(any.photo) ||
+    p.photo ||
+    firstUrl(p.Photo) ||
+    firstUrl(p.Image) ||
+    firstUrl(p.Images) ||
+    firstUrl(p.Attachments) ||
+    firstUrl(p.picture) ||
     undefined
   );
 }
 
-/* ──────────────────────────────
-   Optional: role helpers (used by Featured)
-   ────────────────────────────── */
-
-type AnyRec = Record<string, any>;
-
-const firstNonEmpty = (obj: AnyRec, keys: string[]) => {
-  for (const k of keys) {
-    const v = obj?.[k];
-    if (v != null && String(v).trim() !== '') return v;
-  }
-  return '';
-};
-
-export const roleText = (pol: AnyRec): string =>
-  String(
-    firstNonEmpty(pol, [
-      'current_position',
-      'position',
-      'role',
-      'title',
-      'office',
-      'designation',
-      'post',
-    ]),
-  ).trim();
-
-/** Find specific constitutional roles with strict matching */
-export const findRole = (
-  pols: AnyRec[],
-  role: 'pm' | 'president' | 'home' | 'lop',
-) => {
-  if (role === 'pm') return pols.find((p) => /\bprime\s*minister\b/i.test(roleText(p)));
-  if (role === 'home') return pols.find((p) => /\bhome\s+minister\b/i.test(roleText(p)));
-
-  if (role === 'president') {
-    // Exactly "President of India" and not Vice/Ex/Acting/Deputy/etc.
-    return pols.find((p) => {
-      const t = roleText(p);
-      const hasOffice = /\bPresident of India\b/i.test(t);
-      const isVice = /\bVice\s+President\b/i.test(t);
-      const hasQualifier = /\b(Ex|Former|Acting|Deputy|Pro\s*Tem|Past|Emeritus)\b\.?\s*/i.test(t);
-      const isPartyTitle = /\bparty\s+president\b/i.test(t) || /\b[A-Z]{2,7}\b\s+President\b/.test(t);
-      return hasOffice && !isVice && !hasQualifier && !isPartyTitle;
-    });
-  }
-
-  // Leader of Opposition: prefer Lok Sabha if explicitly mentioned
-  const lopLS = pols.find(
-    (p) =>
-      /\bleader\s+of\s+opposition\b/i.test(roleText(p)) &&
-      /\blok\s*sabha|people'?s\s+house/i.test(roleText(p)),
+/** Pick best logo for a party-like object (works with Airtable attachment arrays or normalized `logo`) */
+export function pickPartyLogoUrl(p: RecordLike): string | undefined {
+  return (
+    p.logo ||
+    firstUrl(p.Symbol) ||
+    firstUrl(p.Logo) ||
+    firstUrl(p.Emblem) ||
+    firstUrl(p.Image) ||
+    firstUrl(p.Images) ||
+    firstUrl(p.Attachments) ||
+    undefined
   );
-  if (lopLS) return lopLS;
+}
 
-  return pols.find((p) => /\bleader\s+of\s+opposition\b/i.test(roleText(p)));
-};
+/** Small helper: what label should we show inside the square if no image? */
+export function partyBadgeLabel(p: RecordLike): string {
+  const abbr = (p.abbr ?? p.ticker ?? p.Ticker ?? '').toString().trim();
+  if (abbr) return abbr;
+  const name: string = (p.name ?? p.Name ?? '').toString();
+  return name ? name.slice(0, 3).toUpperCase() : '—';
+}
