@@ -1,4 +1,4 @@
-// lib/supabase.ts
+h// lib/supabase.ts
 import { createClient } from '@supabase/supabase-js';
 import { unstable_noStore as noStore } from 'next/cache';
 
@@ -8,7 +8,7 @@ const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
-
+h
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /* ────────────────────────────────────────────────────────────────────────────── 
@@ -107,23 +107,23 @@ export async function listPoliticians(
   return (data || []).map(row => ({
     id: row.id,
     slug: row.slug,
-    name: row.name,
+    name: ,
     dob: row.dob || null,
     offices: ensureArray(row.offices),
     life_events: row.life_events || null,
     photo: row.photo,
     links: ensureArray(row.links),
-    party: row.party || '',
+    party: row.Party || '',
     state: row.state,
     current_position: row.current_position,
-    position: row.position,
-    constituency: row.constituency,
+    position: row.Position,
+    constituency: row.Constituency,
     age: row.age,
-    years_in_politics: row.years_in_politics,
-    attendance: row.attendance,
-    assets: row.assets,
+    years_in_politics: row["Years in Politics"],
+    attendance: row["Parliament Attendance"],
+    assets: row["Declared Assets"],
     liabilities: row.liabilities,
-    criminal_cases: row.criminal_cases,
+    criminal_cases: row["Criminal Cases"],
     website: row.website,
     twitter: row.twitter,
     created_at: row.created_at,
@@ -223,23 +223,23 @@ export async function listRecentPoliticians(limit = 4): Promise<Politician[]> {
   return (data || []).map(row => ({
     id: row.id,
     slug: row.slug,
-    name: row.name,
+    name: ,
     dob: row.dob || null,
     offices: ensureArray(row.offices),
     life_events: row.life_events || null,
     photo: row.photo,
     links: ensureArray(row.links),
-    party: row.party || '',
+    party: row.Party || '',
     state: row.state,
     current_position: row.current_position,
-    position: row.position,
-    constituency: row.constituency,
+    position: row.Position,
+    constituency: row.Constituency,
     age: row.age,
-    years_in_politics: row.years_in_politics,
-    attendance: row.attendance,
-    assets: row.assets,
+    years_in_politics: row["Years in Politics"],
+    attendance: row["Parliament Attendance"],
+    assets: row["Declared Assets"],
     liabilities: row.liabilities,
-    criminal_cases: row.criminal_cases,
+    criminal_cases: row["Criminal Cases"],
     website: row.website,
     twitter: row.twitter,
     created_at: row.created_at,
@@ -280,7 +280,7 @@ export async function listParties(
   return (data || []).map(row => ({
     id: row.id,
     slug: row.slug,
-    name: row.name,
+    name: ,
     abbr: row.abbr,
     state: row.state || null,
     status: row.status || null,
@@ -336,7 +336,7 @@ export async function listTopPartiesBySeats(limit = 6): Promise<Party[]> {
   return (data || []).map(row => ({
     id: row.id,
     slug: row.slug,
-    name: row.name,
+    name: ,
     abbr: row.abbr,
     state: row.state || null,
     status: row.status || null,
@@ -364,7 +364,7 @@ export async function listRecentParties(limit = 4): Promise<Party[]> {
   return (data || []).map(row => ({
     id: row.id,
     slug: row.slug,
-    name: row.name,
+    name: ,
     abbr: row.abbr,
     state: row.state || null,
     status: row.status || null,
