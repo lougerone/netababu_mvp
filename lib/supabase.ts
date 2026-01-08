@@ -98,6 +98,7 @@ export async function listPoliticians(
    query = query.limit(limit);
 
  const { data, error } = await query;
+     console.log('DEBUG: Query result -', { data, error, dataLength: data?.length });
 
  if (error) {
     console.error('Supabase error fetching politicians:', error);
