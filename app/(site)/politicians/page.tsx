@@ -1,5 +1,5 @@
 // app/(site)/politicians/page.tsx
-import { listPoliticians } from '@/lib/airtable';
+import { listPoliticians } from '@/lib/supabase';
 import PoliticiansExplorer from '@/components/PoliticiansExplorer';
 import type { Politician } from '@/components/CardPolitician';
 
