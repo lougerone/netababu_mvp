@@ -10,59 +10,10 @@ export const revalidate = 3600;
 export const dynamic = 'force-static';
 
 /* ────────────────────────────────────────────────────────────────────────────── 
-   Types
+   Types (import directly from airtable.ts instead of redefining)
 ─────────────────────────────────────────────────────────────────────────────── */
 
-type AnyRec = Record<string, any>;
-
-interface Politician extends AnyRec {
-  id: string;
-  slug?: string;
-  current_position?: string;
-  position?: string;
-  role?: string;
-  title?: string;
-  office?: string;
-  designation?: string;
-  post?: string;
-  first_elected?: string | number;
-  'first election'?: string | number;
-  'year joined'?: string | number;
-  joined?: string | number;
-  politics_since?: string | number;
-  entry_year?: string | number;
-  career_start?: string | number;
-  dob?: string;
-  date_of_birth?: string;
-  birthdate?: string;
-  born?: string;
-}
-
-interface Party extends AnyRec {
-  id: string;
-  slug?: string;
-  'lok sabha seats'?: number | string;
-  'ls seats'?: number | string;
-  'seats ls'?: number | string;
-  seats_lok_sabha?: number | string;
-  'rajya sabha seats'?: number | string;
-  'rs seats'?: number | string;
-  'seats rs'?: number | string;
-  seats_rajya_sabha?: number | string;
-  founded?: string | number;
-  'founded year'?: string | number;
-  established?: string | number;
-  formation?: string | number;
-  founded_year?: string | number;
-}
-
-interface TopNeta extends Politician {
-  name?: string;
-}
-
-interface TopParty extends Party {
-  name?: string;
-}
+import type { Politician, Party } from '@/lib/airtable';
 
 /* ────────────────────────────────────────────────────────────────────────────── 
    Constants - Role Patterns
@@ -85,6 +36,8 @@ const TITLE_QUALIFIERS = {
    Helpers
 ─────────────────────────────────────────────────────────────────────────────── */
 
+type AnyRec = Record<string, any>;
+
 const firstNonEmpty = (obj: AnyRec, keys: string[]): string | undefined => {
   for (const k of keys) {
     const v = obj?.[k];
@@ -106,9 +59,9 @@ const parseYear = (v: unknown): number | undefined => {
   return m ? Number(m[0]) : undefined;
 };
 
-const roleText = (pol: AnyRec): string =>
+const roleText = (pol: Politician): string =>
   String(
-    firstNonEmpty(pol, [
+    firstNonEmpty(pol as AnyRec, [
       'current_position',
       'position',
       'role',
@@ -156,7 +109,7 @@ const findRole = (
 
 const pickJoinYear = (p: Politician): number | undefined =>
   toNum(
-    firstNonEmpty(p, [
+    firstNonEmpty(p as AnyRec, [
       'first_elected',
       'first election',
       'year joined',
@@ -165,16 +118,23 @@ const pickJoinYear = (p: Politician): number | undefined =>
       'entry_year',
       'career_start',
     ])
-  ) ?? parseYear(firstNonEmpty(p, ['first_elected', 'joined', 'politics_since']));
+  ) ??
+  parseYear(
+    firstNonEmpty(p as AnyRec, [
+      'first_elected',
+      'joined',
+      'politics_since',
+    ])
+  );
 
 const pickDOBYear = (p: Politician): number | undefined =>
   parseYear(
-    firstNonEmpty(p, ['dob', 'date_of_birth', 'birthdate', 'born'])
+    firstNonEmpty(p as AnyRec, ['dob', 'date_of_birth', 'birthdate', 'born'])
   );
 
 const pickFoundedYear = (party: Party): number | undefined =>
   parseYear(
-    firstNonEmpty(party, [
+    firstNonEmpty(party as AnyRec, [
       'founded',
       'founded year',
       'established',
@@ -185,7 +145,7 @@ const pickFoundedYear = (party: Party): number | undefined =>
 
 const pickSeats = (party: Party): number => {
   const ls = toNum(
-    firstNonEmpty(party, [
+    firstNonEmpty(party as AnyRec, [
       'lok sabha seats',
       'ls seats',
       'seats ls',
@@ -193,7 +153,7 @@ const pickSeats = (party: Party): number => {
     ])
   );
   const rs = toNum(
-    firstNonEmpty(party, [
+    firstNonEmpty(party as AnyRec, [
       'rajya sabha seats',
       'rs seats',
       'seats rs',
@@ -207,7 +167,7 @@ const pickSeats = (party: Party): number => {
   // Fallback: any field containing "seats"
   for (const k of Object.keys(party)) {
     if (/seats/i.test(k)) {
-      const n = toNum(party[k]);
+      const n = toNum(party[k as keyof Party]);
       if (n) return n;
     }
   }
