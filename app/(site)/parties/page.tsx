@@ -1,7 +1,7 @@
 // app/(site)/parties/page.tsx
-import { listParties } from '@/lib/airtable';
+import { listParties } from '@/lib/supabase';
 import PartiesExplorer from './PartiesExplorer';
-import type { Party } from '@/lib/airtable';
+import type { Party } from '@/lib/supabase';
 
 export const revalidate = Number(process.env.REVALIDATE_SECONDS || 3600);
 
