@@ -3,8 +3,8 @@ import Link from 'next/link';
 import CardParty from '@/components/CardParty';
 import CardPolitician from '@/components/CardPolitician';
 import HeroSearch from '@/components/HeroSearch';
-import { listPoliticians, listParties } from '@/lib/airtable';
-import type { Politician, Party } from '@/lib/airtable';
+import { listPoliticians, listParties } from '@/lib/supabase';
+import type { Politician, Party } from '@/lib/supabase';
 
 // ✅ Use ISR caching - revalidate every 1 hour to avoid rate limiting
 export const revalidate = 3600; // 1 hour
