@@ -1,4 +1,4 @@
-h// lib/supabase.ts
+// lib/supabase.ts
 import { createClient } from '@supabase/supabase-js';
 import { unstable_noStore as noStore } from 'next/cache';
 
@@ -6,108 +6,108 @@ const supabaseUrl = process.env.SUPABASE_URL!;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+   throw new Error('Missing Supabase environment variables');
 }
-h
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-/* ────────────────────────────────────────────────────────────────────────────── h
-   Types
+/* ────────────────────────────────────────────────────────────────────────────── 
+ Types
 ─────────────────────────────────────────────────────────────────────────────── */
 
 export type Politician = {
-  id: string;
-  slug: string;
-  name: string;
-  dob?: string | null;
-  offices?: string[];
-  life_events?: string | null;
-  photo?: string;
-  links?: string[];
-  party: string;
-  state?: string;
-  current_position?: string;
-  position?: string;
-  constituency?: string;
-  age?: string | null;
-  years_in_politics?: string | null;
-  attendance?: string | null;
-  assets?: string | null;
-  liabilities?: string | null;
-  criminal_cases?: string | null;
-  website?: string | null;
-  twitter?: string | null;
-  created_at?: string | null;
+   id: string;
+   slug: string;
+   name: string;
+   dob?: string | null;
+   offices?: string[];
+   life_events?: string | null;
+   photo?: string;
+   links?: string[];
+   party: string;
+   state?: string;
+   current_position?: string;
+   position?: string;
+   constituency?: string;
+   age?: string | null;
+   years_in_politics?: string | null;
+   attendance?: string | null;
+   assets?: string | null;
+   liabilities?: string | null;
+   criminal_cases?: string | null;
+   website?: string | null;
+   twitter?: string | null;
+   created_at?: string | null;
 };
 
 export type Party = {
-  id: string;
-  slug: string;
-  name: string;
-  abbr?: string;
-  state?: string | null;
-  status?: string | null;
-  founded?: string | null;
-  logo?: string | null;
-  leaders?: string[];
-  symbol_text?: string | null;
-  seats?: number | null;
-  details?: string | null;
-  created_at?: string | null;
+   id: string;
+   slug: string;
+   name: string;
+   abbr?: string;
+   state?: string | null;
+   status?: string | null;
+   founded?: string | null;
+   logo?: string | null;
+   leaders?: string[];
+   symbol_text?: string | null;
+   seats?: number | null;
+   details?: string | null;
+   created_at?: string | null;
 };
 
 /* ────────────────────────────────────────────────────────────────────────────── 
-   Helpers
+ Helpers
 ─────────────────────────────────────────────────────────────────────────────── */
 
 function parseIntOrNull(v: unknown): number | null {
-  if (v === null || v === undefined || v === '') return null;
-  const n = parseInt(String(v), 10);
-  return Number.isNaN(n) ? null : n;
+   if (v === null || v === undefined || v === '') return null;
+   const n = parseInt(String(v), 10);
+   return Number.isNaN(n) ? null : n;
 }
 
 function ensureArray(v: unknown): string[] {
-  if (Array.isArray(v)) return v.filter(Boolean);
-  if (typeof v === 'string' && v) return [v];
-  return [];
+   if (Array.isArray(v)) return v.filter(Boolean);
+   if (typeof v === 'string' && v) return [v];
+   return [];
 }
 
 /* ────────────────────────────────────────────────────────────────────────────── 
-   Politicians
+ Politicians
 ─────────────────────────────────────────────────────────────────────────────── */
 
 export async function listPoliticians(
-  opts: { limit?: number; query?: string } = {}
-): Promise<Politician[]> {
-  noStore();
+   opts: { limit?: number; query?: string } = {}
+  ): Promise<Politician[]> {
+   noStore();
 
-  let query = supabase
-    .from('politicians')
-    .select('*')
-    .order('name', { ascending: true });
+ let query = supabase
+   .from('politicians')
+   .select('*')
+   .order('Name', { ascending: true });
 
-  // Search: name, party, constituency, state
-  if (opts.query) {
+ // Search: name, party, constituency, state
+ if (opts.query) {
     const q = opts.query.toLowerCase();
     query = query.or(
-      `name.ilike.%${q}%,party.ilike.%${q}%,constituency.ilike.%${q}%,state.ilike.%${q}%`
-    );
-  }
+       `Name.ilike.%${q}%,Party.ilike.%${q}%,Constituency.ilike.%${q}%,state.ilike.%${q}%`
+       );
+ }
 
-  const limit = opts.limit && opts.limit > 0 ? opts.limit : 500;
-  query = query.limit(limit);
+ const limit = opts.limit && opts.limit > 0 ? opts.limit : 500;
+   query = query.limit(limit);
 
-  const { data, error } = await query;
+ const { data, error } = await query;
 
-  if (error) {
+ if (error) {
     console.error('Supabase error fetching politicians:', error);
     return [];
-  }
+ }
 
-  return (data || []).map(row => ({
+ return (data || []).map(row => ({
     id: row.id,
     slug: row.slug,
-    name: ,
+    name: row.Name,
     dob: row.dob || null,
     offices: ensureArray(row.offices),
     life_events: row.life_events || null,
@@ -119,111 +119,111 @@ export async function listPoliticians(
     position: row.Position,
     constituency: row.Constituency,
     age: row.Age,
-    years_in_politics: row["Years in Politics"],
-    attendance: row["Parliament Attendance"],
-    assets: row["Declared Assets"],
+    years_in_politics: row['Years in Politics'],
+    attendance: row['Parliament Attendance'],
+    assets: row['Declared Assets'],
     liabilities: row.liabilities,
-    criminal_cases: row["Criminal Cases"],
+    criminal_cases: row['Criminal Cases'],
     website: row.Website,
     twitter: row.Twitter,
     created_at: row.created,
-  }));
+ }));
 }
 
 export async function getPoliticianBySlug(slug: string): Promise<Politician | null> {
-  noStore();
+   noStore();
 
-  const { data, error } = await supabase
-    .from('politicians')
-    .select('*')
-    .eq('slug', slug.toLowerCase())
-    .single();
+ const { data, error } = await supabase
+   .from('politicians')
+   .select('*')
+   .eq('slug', slug.toLowerCase())
+   .single();
 
-  if (error || !data) return null;
+ if (error || !data) return null;
 
-  return {
+ return {
     id: data.id,
     slug: data.slug,
-    name: data.name,
+    name: data.Name,
     dob: data.dob || null,
     offices: ensureArray(data.offices),
     life_events: data.life_events || null,
     photo: data.photo,
     links: ensureArray(data.links),
-    party: data.party || '',
+    party: data.Party || '',
     state: data.state,
     current_position: data.current_position,
-    position: data.position,
-    constituency: data.constituency,
-    age: data.age,
-    years_in_politics: data.years_in_politics,
-    attendance: data.attendance,
-    assets: data.assets,
+    position: data.Position,
+    constituency: data.Constituency,
+    age: data.Age,
+    years_in_politics: data['Years in Politics'],
+    attendance: data['Parliament Attendance'],
+    assets: data['Declared Assets'],
     liabilities: data.liabilities,
-    criminal_cases: data.criminal_cases,
-    website: data.website,
-    twitter: data.twitter,
-    created_at: data.created_at,
-  };
+    criminal_cases: data['Criminal Cases'],
+    website: data.Website,
+    twitter: data.Twitter,
+    created_at: data.created,
+ };
 }
 
 export async function getPolitician(slugOrId: string): Promise<Politician | null> {
-  noStore();
+   noStore();
 
-  if (slugOrId.startsWith('rec')) {
-    // Try by ID
-    const { data, error } = await supabase
-      .from('politicians')
-      .select('*')
-      .eq('id', slugOrId)
-      .single();
+      if (slugOrId.startsWith('rec')) {
+         // Try by ID
+   const { data, error } = await supabase
+         .from('politicians')
+         .select('*')
+         .eq('id', slugOrId)
+         .single();
 
-    if (error || !data) return null;
+   if (error || !data) return null;
 
-    return {
+   return {
       id: data.id,
       slug: data.slug,
-      name: data.name,
+      name: data.Name,
       dob: data.dob || null,
       offices: ensureArray(data.offices),
       life_events: data.life_events || null,
       photo: data.photo,
       links: ensureArray(data.links),
-      party: data.party || '',
+      party: data.Party || '',
       state: data.state,
       current_position: data.current_position,
-      position: data.position,
-      constituency: data.constituency,
-      age: data.age,
-      years_in_politics: data.years_in_politics,
-      attendance: data.attendance,
-      assets: data.assets,
+      position: data.Position,
+      constituency: data.Constituency,
+      age: data.Age,
+      years_in_politics: data['Years in Politics'],
+      attendance: data['Parliament Attendance'],
+      assets: data['Declared Assets'],
       liabilities: data.liabilities,
-      criminal_cases: data.criminal_cases,
-      website: data.website,
-      twitter: data.twitter,
-      created_at: data.created_at,
-    };
-  }
+      criminal_cases: data['Criminal Cases'],
+      website: data.Website,
+      twitter: data.Twitter,
+      created_at: data.created,
+   };
+      }
 
-  return getPoliticianBySlug(slugOrId);
+ return getPoliticianBySlug(slugOrId);
 }
 
 export async function listRecentPoliticians(limit = 4): Promise<Politician[]> {
-  noStore();
+   noStore();
 
-  const { data, error } = await supabase
-    .from('politicians')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(limit);
+ const { data, error } = await supabase
+   .from('politicians')
+   .select('*')
+   .order('created', { ascending: false })
+   .limit(limit);
 
-  if (error) return [];
+ if (error) return [];
 
-  return (data || []).map(row => ({
+ return (data || []).map(row => ({
     id: row.id,
     slug: row.slug,
-    name: ,
+    name: row.Name,
     dob: row.dob || null,
     offices: ensureArray(row.offices),
     life_events: row.life_events || null,
@@ -235,52 +235,52 @@ export async function listRecentPoliticians(limit = 4): Promise<Politician[]> {
     position: row.Position,
     constituency: row.Constituency,
     age: row.Age,
-    years_in_politics: row["Years in Politics"],
-    attendance: row["Parliament Attendance"],
-    assets: row["Declared Assets"],
+    years_in_politics: row['Years in Politics'],
+    attendance: row['Parliament Attendance'],
+    assets: row['Declared Assets'],
     liabilities: row.liabilities,
-    criminal_cases: row["Criminal Cases"],
+    criminal_cases: row['Criminal Cases'],
     website: row.Website,
     twitter: row.Twitter,
     created_at: row.created,
-  }));
+ }));
 }
 
 /* ────────────────────────────────────────────────────────────────────────────── 
-   Parties
+ Parties
 ─────────────────────────────────────────────────────────────────────────────── */
 
 export async function listParties(
-  opts: { limit?: number; query?: string } = {}
-): Promise<Party[]> {
-  noStore();
+   opts: { limit?: number; query?: string } = {}
+  ): Promise<Party[]> {
+   noStore();
 
-  let query = supabase
-    .from('parties')
-    .select('*')
-    .order('name', { ascending: true });
+ let query = supabase
+   .from('parties')
+   .select('*')
+   .order('name', { ascending: true });
 
-  if (opts.query) {
+ if (opts.query) {
     const q = opts.query.toLowerCase();
     query = query.or(
-      `name.ilike.%${q}%,abbr.ilike.%${q}%,state.ilike.%${q}%`
-    );
-  }
+       `name.ilike.%${q}%,abbr.ilike.%${q}%,state.ilike.%${q}%`
+       );
+ }
 
-  const limit = opts.limit && opts.limit > 0 ? opts.limit : 500;
-  query = query.limit(limit);
+ const limit = opts.limit && opts.limit > 0 ? opts.limit : 500;
+   query = query.limit(limit);
 
-  const { data, error } = await query;
+ const { data, error } = await query;
 
-  if (error) {
+ if (error) {
     console.error('Supabase error fetching parties:', error);
     return [];
-  }
+ }
 
-  return (data || []).map(row => ({
+ return (data || []).map(row => ({
     id: row.id,
     slug: row.slug,
-    name: ,
+    name: row.name,
     abbr: row.abbr,
     state: row.state || null,
     status: row.status || null,
@@ -290,22 +290,22 @@ export async function listParties(
     symbol_text: row.symbol_text || null,
     seats: parseIntOrNull(row.seats),
     details: row.details || null,
-    created_at: row.created,
-  }));
+    created_at: row.created_at,
+ }));
 }
 
 export async function getPartyBySlug(slug: string): Promise<Party | null> {
-  noStore();
+   noStore();
 
-  const { data, error } = await supabase
-    .from('parties')
-    .select('*')
-    .eq('slug', slug.toLowerCase())
-    .single();
+ const { data, error } = await supabase
+   .from('parties')
+   .select('*')
+   .eq('slug', slug.toLowerCase())
+   .single();
 
-  if (error || !data) return null;
+ if (error || !data) return null;
 
-  return {
+ return {
     id: data.id,
     slug: data.slug,
     name: data.name,
@@ -319,24 +319,24 @@ export async function getPartyBySlug(slug: string): Promise<Party | null> {
     seats: parseIntOrNull(data.seats),
     details: data.details || null,
     created_at: data.created_at,
-  };
+ };
 }
 
 export async function listTopPartiesBySeats(limit = 6): Promise<Party[]> {
-  noStore();
+   noStore();
 
-  const { data, error } = await supabase
-    .from('parties')
-    .select('*')
-    .order('seats', { ascending: false })
-    .limit(limit);
+ const { data, error } = await supabase
+   .from('parties')
+   .select('*')
+   .order('seats', { ascending: false })
+   .limit(limit);
 
-  if (error) return [];
+ if (error) return [];
 
-  return (data || []).map(row => ({
+ return (data || []).map(row => ({
     id: row.id,
     slug: row.slug,
-    name: ,
+    name: row.name,
     abbr: row.abbr,
     state: row.state || null,
     status: row.status || null,
@@ -346,25 +346,25 @@ export async function listTopPartiesBySeats(limit = 6): Promise<Party[]> {
     symbol_text: row.symbol_text || null,
     seats: parseIntOrNull(row.seats),
     details: row.details || null,
-    created_at: row.created,
-  }));
+    created_at: row.created_at,
+ }));
 }
 
 export async function listRecentParties(limit = 4): Promise<Party[]> {
-  noStore();
+   noStore();
 
-  const { data, error } = await supabase
-    .from('parties')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(limit);
+ const { data, error } = await supabase
+   .from('parties')
+   .select('*')
+   .order('created_at', { ascending: false })
+   .limit(limit);
 
-  if (error) return [];
+ if (error) return [];
 
-  return (data || []).map(row => ({
+ return (data || []).map(row => ({
     id: row.id,
     slug: row.slug,
-    name: ,
+    name: row.name,
     abbr: row.abbr,
     state: row.state || null,
     status: row.status || null,
@@ -374,17 +374,17 @@ export async function listRecentParties(limit = 4): Promise<Party[]> {
     symbol_text: row.symbol_text || null,
     seats: parseIntOrNull(row.seats),
     details: row.details || null,
-    created_at: row.created,
-  }));
+    created_at: row.created_at,
+ }));
 }
 
 export async function allPartySlugs(): Promise<string[]> {
-  noStore();
+   noStore();
 
-  const { data, error } = await supabase
-    .from('parties')
-    .select('slug');
+ const { data, error } = await supabase
+   .from('parties')
+   .select('slug');
 
-  if (error) return [];
-  return (data || []).map(p => p.slug).filter(Boolean);
+ if (error) return [];
+   return (data || []).map(p => p.slug).filter(Boolean);
 }
