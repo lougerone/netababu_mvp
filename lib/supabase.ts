@@ -11,7 +11,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 h
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-/* ────────────────────────────────────────────────────────────────────────────── 
+/* ────────────────────────────────────────────────────────────────────────────── h
    Types
 ─────────────────────────────────────────────────────────────────────────────── */
 
@@ -118,15 +118,15 @@ export async function listPoliticians(
     current_position: row.current_position,
     position: row.Position,
     constituency: row.Constituency,
-    age: row.age,
+    age: row.Age,
     years_in_politics: row["Years in Politics"],
     attendance: row["Parliament Attendance"],
     assets: row["Declared Assets"],
     liabilities: row.liabilities,
     criminal_cases: row["Criminal Cases"],
-    website: row.website,
-    twitter: row.twitter,
-    created_at: row.created_at,
+    website: row.Website,
+    twitter: row.Twitter,
+    created_at: row.created,
   }));
 }
 
@@ -234,15 +234,15 @@ export async function listRecentPoliticians(limit = 4): Promise<Politician[]> {
     current_position: row.current_position,
     position: row.Position,
     constituency: row.Constituency,
-    age: row.age,
+    age: row.Age,
     years_in_politics: row["Years in Politics"],
     attendance: row["Parliament Attendance"],
     assets: row["Declared Assets"],
     liabilities: row.liabilities,
     criminal_cases: row["Criminal Cases"],
-    website: row.website,
-    twitter: row.twitter,
-    created_at: row.created_at,
+    website: row.Website,
+    twitter: row.Twitter,
+    created_at: row.created,
   }));
 }
 
@@ -290,7 +290,7 @@ export async function listParties(
     symbol_text: row.symbol_text || null,
     seats: parseIntOrNull(row.seats),
     details: row.details || null,
-    created_at: row.created_at,
+    created_at: row.created,
   }));
 }
 
@@ -346,7 +346,7 @@ export async function listTopPartiesBySeats(limit = 6): Promise<Party[]> {
     symbol_text: row.symbol_text || null,
     seats: parseIntOrNull(row.seats),
     details: row.details || null,
-    created_at: row.created_at,
+    created_at: row.created,
   }));
 }
 
@@ -374,7 +374,7 @@ export async function listRecentParties(limit = 4): Promise<Party[]> {
     symbol_text: row.symbol_text || null,
     seats: parseIntOrNull(row.seats),
     details: row.details || null,
-    created_at: row.created_at,
+    created_at: row.created,
   }));
 }
 
