@@ -4,16 +4,11 @@ import CardParty from '@/components/CardParty';
 import CardPolitician from '@/components/CardPolitician';
 import HeroSearch from '@/components/HeroSearch';
 import { listPoliticians, listParties } from '@/lib/airtable';
-
-// Cache for 1 hour (adjust based on your data update frequency)
-export const revalidate = 3600;
-export const dynamic = 'force-static';
-
-/* ────────────────────────────────────────────────────────────────────────────── 
-   Types (import directly from airtable.ts instead of redefining)
-─────────────────────────────────────────────────────────────────────────────── */
-
 import type { Politician, Party } from '@/lib/airtable';
+
+// ✅ Use ISR caching - revalidate every 1 hour to avoid rate limiting
+export const revalidate = 3600; // 1 hour
+// ✅ Don't override with force-dynamic
 
 /* ────────────────────────────────────────────────────────────────────────────── 
    Constants - Role Patterns
@@ -164,7 +159,6 @@ const pickSeats = (party: Party): number => {
 
   if (total > 0) return total;
 
-  // Fallback: any field containing "seats"
   for (const k of Object.keys(party)) {
     if (/seats/i.test(k)) {
       const n = toNum(party[k as keyof Party]);
@@ -211,9 +205,10 @@ export const metadata = {
 export default async function HomePage() {
   try {
     // Fetch enough rows to compute roles/seats/newest
+    // ✅ Reduced limits to reduce API calls and avoid rate limiting
     const [polAll, parAll] = await Promise.all([
-      listPoliticians({ limit: 500 }),
-      listParties({ limit: 500 }),
+      listPoliticians({ limit: 200 }), // Reduced from 500
+      listParties({ limit: 200 }), // Reduced from 500
     ]);
 
     // Validate we have data
