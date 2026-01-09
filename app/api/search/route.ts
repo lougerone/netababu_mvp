@@ -1,6 +1,6 @@
 // app/api/search/route.ts
 import { NextResponse } from "next/server";
-import { listPoliticians, listParties } from "@/lib/airtable";
+import { listPoliticians, listParties } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic"; // don't prerender at build
 export const runtime = "nodejs";

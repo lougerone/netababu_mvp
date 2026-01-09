@@ -102,13 +102,13 @@ export async function listPoliticians(
 
  if (error) {
     console.error('Supabase error fetching politicians:', error);
-    return [];
+    throw error;
  }
 
  return (data || []).map(row => ({
     id: row.id,
     slug: row.slug,
-    name: row.Name,
+    name: row['Name'] ?? '',
     dob: row.dob || null,
     offices: ensureArray(row.offices),
     life_events: row.life_events || null,
@@ -216,15 +216,15 @@ export async function listRecentPoliticians(limit = 4): Promise<Politician[]> {
  const { data, error } = await supabase
    .from('politicians')
    .select('*')
-   .order('created', { ascending: false })
+   .order('Created', { ascending: false })
    .limit(limit);
 
- if (error) return [];
+ if (error) throw error;
 
  return (data || []).map(row => ({
     id: row.id,
     slug: row.slug,
-    name: row.Name,
+    name: row['Name'] ?? '',
     dob: row.dob || null,
     offices: ensureArray(row.offices),
     life_events: row.life_events || null,
@@ -259,12 +259,12 @@ export async function listParties(
  let query = supabase
    .from('parties')
    .select('*')
-   .order('name', { ascending: true });
+   .order('Name', { ascending: true });
 
  if (opts.query) {
     const q = opts.query.toLowerCase();
     query = query.or(
-       `name.ilike.%${q}%,abbr.ilike.%${q}%,state.ilike.%${q}%`
+       `Name.ilike.%${q}%,slug.ilike.%${q}%,Details.ilike.%${q}%%`
        );
  }
 
@@ -275,23 +275,23 @@ export async function listParties(
 
  if (error) {
     console.error('Supabase error fetching parties:', error);
-    return [];
+    throw error;
  }
 
  return (data || []).map(row => ({
     id: row.id,
     slug: row.slug,
-    name: row.name,
+    name: row['Name'] ?? '',
     abbr: row.abbr,
     state: row.state || null,
     status: row.status || null,
     founded: row.founded || null,
     logo: row.logo,
-    leaders: ensureArray(row.leaders),
+    leaders: ensureArray(row['Key Leader(s)']),
     symbol_text: row.symbol_text || null,
-    seats: parseIntOrNull(row.seats),
-    details: row.details || null,
-    created_at: row.created_at,
+    seats: parseIntOrNull(row['Lok Sabha Seats (2024)']),
+    details: row['Details'] ?? null,
+    created_at: row.Created ?? null,
  }));
 }
 
@@ -329,7 +329,7 @@ export async function listTopPartiesBySeats(limit = 6): Promise<Party[]> {
  const { data, error } = await supabase
    .from('parties')
    .select('*')
-   .order('seats', { ascending: false })
+   .order('se'Lok Sabha Seats (2024)'ats', { ascending: false })
    .limit(limit);
 
  if (error) return [];
@@ -337,17 +337,17 @@ export async function listTopPartiesBySeats(limit = 6): Promise<Party[]> {
  return (data || []).map(row => ({
     id: row.id,
     slug: row.slug,
-    name: row.name,
+    name: row['Name'] ?? '',
     abbr: row.abbr,
     state: row.state || null,
     status: row.status || null,
     founded: row.founded || null,
     logo: row.logo,
-    leaders: ensureArray(row.leaders),
+    leaders: ensureArray(row['Key Leader(s)']),
     symbol_text: row.symbol_text || null,
-    seats: parseIntOrNull(row.seats),
-    details: row.details || null,
-    created_at: row.created_at,
+    seats: parseIntOrNull(row['Lok Sabha Seats (2024)']),
+    details: row['Details'] ?? null,
+    created_at: row.Created ?? null,
  }));
 }
 
@@ -365,17 +365,17 @@ export async function listRecentParties(limit = 4): Promise<Party[]> {
  return (data || []).map(row => ({
     id: row.id,
     slug: row.slug,
-    name: row.name,
+    name: row['Name'] ?? '',
     abbr: row.abbr,
     state: row.state || null,
     status: row.status || null,
     founded: row.founded || null,
     logo: row.logo,
-    leaders: ensureArray(row.leaders),
+    leaders: ensureArray(row['Key Leader(s)']),
     symbol_text: row.symbol_text || null,
-    seats: parseIntOrNull(row.seats),
-    details: row.details || null,
-    created_at: row.created_at,
+    seats: parseIntOrNull(row['Lok Sabha Seats (2024)']),
+    details: row['Details'] ?? null,
+    created_at: row.Created ?? null,
  }));
 }
 

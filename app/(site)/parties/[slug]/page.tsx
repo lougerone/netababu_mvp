@@ -1,7 +1,7 @@
 // app/(site)/parties/[slug]/page.tsx
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
-import { getPartyBySlug } from "@/lib/airtable";
+import { listParties } from "@/lib/supabase";
 import AvatarSquare from "@/components/AvatarSquare";
 import { pickPartyLogoUrl } from "@/lib/data";
 
@@ -29,7 +29,7 @@ export default async function PartyPage({ params }: { params: { slug: string } }
 
   let p: ExtParty | null = null;
   try {
-    p = (await getPartyBySlug(slug)) as ExtParty | null;
+    p = (await listParties()).find((party) => party.slug === slug) as ExtParty | null;
   } catch (err) {
     console.error("getPartyBySlug failed", { slug, err });
     // Proper 404 rather than soft "Not found"

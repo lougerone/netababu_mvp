@@ -16,7 +16,7 @@ function Chip({ children }: { children: React.ReactNode }) {
 }
 
 export default async function PoliticianPage({ params }: { params: { slug: string } }) {
-  const p = await getPolitician(params.slug);
+  const p = (await listRecentPoliticians()).find((pol) => pol.slug === params.slug);
   if (!p) return notFound();
 
   const politician: Politician & { twitter?: string | null; createdAt?: string | null } = p;
